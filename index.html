@@ -2216,6 +2216,26 @@ button:active {
   user-select: none;
 }
 #game-topbar-logo span { opacity: 0.65; font-weight: 400; }
+
+.topbar-version {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: rgba(167, 139, 250, 0.7);
+  /* Override parent's -webkit-text-fill-color: transparent so text is visible */
+  -webkit-text-fill-color: rgba(167, 139, 250, 0.7);
+  background: rgba(124, 92, 255, 0.12);
+  border: 1px solid rgba(124, 92, 255, 0.25);
+  border-radius: 5px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+  /* Ensure the gradient clip from parent doesn't bleed in */
+  -webkit-background-clip: unset;
+  background-clip: unset;
+}
 #game-topbar-right {
   display: flex;
   align-items: center;
@@ -5257,7 +5277,7 @@ button:active {
   <div class="menu-noise"></div>
   <!-- TOP NAV BAR -->
   <div class="menu-topbar">
-    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span></div>
+    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.0</span></div>
     <div class="menu-topbar-right">
       <div class="menu-topbar-user" id="menu-topbar-user">
         <div class="menu-topbar-avatar" id="menu-topbar-avatar">?</div>
@@ -5736,7 +5756,7 @@ button:active {
 
 <!-- TOP BAR -->
 <div id="game-topbar">
-  <div id="game-topbar-logo">♟ Chaos<span>Chess</span></div>
+  <div id="game-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.0</span></div>
   <div id="game-topbar-right">
     <div id="game-topbar-user">
       <div id="game-topbar-avatar">?</div>
@@ -6199,6 +6219,7 @@ let tornadoPlacementMode = false; // When true, next empty square click places t
 let royalGuardPlacementMode = false; // When true, next adjacent empty square click places bodyguard
 let royalGuardKingX = -1, royalGuardKingY = -1; // King's new position awaiting guard placement
 let royalGuardPendingCallback = null; // Called after placement (or skip) to finish the turn
+let positionHistory = []; // For three-fold repetition detection
 let whiteCaptured = [];
 let blackCaptured = [];
 let doubleStrikeActive = false; // Track if we're in a double strike second move
@@ -7292,6 +7313,23 @@ function isSquareAttacked(x,y,byWhite){
     }
   }
   return false;
+}
+
+// Generate a compact string hash of the current board state + turn + castling rights
+// Used for three-fold repetition detection
+function getBoardHash(){
+  let hash = turn[0]; // 'w' or 'b'
+  for(let y=0;y<8;y++){
+    for(let x=0;x<8;x++){
+      hash += (board[y][x] || '.');
+    }
+  }
+  // Include castling rights so e.g. losing castling right changes the position
+  const cr = castleRights;
+  hash += (cr.whiteKing?'1':'0')+(cr.blackKing?'1':'0')+
+          (cr.whiteRookK?'1':'0')+(cr.whiteRookQ?'1':'0')+
+          (cr.blackRookK?'1':'0')+(cr.blackRookQ?'1':'0');
+  return hash;
 }
 
 function isInCheck(white){
@@ -8576,6 +8614,17 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     }
     return;
   }
+
+  // Three-fold repetition check
+  const posHash = getBoardHash();
+  positionHistory.push(posHash);
+  const occurrences = positionHistory.filter(h => h === posHash).length;
+  if(occurrences >= 3){
+    if(gameMode === 'online') sendGameState();
+    draw();
+    endGame('Draw by Repetition! 🤝', 4000);
+    return;
+  }
   
   // Play check sound if in check
   if(inCheck) {
@@ -9804,6 +9853,7 @@ function restart(){
   royalGuardPlacementMode=false;
   royalGuardKingX=-1; royalGuardKingY=-1;
   royalGuardPendingCallback=null;
+  positionHistory=[];
   // Reset per-game stat counters
   gameEffectsTriggered = 0;
   myMovesThisGame = 0;
@@ -10152,7 +10202,7 @@ function handleRemoteData(data){
       subtitle: `${data.color==='white'?'White':'Black'} is offering a draw`,
       onAccept: () => {
         connection.send({type: 'draw_accept'});
-        endGame('Draw accepted! 🤝', 4000);
+        endGame('Draw by Agreement! 🤝', 4000);
       },
       onDecline: () => {
         connection.send({type: 'draw_decline'});
@@ -10163,7 +10213,7 @@ function handleRemoteData(data){
   }
   
   if(data.type === 'draw_accept'){
-    endGame('Draw accepted! 🤝', 4000);
+    endGame('Draw by Agreement! 🤝', 4000);
     return;
   }
   
@@ -10903,7 +10953,8 @@ function showPostgameScreen(outcome, winType, oldRating, newRating, delta, strea
   const winTypeLabels = {
     checkmate: 'By Checkmate', captureKing: 'By King Capture',
     time: 'On Time', resignation: 'By Resignation',
-    draw: 'Draw', stalemate: 'Stalemate'
+    stalemate: 'By Stalemate', agreement: 'By Agreement',
+    repetition: 'By Repetition', draw: 'Draw'
   };
 
   document.getElementById('pg-emoji').textContent  = emojis[outcome];
@@ -11781,7 +11832,11 @@ function winTypeFromMessage(msg){
   if(m.includes('killed') || m.includes('capture')) return 'captureKing';
   if(m.includes('ran out of time')) return 'time';
   if(m.includes('resigned')) return 'resignation';
-  return 'checkmate'; // default
+  if(m.includes('stalemate')) return 'stalemate';
+  if(m.includes('draw accepted') || m.includes('by agreement')) return 'agreement';
+  if(m.includes('repetition')) return 'repetition';
+  if(m.includes('draw')) return 'stalemate'; // generic draw fallback
+  return 'checkmate'; // default win
 }
 
 // ============================================================
