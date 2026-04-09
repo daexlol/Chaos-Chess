@@ -4021,73 +4021,248 @@ button:active {
 }
 
 /* ===== PROFILE SCREEN ===== */
-#profile-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
-#profile-screen.active { display: flex; }
-.profile-box {
-  width: 100%; max-width: 460px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px; padding: 22px 20px;
-  display: flex; flex-direction: column; gap: 6px;
+/* ============================================================
+   PROFILE DASHBOARD — Full redesign
+   ============================================================ */
+#profile-screen {
+  display: none; flex-direction: column; align-items: center;
+  width: 100%; padding: 0 0 24px 0;
 }
-.profile-header-row {
-  display: flex; align-items: center; gap: 16px; margin-bottom: 12px;
+#profile-screen.active { display: flex; }
+
+/* Outer wrapper — full width up to a comfortable max */
+.profile-box {
+  width: 100%; max-width: 860px;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 0 12px;
+  animation: prof-fadein 0.45s ease both;
+}
+@keyframes prof-fadein {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- IDENTITY BANNER ---- */
+.prof-identity-banner {
+  background: linear-gradient(135deg, rgba(102,62,200,0.32) 0%, rgba(15,15,40,0.85) 60%);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 18px; padding: 22px 26px;
+  display: flex; align-items: center; gap: 22px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 0 40px rgba(109,40,217,0.18), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.prof-identity-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 10% 50%, rgba(139,92,246,0.15) 0%, transparent 60%);
+  pointer-events: none;
 }
 .profile-avatar-lg {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #9333ea);
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px; font-weight: 900; color: #fff; flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+  font-size: 30px; font-weight: 900; color: #fff; flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.35), 0 6px 24px rgba(102,126,234,0.45);
+  position: relative; z-index: 1;
 }
-.profile-header-info { display: flex; flex-direction: column; gap: 3px; }
-.profile-name { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
-.profile-rating-badge { font-size: 15px; font-weight: 700; color: #fbbf24; }
-.profile-rating-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 400; margin-left: 4px; }
-.profile-games-played { font-size: 12px; color: rgba(255,255,255,0.4); }
-.profile-stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 8px 0; }
-.profile-stat-card {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px; padding: 12px 6px; text-align: center;
+.prof-identity-text { display: flex; flex-direction: column; gap: 4px; flex: 1; position: relative; z-index: 1; }
+.profile-name { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.8px; line-height: 1; }
+.prof-rating-hero {
+  display: flex; align-items: baseline; gap: 8px; margin-top: 2px;
 }
-.profile-stat-card.win { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.07); }
-.profile-stat-card.loss { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); }
-.profile-stat-card.draw { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.07); }
-.profile-stat-card.rate { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.07); }
-.profile-stat-num { font-size: 22px; font-weight: 900; color: #fff; }
-.profile-stat-card.win .profile-stat-num { color: #34d399; }
-.profile-stat-card.loss .profile-stat-num { color: #f87171; }
-.profile-stat-card.draw .profile-stat-num { color: #fbbf24; }
-.profile-stat-card.rate .profile-stat-num { color: #c4b5fd; }
-.profile-stat-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.4); margin-top: 2px; }
-.profile-section-title {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
-  color: rgba(255,255,255,0.35); margin: 12px 0 6px;
+.prof-rating-number {
+  font-size: 38px; font-weight: 900; color: #fbbf24;
+  line-height: 1; letter-spacing: -1px;
+  text-shadow: 0 0 20px rgba(251,191,36,0.5);
 }
-.profile-breakdown {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: rgba(255,255,255,0.75);
-  line-height: 1.7;
+.prof-rating-label-big {
+  font-size: 12px; font-weight: 700; color: rgba(251,191,36,0.65);
+  letter-spacing: 1.5px; text-transform: uppercase; align-self: center;
 }
-.profile-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.profile-detail-card {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 12px 14px; text-align: center;
+.profile-games-played {
+  font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px; letter-spacing: 0.3px;
 }
-.profile-detail-card.gold { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.06); }
-.profile-detail-card.chaos-card { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.07); }
-.profile-detail-num { font-size: 20px; font-weight: 900; color: #fff; }
-.profile-detail-lbl { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; }
-.prof-fav-mods-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.prof-mod-badge {
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 6px;
+.prof-identity-winrate-pill {
+  background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 50px; padding: 10px 22px; text-align: center;
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; position: relative; z-index: 1;
 }
-.prof-mod-badge .prof-mod-count {
-  font-size: 10px; background: rgba(255,255,255,0.15); border-radius: 10px;
-  padding: 1px 6px; color: rgba(255,255,255,0.6);
+.prof-identity-winrate-val {
+  font-size: 30px; font-weight: 900; color: #c4b5fd;
+  letter-spacing: -1px; line-height: 1;
 }
+.prof-identity-winrate-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.4px; color: rgba(196,181,253,0.55);
+}
+
+/* ---- MAIN GRID ---- */
+.prof-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  .prof-main-grid { grid-template-columns: 1fr; }
+  .prof-right-col { display: contents; }
+}
+
+/* ---- SHARED CARD BASE ---- */
+.prof-card {
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 15px; padding: 18px 18px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.prof-card:hover {
+  border-color: rgba(139,92,246,0.28);
+  box-shadow: 0 4px 24px rgba(109,40,217,0.13);
+}
+.prof-card-title {
+  font-size: 9px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+  color: rgba(255,255,255,0.3); margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
+}
+.prof-card-title::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07);
+}
+
+/* ---- CORE STATS CARD ---- */
+.prof-core-stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;
+}
+.prof-stat-pill {
+  border-radius: 11px; padding: 12px 8px; text-align: center;
+  transition: transform 0.18s;
+}
+.prof-stat-pill:hover { transform: translateY(-2px); }
+.prof-stat-pill.win  { background: rgba(16,185,129,0.1);  border: 1px solid rgba(16,185,129,0.25); }
+.prof-stat-pill.loss { background: rgba(239,68,68,0.09);  border: 1px solid rgba(239,68,68,0.22); }
+.prof-stat-pill.draw { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); }
+.prof-stat-pill-num { font-size: 26px; font-weight: 900; line-height: 1; }
+.prof-stat-pill.win  .prof-stat-pill-num { color: #34d399; }
+.prof-stat-pill.loss .prof-stat-pill-num { color: #f87171; }
+.prof-stat-pill.draw .prof-stat-pill-num { color: #fbbf24; }
+.prof-stat-pill-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.9px; color: rgba(255,255,255,0.38); margin-top: 4px;
+}
+/* hidden data holders (preserve IDs for JS) */
+#prof-winrate { display: none !important; }
+
+/* W/L/D visual bar */
+.prof-wld-bar { display: flex; height: 6px; border-radius: 6px; overflow: hidden; gap: 2px; margin-top: 4px; }
+.prof-wld-bar-win  { background: #34d399; border-radius: 6px; transition: width 0.6s cubic-bezier(.22,1,.36,1); }
+.prof-wld-bar-loss { background: #f87171; border-radius: 6px; transition: width 0.6s cubic-bezier(.22,1,.36,1); }
+.prof-wld-bar-draw { background: #fbbf24; border-radius: 6px; transition: width 0.6s cubic-bezier(.22,1,.36,1); }
+.prof-wld-bar-legend {
+  display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;
+}
+.prof-wld-legend-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+}
+.prof-wld-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: rgba(255,255,255,0.45); }
+
+/* ---- PERFORMANCE CARD ---- */
+.prof-perf-rows { display: flex; flex-direction: column; gap: 10px; }
+.prof-perf-row { display: flex; justify-content: space-between; align-items: center; }
+.prof-perf-lbl { font-size: 12px; color: rgba(255,255,255,0.45); }
+.prof-perf-val { font-size: 16px; font-weight: 800; color: #fff; }
+.prof-perf-val.gold  { color: #fbbf24; }
+.prof-perf-val.chaos { color: #c4b5fd; }
+.prof-perf-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 2px 0; }
+
+/* ---- WIN METHOD BREAKDOWN CARD (right col) ---- */
+.prof-method-rows { display: flex; flex-direction: column; gap: 11px; }
+.prof-method-row { display: flex; flex-direction: column; gap: 4px; }
+.prof-method-header { display: flex; justify-content: space-between; }
+.prof-method-name { font-size: 11px; color: rgba(255,255,255,0.65); font-weight: 600; }
+.prof-method-pct  { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 700; }
+.prof-method-track { height: 5px; background: rgba(255,255,255,0.07); border-radius: 5px; overflow: hidden; }
+.prof-method-fill {
+  height: 100%; border-radius: 5px;
+  transition: width 0.7s cubic-bezier(.22,1,.36,1);
+}
+.prof-method-fill.checkmate   { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+.prof-method-fill.captureKing { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.prof-method-fill.time        { background: linear-gradient(90deg, #f87171, #dc2626); }
+.prof-method-fill.resignation { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+/* Loss breakdown tab */
+.prof-tab-row { display: flex; gap: 0; margin-bottom: 14px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.09); }
+.prof-tab-btn {
+  flex: 1; padding: 7px 0; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; cursor: pointer; background: transparent; border: none;
+  color: rgba(255,255,255,0.35); transition: all 0.18s;
+}
+.prof-tab-btn.active { background: rgba(139,92,246,0.25); color: #c4b5fd; }
+.prof-breakdown-panel { display: none; }
+.prof-breakdown-panel.active { display: flex; flex-direction: column; gap: 11px; }
+
+/* ---- FAVOURITE MODIFIERS (full width bottom) ---- */
+.prof-mods-section { display: flex; flex-direction: column; gap: 12px; }
+.prof-featured-mod {
+  border-radius: 15px; padding: 20px 22px;
+  display: flex; align-items: center; gap: 18px;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+.prof-featured-mod:hover { transform: translateY(-2px); }
+.prof-featured-mod.rarity-common   { background: rgba(148,163,184,0.1);  border: 1px solid rgba(148,163,184,0.25); }
+.prof-featured-mod.rarity-rare     { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.35); box-shadow: 0 0 30px rgba(167,139,250,0.1); }
+.prof-featured-mod.rarity-legendary{ background: rgba(251,191,36,0.09);  border: 1px solid rgba(251,191,36,0.32);  box-shadow: 0 0 30px rgba(251,191,36,0.12); }
+.prof-featured-mod.rarity-mythic   { background: rgba(251,100,36,0.09);  border: 1px solid rgba(253,160,80,0.35);  box-shadow: 0 0 35px rgba(253,120,60,0.15); }
+.prof-featured-mod.rarity-evolved  { background: rgba(255,60,120,0.1);   border: 1px solid rgba(255,80,160,0.35);  box-shadow: 0 0 30px rgba(255,60,120,0.12); }
+.prof-featured-mod-icon {
+  font-size: 42px; line-height: 1; flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+.prof-featured-mod-info { flex: 1; }
+.prof-featured-badge {
+  font-size: 8px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase;
+  color: rgba(255,255,255,0.35); margin-bottom: 5px;
+}
+.prof-featured-name { font-size: 20px; font-weight: 900; color: #fff; line-height: 1.1; }
+.prof-featured-rarity {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;
+}
+.rarity-common   .prof-featured-rarity { color: #94a3b8; }
+.rarity-rare     .prof-featured-rarity { color: #a78bfa; }
+.rarity-legendary .prof-featured-rarity { color: #fbbf24; }
+.rarity-mythic   .prof-featured-rarity { color: #fdba74; }
+.rarity-evolved  .prof-featured-rarity { color: #ff80aa; }
+.prof-featured-count {
+  background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px;
+  font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.8); flex-shrink: 0;
+  text-align: center;
+}
+.prof-featured-count-lbl { font-size: 9px; color: rgba(255,255,255,0.38); font-weight: 600; letter-spacing: 0.5px; }
+
+.prof-mods-minor-list {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+@media (max-width: 500px) { .prof-mods-minor-list { grid-template-columns: repeat(2, 1fr); } }
+.prof-mod-minor-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 11px; padding: 10px 10px 8px; text-align: center;
+  transition: border-color 0.18s, transform 0.18s;
+}
+.prof-mod-minor-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-2px); }
+.prof-mod-minor-card.rarity-rare     { border-color: rgba(167,139,250,0.2); }
+.prof-mod-minor-card.rarity-legendary{ border-color: rgba(251,191,36,0.2); }
+.prof-mod-minor-card.rarity-mythic   { border-color: rgba(253,120,60,0.25); }
+.prof-mod-minor-card.rarity-evolved  { border-color: rgba(255,80,160,0.25); }
+.prof-mod-minor-icon  { font-size: 22px; line-height: 1; margin-bottom: 4px; }
+.prof-mod-minor-name  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.75); line-height: 1.25; }
+.prof-mod-minor-count { font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+
+/* ---- OLD COMPAT: hide original elements that are replaced ---- */
+.profile-header-row, .profile-stat-row, .profile-section-title,
+.profile-breakdown, .profile-two-col, .profile-detail-card,
+.prof-fav-mods-list { display: none !important; }
+
+/* Count-up animation helper */
+@keyframes prof-countup { from { opacity: 0; } to { opacity: 1; } }
+.prof-counting { animation: prof-countup 0.3s ease; }
 
 /* Chaos theme flickering effects */
 @keyframes chaos-flicker-red {
@@ -5576,76 +5751,172 @@ button:active {
     <!-- PROFILE SCREEN -->
     <div id="profile-screen">
       <div class="profile-box">
-        <div class="profile-header-row">
+
+        <!-- ── IDENTITY BANNER ── -->
+        <div class="prof-identity-banner">
           <div class="profile-avatar-lg" id="profile-avatar-letter">?</div>
-          <div class="profile-header-info">
+          <div class="prof-identity-text">
             <div class="profile-name" id="profile-display-name">—</div>
-            <div class="profile-rating-badge">⚡ <span id="profile-rating-val">—</span> <span class="profile-rating-label">Chaos Rating</span></div>
+            <div class="prof-rating-hero">
+              <span class="prof-rating-number" id="profile-rating-val">—</span>
+              <span class="prof-rating-label-big">Chaos Rating</span>
+            </div>
             <div class="profile-games-played" id="profile-games-played">0 games played</div>
           </div>
-        </div>
-
-        <!-- Core Stats -->
-        <div class="profile-stat-row">
-          <div class="profile-stat-card win">
-            <div class="profile-stat-num" id="prof-wins">0</div>
-            <div class="profile-stat-lbl">Wins</div>
-          </div>
-          <div class="profile-stat-card loss">
-            <div class="profile-stat-num" id="prof-losses">0</div>
-            <div class="profile-stat-lbl">Losses</div>
-          </div>
-          <div class="profile-stat-card draw">
-            <div class="profile-stat-num" id="prof-draws">0</div>
-            <div class="profile-stat-lbl">Draws</div>
-          </div>
-          <div class="profile-stat-card rate">
-            <div class="profile-stat-num" id="prof-winrate">—</div>
-            <div class="profile-stat-lbl">Win Rate</div>
+          <div class="prof-identity-winrate-pill">
+            <div class="prof-identity-winrate-val" id="prof-winrate-display">—</div>
+            <div class="prof-identity-winrate-lbl">Win Rate</div>
           </div>
         </div>
 
-        <!-- Win/Loss breakdown -->
-        <div class="profile-section-title">Win Breakdown</div>
-        <div class="profile-breakdown" id="prof-win-breakdown">—</div>
+        <!-- Hidden legacy elements so JS still finds them -->
+        <div style="display:none">
+          <div id="prof-winrate">—</div>
+          <div id="prof-win-breakdown">—</div>
+          <div id="prof-loss-breakdown">—</div>
+        </div>
 
-        <div class="profile-section-title">Loss Breakdown</div>
-        <div class="profile-breakdown" id="prof-loss-breakdown">—</div>
+        <!-- ── MAIN GRID ── -->
+        <div class="prof-main-grid">
 
-        <!-- Move Stats -->
-        <div class="profile-section-title">Move Averages</div>
-        <div class="profile-two-col">
-          <div class="profile-detail-card">
-            <div class="profile-detail-num" id="prof-avg-win-moves">—</div>
-            <div class="profile-detail-lbl">Avg Moves / Win</div>
-          </div>
-          <div class="profile-detail-card">
-            <div class="profile-detail-num" id="prof-avg-loss-moves">—</div>
-            <div class="profile-detail-lbl">Avg Moves / Loss</div>
+          <!-- LEFT COL -->
+          <div class="prof-left-col" style="display:flex;flex-direction:column;gap:14px;">
+
+            <!-- Core Stats Card -->
+            <div class="prof-card">
+              <div class="prof-card-title">Core Stats</div>
+              <div class="prof-core-stats-grid">
+                <div class="prof-stat-pill win">
+                  <div class="prof-stat-pill-num" id="prof-wins">0</div>
+                  <div class="prof-stat-pill-lbl">Wins</div>
+                </div>
+                <div class="prof-stat-pill loss">
+                  <div class="prof-stat-pill-num" id="prof-losses">0</div>
+                  <div class="prof-stat-pill-lbl">Losses</div>
+                </div>
+                <div class="prof-stat-pill draw">
+                  <div class="prof-stat-pill-num" id="prof-draws">0</div>
+                  <div class="prof-stat-pill-lbl">Draws</div>
+                </div>
+              </div>
+              <!-- Visual WLD bar -->
+              <div class="prof-wld-bar" id="prof-wld-bar">
+                <div class="prof-wld-bar-win"  id="prof-bar-win"  style="width:0%"></div>
+                <div class="prof-wld-bar-loss" id="prof-bar-loss" style="width:0%"></div>
+                <div class="prof-wld-bar-draw" id="prof-bar-draw" style="width:0%"></div>
+              </div>
+              <div class="prof-wld-bar-legend">
+                <div class="prof-wld-legend-item"><div class="prof-wld-legend-dot" style="background:#34d399"></div><span id="prof-wld-win-pct">—</span> Win</div>
+                <div class="prof-wld-legend-item"><div class="prof-wld-legend-dot" style="background:#f87171"></div><span id="prof-wld-loss-pct">—</span> Loss</div>
+                <div class="prof-wld-legend-item"><div class="prof-wld-legend-dot" style="background:#fbbf24"></div><span id="prof-wld-draw-pct">—</span> Draw</div>
+              </div>
+            </div>
+
+            <!-- Performance Card -->
+            <div class="prof-card">
+              <div class="prof-card-title">Performance</div>
+              <div class="prof-perf-rows">
+                <div class="prof-perf-row">
+                  <span class="prof-perf-lbl">Avg moves / win</span>
+                  <span class="prof-perf-val" id="prof-avg-win-moves">—</span>
+                </div>
+                <div class="prof-perf-divider"></div>
+                <div class="prof-perf-row">
+                  <span class="prof-perf-lbl">Avg moves / loss</span>
+                  <span class="prof-perf-val" id="prof-avg-loss-moves">—</span>
+                </div>
+                <div class="prof-perf-divider"></div>
+                <div class="prof-perf-row">
+                  <span class="prof-perf-lbl">⚡ Fastest win</span>
+                  <span class="prof-perf-val gold" id="prof-fastest-win">—</span>
+                </div>
+                <div class="prof-perf-divider"></div>
+                <div class="prof-perf-row">
+                  <span class="prof-perf-lbl">🔥 Longest streak</span>
+                  <span class="prof-perf-val gold" id="prof-longest-streak">0</span>
+                </div>
+                <div class="prof-perf-divider"></div>
+                <div class="prof-perf-row">
+                  <span class="prof-perf-lbl">🌀 Most chaotic win</span>
+                  <span class="prof-perf-val chaos" id="prof-chaotic-win">—</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /left col -->
+
+          <!-- RIGHT COL -->
+          <div class="prof-right-col" style="display:flex;flex-direction:column;gap:14px;">
+
+            <!-- Win Method Breakdown Card -->
+            <div class="prof-card" style="flex:1;">
+              <div class="prof-card-title">Win Methods</div>
+              <div class="prof-tab-row">
+                <button class="prof-tab-btn active" onclick="switchBreakdownTab(this,'wins')">Wins</button>
+                <button class="prof-tab-btn"        onclick="switchBreakdownTab(this,'losses')">Losses</button>
+              </div>
+
+              <!-- Wins panel -->
+              <div class="prof-breakdown-panel active" id="prof-panel-wins">
+                <div class="prof-method-rows" id="prof-win-method-rows">
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">♟ Checkmate</span><span class="prof-method-pct" id="prof-wm-w-cm-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill checkmate" id="prof-wm-w-cm" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">👑 Capture King</span><span class="prof-method-pct" id="prof-wm-w-ck-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill captureKing" id="prof-wm-w-ck" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">⏱ Time</span><span class="prof-method-pct" id="prof-wm-w-tm-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill time" id="prof-wm-w-tm" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">🏳️ Resignation</span><span class="prof-method-pct" id="prof-wm-w-rs-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill resignation" id="prof-wm-w-rs" style="width:0%"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Losses panel -->
+              <div class="prof-breakdown-panel" id="prof-panel-losses">
+                <div class="prof-method-rows" id="prof-loss-method-rows">
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">♟ Checkmate</span><span class="prof-method-pct" id="prof-wm-l-cm-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill checkmate" id="prof-wm-l-cm" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">👑 Capture King</span><span class="prof-method-pct" id="prof-wm-l-ck-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill captureKing" id="prof-wm-l-ck" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">⏱ Time</span><span class="prof-method-pct" id="prof-wm-l-tm-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill time" id="prof-wm-l-tm" style="width:0%"></div></div>
+                  </div>
+                  <div class="prof-method-row">
+                    <div class="prof-method-header"><span class="prof-method-name">🏳️ Resignation</span><span class="prof-method-pct" id="prof-wm-l-rs-pct">0%</span></div>
+                    <div class="prof-method-track"><div class="prof-method-fill resignation" id="prof-wm-l-rs" style="width:0%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /right col -->
+
+        </div><!-- /main grid -->
+
+        <!-- ── FAVOURITE MODIFIERS (full width) ── -->
+        <div class="prof-card prof-mods-section">
+          <div class="prof-card-title">Favourite Modifiers</div>
+          <div id="prof-fav-mods">
+            <!-- Featured #1 modifier -->
+            <div id="prof-featured-mod-wrap"></div>
+            <!-- Top 2–5 minor cards -->
+            <div class="prof-mods-minor-list" id="prof-mods-minor-list" style="margin-top:10px;"></div>
           </div>
         </div>
 
-        <!-- Streak & Records -->
-        <div class="profile-section-title">Records</div>
-        <div class="profile-two-col">
-          <div class="profile-detail-card gold">
-            <div class="profile-detail-num" id="prof-longest-streak">0</div>
-            <div class="profile-detail-lbl">🔥 Longest Streak</div>
-          </div>
-          <div class="profile-detail-card gold">
-            <div class="profile-detail-num" id="prof-fastest-win">—</div>
-            <div class="profile-detail-lbl">⚡ Fastest Win (moves)</div>
-          </div>
-        </div>
-        <div class="profile-detail-card chaos-card" style="margin-top:8px;">
-          <div class="profile-detail-num" id="prof-chaotic-win">—</div>
-          <div class="profile-detail-lbl">🌀 Most Chaotic Win (effects triggered)</div>
-        </div>
-
-        <!-- Favourite Modifiers -->
-        <div class="profile-section-title">Favourite Modifiers</div>
-        <div id="prof-fav-mods" class="prof-fav-mods-list">—</div>
-      </div>
+      </div><!-- /profile-box -->
       <button class="menu-btn secondary" onclick="backToLobby()" style="margin-top:16px;">← Back</button>
     </div>
 
@@ -10879,11 +11150,30 @@ function closeHowToPlay(){
 // ============================================================
 //  RATING SYSTEM
 // ============================================================
-const RATING_WIN  = 30;
-const RATING_LOSS = -30;
-const RATING_DRAW = 0;
-const STREAK_BONUS = 3; // +3 per win in streak
-const STREAK_CAP   = 5; // keeps bonus max at +15
+// ── Chaos Chess Elo System ────────────────────────────────────────────────
+// Proper Elo expected-score formula (400-point scale, same as FIDE).
+// K-factor scales down as you gain experience, so early games move rating fast.
+// On top of Elo, a win streak multiplier rewards hot streaks without inflating
+// ratings long-term (the multiplier only scales the Elo gain, never the loss).
+
+function getChaosK(gamesPlayed){
+  // New players (< 20 games): K=50 — fast placement
+  // Developing (20–100):      K=35
+  // Established (100+):       K=25
+  if(gamesPlayed < 20)  return 50;
+  if(gamesPlayed < 100) return 35;
+  return 25;
+}
+
+function getStreakMultiplier(streak){
+  // streak=0/1: 1.0×  (no bonus)
+  // streak=2:   1.10× (+10%)
+  // streak=3:   1.20×
+  // streak=4:   1.30×
+  // streak=5+:  1.40× (cap — ~40% bonus Elo on wins)
+  if(streak < 2) return 1.0;
+  return Math.min(1.0 + (streak - 1) * 0.10, 1.40);
+}
 
 // Tracks whether the current private match is rated. Always true for public MM.
 let privateMatchRated = true;
@@ -10894,23 +11184,32 @@ async function updateRatingAfterGame(outcome){
   if(gameMode !== 'online') return; // Only online games are rated
   if(!privateMatchRated) return;    // Skip if this private match is unrated
 
-  const oldRating  = currentProfile.rating;
-  const oldStreak  = currentProfile.streak || 0;
-  let   newStreak  = outcome === 'win' ? oldStreak + 1 : (outcome === 'loss' ? 0 : oldStreak);
-  const streakBonus = outcome === 'win' ? Math.min(newStreak - 1, STREAK_CAP) * STREAK_BONUS : 0;
+  const oldRating    = currentProfile.rating;
+  const gamesPlayed  = currentProfile.gamesPlayed || 0;
+  const oldStreak    = currentProfile.streak || 0;
+  const newStreak    = outcome === 'win' ? oldStreak + 1 : (outcome === 'loss' ? 0 : oldStreak);
 
-  // Incorporate opponent skill differential into rating change:
-  //  +1 per 50 rating difference, clamped to [-10, +10]
   const opponentRating = window._mmOpponent && typeof window._mmOpponent.rating === 'number'
     ? window._mmOpponent.rating
     : oldRating;
-  const rawDiff = Math.floor((opponentRating - oldRating) / 50);
-  const diffAdj = Math.max(-10, Math.min(10, rawDiff));
 
-  let delta = 0;
-  if(outcome === 'win')  delta = RATING_WIN  + streakBonus + diffAdj;
-  if(outcome === 'loss') delta = RATING_LOSS + diffAdj;
-  if(outcome === 'draw') delta = RATING_DRAW;
+  // Standard Elo expected score (0–1)
+  const expected = 1 / (1 + Math.pow(10, (opponentRating - oldRating) / 400));
+  const score    = outcome === 'win' ? 1 : outcome === 'loss' ? 0 : 0.5;
+  const K        = getChaosK(gamesPlayed);
+
+  // Base Elo delta (can be fractional, we round at the end)
+  const eloBase = K * (score - expected);
+
+  // Streak multiplier only amplifies wins, never touches losses
+  const streakMult  = outcome === 'win' ? getStreakMultiplier(newStreak) : 1.0;
+  const streakBonus = outcome === 'win' ? Math.round(eloBase * streakMult) - Math.round(eloBase) : 0;
+
+  let delta = Math.round(eloBase * (outcome === 'win' ? streakMult : 1.0));
+
+  // Floor: a win always gives at least +1, a loss always costs at least -1
+  if(outcome === 'win')  delta = Math.max(1,  delta);
+  if(outcome === 'loss') delta = Math.min(-1, delta);
 
   const newRating = Math.max(0, oldRating + delta);
 
@@ -11870,12 +12169,51 @@ function renderProfile(){
   const total  = wins + losses + draws;
   const winRate = total > 0 ? Math.round((wins / total) * 100) + '%' : '—';
 
-  document.getElementById('prof-wins').textContent   = wins;
-  document.getElementById('prof-losses').textContent = losses;
-  document.getElementById('prof-draws').textContent  = draws;
-  document.getElementById('prof-winrate').textContent = winRate;
+  // Animate count-up for core nums
+  function countUp(el, target, suffix){
+    if(!el) return;
+    if(typeof target !== 'number'){ el.textContent = target; return; }
+    const dur = 600, steps = 20;
+    let i = 0;
+    const tick = () => {
+      i++;
+      el.textContent = Math.round(target * (i / steps)) + (suffix||'');
+      if(i < steps) requestAnimationFrame(tick);
+    };
+    tick();
+  }
 
-  // Win breakdown
+  countUp(document.getElementById('prof-wins'),   wins);
+  countUp(document.getElementById('prof-losses'), losses);
+  countUp(document.getElementById('prof-draws'),  draws);
+
+  // Win rate in both hidden element and new hero
+  document.getElementById('prof-winrate').textContent = winRate;
+  const wrDisplay = document.getElementById('prof-winrate-display');
+  if(wrDisplay) wrDisplay.textContent = winRate;
+
+  // WLD proportion bar
+  if(total > 0){
+    const wp = (wins/total*100).toFixed(1);
+    const lp = (losses/total*100).toFixed(1);
+    const dp = (draws/total*100).toFixed(1);
+    setTimeout(()=>{
+      const bw = document.getElementById('prof-bar-win');
+      const bl = document.getElementById('prof-bar-loss');
+      const bd = document.getElementById('prof-bar-draw');
+      if(bw) bw.style.width = wp + '%';
+      if(bl) bl.style.width = lp + '%';
+      if(bd) bd.style.width = dp + '%';
+    }, 80);
+    const wPct = document.getElementById('prof-wld-win-pct');
+    const lPct = document.getElementById('prof-wld-loss-pct');
+    const dPct = document.getElementById('prof-wld-draw-pct');
+    if(wPct) wPct.textContent = wp + '%';
+    if(lPct) lPct.textContent = lp + '%';
+    if(dPct) dPct.textContent = dp + '%';
+  }
+
+  // Win/Loss breakdowns — hidden legacy (for any code that reads them)
   const wb = s.winsByType || {};
   const wbTotal = wins || 1;
   document.getElementById('prof-win-breakdown').innerHTML = wins === 0 ? 'No wins yet.' : `
@@ -11884,8 +12222,6 @@ function renderProfile(){
     <span>⏱ Time: <strong>${wb.time||0}</strong> (${pct(wb.time,wbTotal)})</span><br>
     <span>🏳️ Resignation: <strong>${wb.resignation||0}</strong> (${pct(wb.resignation,wbTotal)})</span>
   `;
-
-  // Loss breakdown
   const lb = s.lossesByType || {};
   const lbTotal = losses || 1;
   document.getElementById('prof-loss-breakdown').innerHTML = losses === 0 ? 'No losses yet.' : `
@@ -11895,34 +12231,106 @@ function renderProfile(){
     <span>🏳️ Resignation: <strong>${lb.resignation||0}</strong> (${pct(lb.resignation,lbTotal)})</span>
   `;
 
+  // Visual method bars — wins
+  function setMethodBar(fillId, pctId, val, total){
+    const p2 = total > 0 ? Math.round((val/total)*100) : 0;
+    const fill = document.getElementById(fillId);
+    const pctEl = document.getElementById(pctId);
+    if(pctEl) pctEl.textContent = p2 + '%';
+    if(fill) setTimeout(()=>{ fill.style.width = p2 + '%'; }, 120);
+  }
+  setMethodBar('prof-wm-w-cm', 'prof-wm-w-cm-pct', wb.checkmate||0,   wbTotal);
+  setMethodBar('prof-wm-w-ck', 'prof-wm-w-ck-pct', wb.captureKing||0, wbTotal);
+  setMethodBar('prof-wm-w-tm', 'prof-wm-w-tm-pct', wb.time||0,        wbTotal);
+  setMethodBar('prof-wm-w-rs', 'prof-wm-w-rs-pct', wb.resignation||0, wbTotal);
+
+  setMethodBar('prof-wm-l-cm', 'prof-wm-l-cm-pct', lb.checkmate||0,   lbTotal);
+  setMethodBar('prof-wm-l-ck', 'prof-wm-l-ck-pct', lb.captureKing||0, lbTotal);
+  setMethodBar('prof-wm-l-tm', 'prof-wm-l-tm-pct', lb.time||0,        lbTotal);
+  setMethodBar('prof-wm-l-rs', 'prof-wm-l-rs-pct', lb.resignation||0, lbTotal);
+
   // Move averages
   const tmw = s.totalMovesInWins || 0;
   const tml = s.totalMovesInLosses || 0;
   document.getElementById('prof-avg-win-moves').textContent  = wins  > 0 ? Math.round(tmw / wins)  : '—';
   document.getElementById('prof-avg-loss-moves').textContent = losses > 0 ? Math.round(tml / losses) : '—';
 
-  // Streaks & records
+  // Records
   document.getElementById('prof-longest-streak').textContent = s.longestStreak || 0;
   document.getElementById('prof-fastest-win').textContent    = s.fastestWinMoves != null ? s.fastestWinMoves : '—';
   document.getElementById('prof-chaotic-win').textContent    = s.mostChaoticWinEffects || '—';
 
-  // Favourite modifiers (top N)
+  // Favourite modifiers
   const mu = s.modifierUsage || {};
-  const sortedMods = Object.entries(mu)
-    .sort((a,b) => b[1] - a[1])
-    .slice(0, 5);
+  const sortedMods = Object.entries(mu).sort((a,b) => b[1] - a[1]).slice(0, 5);
 
-  const favEl = document.getElementById('prof-fav-mods');
+  const featuredWrap = document.getElementById('prof-featured-mod-wrap');
+  const minorList    = document.getElementById('prof-mods-minor-list');
+
+  if(!featuredWrap || !minorList) return;
+
   if(sortedMods.length === 0){
-    favEl.innerHTML = '<span style="color:rgba(255,255,255,0.35);font-size:13px;">No games played yet.</span>';
-  } else {
-    favEl.innerHTML = sortedMods.map(([key, count]) => {
-      const displayName = key.replace(/_/g, ' ');
-      const modData = allMods.find(m => m.name.replace(/[^a-zA-Z0-9]/g, '_') === key);
-      const icon = modData ? modData.icon : '🎲';
-      return `<div class="prof-mod-badge">${icon} ${modData ? modData.name : displayName} <span class="prof-mod-count">×${count}</span></div>`;
-    }).join('');
+    featuredWrap.innerHTML = `<div style="color:rgba(255,255,255,0.3);font-size:13px;padding:12px 0;">No games played yet — get out there!</div>`;
+    minorList.innerHTML = '';
+    return;
   }
+
+  function getRarityClass(modData){
+    if(!modData) return 'rarity-common';
+    return 'rarity-' + (modData.rarity || 'common');
+  }
+  function rarityLabel(modData){
+    if(!modData || !modData.rarity) return 'Common';
+    return modData.rarity.charAt(0).toUpperCase() + modData.rarity.slice(1);
+  }
+
+  // Featured #1
+  const [topKey, topCount] = sortedMods[0];
+  const topDisplayName = topKey.replace(/_/g, ' ');
+  const topModData = allMods.find(m => m.name.replace(/[^a-zA-Z0-9]/g, '_') === topKey);
+  const topIcon    = topModData ? topModData.icon : '🎲';
+  const topName    = topModData ? topModData.name : topDisplayName;
+  const topRarity  = getRarityClass(topModData);
+  const topLabel   = rarityLabel(topModData);
+
+  featuredWrap.innerHTML = `
+    <div class="prof-featured-mod ${topRarity}">
+      <div class="prof-featured-mod-icon">${topIcon}</div>
+      <div class="prof-featured-mod-info">
+        <div class="prof-featured-badge">⭐ Most Played Modifier</div>
+        <div class="prof-featured-name">${topName}</div>
+        <div class="prof-featured-rarity">${topLabel}</div>
+      </div>
+      <div class="prof-featured-count">
+        <div>${topCount}</div>
+        <div class="prof-featured-count-lbl">times</div>
+      </div>
+    </div>
+  `;
+
+  // Minor list (2–5)
+  const minors = sortedMods.slice(1);
+  if(minors.length === 0){ minorList.innerHTML = ''; return; }
+  minorList.innerHTML = minors.map(([key, count]) => {
+    const dn  = key.replace(/_/g, ' ');
+    const md  = allMods.find(m => m.name.replace(/[^a-zA-Z0-9]/g, '_') === key);
+    const ico = md ? md.icon : '🎲';
+    const nm  = md ? md.name : dn;
+    const rc  = getRarityClass(md);
+    return `<div class="prof-mod-minor-card ${rc}">
+      <div class="prof-mod-minor-icon">${ico}</div>
+      <div class="prof-mod-minor-name">${nm}</div>
+      <div class="prof-mod-minor-count">×${count}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchBreakdownTab(btn, panel){
+  document.querySelectorAll('.prof-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.prof-breakdown-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('prof-panel-' + panel);
+  if(el) el.classList.add('active');
 }
 
 function pct(val, total){
