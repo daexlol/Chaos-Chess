@@ -4171,6 +4171,35 @@ button:active {
 .prof-perf-val.chaos { color: #c4b5fd; }
 .prof-perf-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 2px 0; }
 
+/* ---- CHAOS DNA CARD ---- */
+.prof-chaos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 2px;
+}
+.prof-chaos-stat {
+  background: rgba(196,181,253,0.07);
+  border: 1px solid rgba(196,181,253,0.13);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.prof-chaos-stat-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #c4b5fd;
+  line-height: 1;
+}
+.prof-chaos-stat-val.gold { color: #fbbf24; }
+.prof-chaos-stat-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.3;
+}
+
 /* ---- WIN METHOD BREAKDOWN CARD (right col) ---- */
 .prof-method-rows { display: flex; flex-direction: column; gap: 11px; }
 .prof-method-row { display: flex; flex-direction: column; gap: 4px; }
@@ -5835,11 +5864,6 @@ button:active {
                   <span class="prof-perf-lbl">🔥 Longest streak</span>
                   <span class="prof-perf-val gold" id="prof-longest-streak">0</span>
                 </div>
-                <div class="prof-perf-divider"></div>
-                <div class="prof-perf-row">
-                  <span class="prof-perf-lbl">🌀 Most chaotic win</span>
-                  <span class="prof-perf-val chaos" id="prof-chaotic-win">—</span>
-                </div>
               </div>
             </div>
 
@@ -5904,6 +5928,29 @@ button:active {
           </div><!-- /right col -->
 
         </div><!-- /main grid -->
+
+        <!-- ── CHAOS DNA (full width) ── -->
+        <div class="prof-card prof-mods-section" style="margin-top:0;">
+          <div class="prof-card-title">🌀 Chaos DNA</div>
+          <div class="prof-chaos-grid">
+            <div class="prof-chaos-stat">
+              <div class="prof-chaos-stat-val" id="prof-total-effects">—</div>
+              <div class="prof-chaos-stat-lbl">Total Effects Triggered</div>
+            </div>
+            <div class="prof-chaos-stat">
+              <div class="prof-chaos-stat-val" id="prof-avg-chaos">—</div>
+              <div class="prof-chaos-stat-lbl">Avg Effects per Game</div>
+            </div>
+            <div class="prof-chaos-stat">
+              <div class="prof-chaos-stat-val gold" id="prof-chaotic-game">—</div>
+              <div class="prof-chaos-stat-lbl">Most Chaotic Game</div>
+            </div>
+            <div class="prof-chaos-stat">
+              <div class="prof-chaos-stat-val" id="prof-chaotic-win2">—</div>
+              <div class="prof-chaos-stat-lbl">Most Chaotic Win</div>
+            </div>
+          </div>
+        </div>
 
         <!-- ── FAVOURITE MODIFIERS (full width) ── -->
         <div class="prof-card prof-mods-section">
@@ -12087,6 +12134,19 @@ async function updateStatsAfterGame(outcome, winType){
     update['stats.draws'] = inc(1);
   }
 
+  // Chaos tracking — applies to all outcomes
+  if(effects > 0){
+    update['stats.totalEffectsTriggered'] = inc(effects);
+    if(currentProfile.stats) currentProfile.stats.totalEffectsTriggered =
+      ((currentProfile.stats.totalEffectsTriggered) || 0) + effects;
+
+    const prevChaoticGame = (currentProfile.stats && currentProfile.stats.mostChaoticGameEffects) || 0;
+    if(effects > prevChaoticGame){
+      update['stats.mostChaoticGameEffects'] = effects;
+      if(currentProfile.stats) currentProfile.stats.mostChaoticGameEffects = effects;
+    }
+  }
+
   // Modifier usage tracking
   modsUsed.forEach(modName => {
     const safeKey = modName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -12237,7 +12297,19 @@ function renderProfile(){
   // Records
   document.getElementById('prof-longest-streak').textContent = s.longestStreak || 0;
   document.getElementById('prof-fastest-win').textContent    = s.fastestWinMoves != null ? s.fastestWinMoves : '—';
-  document.getElementById('prof-chaotic-win').textContent    = s.mostChaoticWinEffects || '—';
+
+  // Chaos DNA stats
+  const totalEffects = s.totalEffectsTriggered || 0;
+  const gamesPlayed2 = (wins + losses + (s.draws || 0)) || 0;
+  const avgChaos = gamesPlayed2 > 0 ? (totalEffects / gamesPlayed2).toFixed(1) : '—';
+  const el_total = document.getElementById('prof-total-effects');
+  const el_avg   = document.getElementById('prof-avg-chaos');
+  const el_game  = document.getElementById('prof-chaotic-game');
+  const el_cwin  = document.getElementById('prof-chaotic-win2');
+  if(el_total) el_total.textContent = totalEffects > 0 ? totalEffects : '—';
+  if(el_avg)   el_avg.textContent   = avgChaos;
+  if(el_game)  el_game.textContent  = s.mostChaoticGameEffects || '—';
+  if(el_cwin)  el_cwin.textContent  = s.mostChaoticWinEffects  || '—';
 
   // Favourite modifiers
   const mu = s.modifierUsage || {};
