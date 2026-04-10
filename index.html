@@ -11150,30 +11150,11 @@ function closeHowToPlay(){
 // ============================================================
 //  RATING SYSTEM
 // ============================================================
-// ── Chaos Chess Elo System ────────────────────────────────────────────────
-// Proper Elo expected-score formula (400-point scale, same as FIDE).
-// K-factor scales down as you gain experience, so early games move rating fast.
-// On top of Elo, a win streak multiplier rewards hot streaks without inflating
-// ratings long-term (the multiplier only scales the Elo gain, never the loss).
-
-function getChaosK(gamesPlayed){
-  // New players (< 20 games): K=50 — fast placement
-  // Developing (20–100):      K=35
-  // Established (100+):       K=25
-  if(gamesPlayed < 20)  return 50;
-  if(gamesPlayed < 100) return 35;
-  return 25;
-}
-
-function getStreakMultiplier(streak){
-  // streak=0/1: 1.0×  (no bonus)
-  // streak=2:   1.10× (+10%)
-  // streak=3:   1.20×
-  // streak=4:   1.30×
-  // streak=5+:  1.40× (cap — ~40% bonus Elo on wins)
-  if(streak < 2) return 1.0;
-  return Math.min(1.0 + (streak - 1) * 0.10, 1.40);
-}
+const RATING_WIN   = 30;
+const RATING_LOSS  = -30;
+const RATING_DRAW  = 0;
+const STREAK_BONUS = 3;  // +3 per win in active streak
+const STREAK_CAP   = 5;  // max streak levels counted (max bonus = +15)
 
 // Tracks whether the current private match is rated. Always true for public MM.
 let privateMatchRated = true;
@@ -11181,35 +11162,30 @@ let privateMatchRated = true;
 // Called when a rated game ends. outcome = 'win' | 'loss' | 'draw'
 async function updateRatingAfterGame(outcome){
   if(!currentProfile || isGuest || !fbDb) return;
-  if(gameMode !== 'online') return; // Only online games are rated
-  if(!privateMatchRated) return;    // Skip if this private match is unrated
+  if(gameMode !== 'online') return;  // Only online games are rated
+  if(!privateMatchRated) return;     // Skip if this private match is unrated
 
-  const oldRating    = currentProfile.rating;
-  const gamesPlayed  = currentProfile.gamesPlayed || 0;
-  const oldStreak    = currentProfile.streak || 0;
-  const newStreak    = outcome === 'win' ? oldStreak + 1 : (outcome === 'loss' ? 0 : oldStreak);
+  const oldRating   = currentProfile.rating;
+  const oldStreak   = currentProfile.streak || 0;
+  const newStreak   = outcome === 'win' ? oldStreak + 1 : (outcome === 'loss' ? 0 : oldStreak);
+  const streakBonus = outcome === 'win' ? Math.min(newStreak - 1, STREAK_CAP) * STREAK_BONUS : 0;
 
-  const opponentRating = window._mmOpponent && typeof window._mmOpponent.rating === 'number'
-    ? window._mmOpponent.rating
-    : oldRating;
+  // Opponent rating modifier: winning vs higher-rated earns more, losing to lower-rated costs more.
+  // _gameOpponentRating is snapshotted at game start from either matchmaking Firestore data
+  // or the playerInfo message — more reliable than reading _mmOpponent at game end.
+  let oppRating = oldRating; // default = no modifier
+  if(window._gameOpponentRating != null && !isNaN(Number(window._gameOpponentRating))){
+    oppRating = Number(window._gameOpponentRating);
+  } else if(window._mmOpponent && window._mmOpponent.rating != null && !isNaN(Number(window._mmOpponent.rating))){
+    oppRating = Number(window._mmOpponent.rating);
+  }
+  const ratingDiff = oppRating - oldRating; // positive = opponent is stronger
+  const oppMod = Math.round(Math.max(-10, Math.min(10, ratingDiff / 40)));
 
-  // Standard Elo expected score (0–1)
-  const expected = 1 / (1 + Math.pow(10, (opponentRating - oldRating) / 400));
-  const score    = outcome === 'win' ? 1 : outcome === 'loss' ? 0 : 0.5;
-  const K        = getChaosK(gamesPlayed);
-
-  // Base Elo delta (can be fractional, we round at the end)
-  const eloBase = K * (score - expected);
-
-  // Streak multiplier only amplifies wins, never touches losses
-  const streakMult  = outcome === 'win' ? getStreakMultiplier(newStreak) : 1.0;
-  const streakBonus = outcome === 'win' ? Math.round(eloBase * streakMult) - Math.round(eloBase) : 0;
-
-  let delta = Math.round(eloBase * (outcome === 'win' ? streakMult : 1.0));
-
-  // Floor: a win always gives at least +1, a loss always costs at least -1
-  if(outcome === 'win')  delta = Math.max(1,  delta);
-  if(outcome === 'loss') delta = Math.min(-1, delta);
+  let delta = 0;
+  if(outcome === 'win')  delta = RATING_WIN  + streakBonus + oppMod;
+  if(outcome === 'loss') delta = RATING_LOSS + oppMod;  // oppMod positive = opponent stronger = lose less; negative = opponent weaker = lose more
+  if(outcome === 'draw') delta = RATING_DRAW;
 
   const newRating = Math.max(0, oldRating + delta);
 
@@ -11734,7 +11710,10 @@ const _origHandleRemote = handleRemoteData;
 handleRemoteData = function(data){
   if(data.type === 'playerInfo'){
     const oppName   = data.username || 'Opponent';
-    const oppRating = data.rating   || '—';
+    const oppRating = (data.rating != null && !isNaN(Number(data.rating))) ? Number(data.rating) : null;
+    // Always update _mmOpponent and snapshot the rating for end-of-game calculation
+    window._mmOpponent = { username: oppName, rating: oppRating };
+    if(oppRating != null) window._gameOpponentRating = oppRating;
     if(currentProfile){
       setupHUD(currentProfile.username, currentProfile.rating, oppName, oppRating);
     }
@@ -12787,45 +12766,35 @@ startOnlineGame = function() {
   updateGameInfoPanel();
   updateGameActionButtons();
 
-  // Immediately seed player cards with whatever we know right now.
-  // For matchmaking, _mmOpponent is already set before startOnlineGame fires.
-  // For private matches, playerInfo may arrive after — setupHUD will overwrite.
   const selfName   = currentProfile ? currentProfile.username : 'You';
   const selfRating = currentProfile ? currentProfile.rating   : null;
   const oppName    = (window._mmOpponent && window._mmOpponent.username) ? window._mmOpponent.username : null;
-  const oppRating  = (window._mmOpponent && window._mmOpponent.rating)   ? window._mmOpponent.rating   : null;
+  const oppRating  = (window._mmOpponent && window._mmOpponent.rating != null) ? Number(window._mmOpponent.rating) : null;
+
+  // Reset opponent rating snapshot — will be updated below or when playerInfo arrives
+  window._gameOpponentRating = oppRating;
+
+  // For private matches, playerInfo often arrives BEFORE startOnlineGame on the host side,
+  // so _mmOpponent may already be set. If not, the playerInfo intercept will update cards.
   setupGamePlayerCards(selfName, selfRating, myColor || 'white', oppName, oppRating);
 
-  // For private matches and slow Firestore syncs, keep retrying to load opponent data
-  // Use multiple retries with exponential backoff to handle network delays
+  // Only retry if we still don't have opponent info — stop as soon as we do.
   let retryCount = 0;
-  const maxRetries = 8;
   const scheduleRetry = (delayMs) => {
-    if(retryCount >= maxRetries) return;
+    if(retryCount >= 5) return;
     setTimeout(() => {
-      const oppN    = (window._mmOpponent && window._mmOpponent.username) ? window._mmOpponent.username : null;
-      const oppR    = (window._mmOpponent && window._mmOpponent.rating)   ? window._mmOpponent.rating   : null;
-      
-      // Only update if we have new data
-      if(oppN || oppR){
-        setupGamePlayerCards(
-          currentProfile ? currentProfile.username : 'You',
-          currentProfile ? currentProfile.rating   : null,
-          myColor || 'white',
-          oppN, oppR
-        );
-      }
-      
-      // Schedule next retry if data still incomplete
       retryCount++;
-      if((!oppN || !oppR) && retryCount < maxRetries){
-        scheduleRetry(delayMs * 1.5); // Exponential backoff
+      const oppN = (window._mmOpponent && window._mmOpponent.username) ? window._mmOpponent.username : null;
+      const oppR = (window._mmOpponent && window._mmOpponent.rating != null) ? Number(window._mmOpponent.rating) : null;
+      if(oppN && oppR != null){
+        window._gameOpponentRating = oppR;
+        setupGamePlayerCards(selfName, selfRating, myColor || 'white', oppN, oppR);
+      } else {
+        scheduleRetry(delayMs * 2);
       }
     }, delayMs);
   };
-  
-  // Start retry sequence: 2s, 3s, 4.5s, 6.75s, 10s, 15s, 22.5s
-  scheduleRetry(2000);
+  if(!oppName || oppRating == null) scheduleRetry(500);
 };
 
 // Patch setupHUD to also update new player cards
