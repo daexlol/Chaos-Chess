@@ -2128,31 +2128,433 @@ button:active {
   .menu-topbar-user { display: none; }
 }
 
+/* ===== PRIVATE GAME HUB — REDESIGNED ===== */
 #online-setup {
   display: none;
   flex-direction: column;
-  gap: 16px;
-  align-items: center;
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
-
 #online-setup.active {
   display: flex;
 }
 
-#online-setup input {
-  padding: 12px 24px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.1);
-  color: white;
-  text-align: center;
+/* TOP BAR */
+.pvt-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 28px;
+}
+.pvt-topbar-left { display: flex; align-items: center; gap: 12px; }
+.pvt-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #5b21b6, #7c5cff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: #fff;
+  box-shadow: 0 0 0 2px rgba(124,92,255,0.4);
+  flex-shrink: 0;
+}
+.pvt-topbar-name {
+  font-size: 16px; font-weight: 700; color: #fff; line-height: 1.1;
+}
+.pvt-topbar-rating {
+  font-size: 13px; font-weight: 600; color: #fbbf24; margin-top: 2px;
+}
+.pvt-signout-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.5);
+  border-radius: 8px; padding: 7px 14px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
   font-family: 'Inter', sans-serif;
-  width: 300px;
+  transition: all 0.15s ease; margin: 0; box-shadow: none;
+}
+.pvt-signout-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  transform: none;
 }
 
-#online-setup input::placeholder {
-  color: rgba(255,255,255,0.5);
+/* MAIN GRID */
+.pvt-hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* CARDS */
+.pvt-card {
+  background: rgba(12,14,30,0.85);
+  border: 1.5px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 28px 26px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
+}
+.pvt-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,92,255,0.5), transparent);
+  opacity: 0; transition: opacity 0.2s ease;
+}
+.pvt-card:hover::before { opacity: 1; }
+.pvt-card:hover {
+  border-color: rgba(124,92,255,0.35);
+  box-shadow: 0 12px 40px rgba(124,92,255,0.12);
+  transform: translateY(-2px);
+}
+
+.pvt-card-host {
+  border-color: rgba(124,92,255,0.25);
+  box-shadow: 0 8px 32px rgba(124,92,255,0.1);
+}
+.pvt-card-join {
+  border-color: rgba(99,179,237,0.2);
+}
+
+.pvt-card-badge {
+  display: inline-block;
+  font-size: 9px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #a78bfa; background: rgba(124,92,255,0.15);
+  border: 1px solid rgba(124,92,255,0.3);
+  border-radius: 6px; padding: 3px 9px;
+  margin-bottom: 12px;
+}
+.pvt-card-badge-join {
+  color: #63b3ed; background: rgba(99,179,237,0.12);
+  border-color: rgba(99,179,237,0.3);
+}
+
+.pvt-card-title {
+  font-size: 22px; font-weight: 900; color: #fff;
+  letter-spacing: -0.5px; margin-bottom: 6px;
+}
+.pvt-card-sub {
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  margin-bottom: 24px; line-height: 1.5;
+}
+
+/* SECTION LABEL */
+.pvt-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.35);
+  margin-bottom: 10px;
+}
+
+/* TC BUTTONS */
+.pvt-tc-buttons {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 14px;
+}
+.pvt-tc-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 10px 8px;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+  cursor: pointer; margin: 0; box-shadow: none;
+  transition: all 0.15s ease;
+}
+.pvt-tc-btn:hover {
+  background: rgba(124,92,255,0.12);
+  border-color: rgba(124,92,255,0.4);
+  color: #c4b5fd; transform: none;
+}
+.pvt-tc-btn-active {
+  background: rgba(124,92,255,0.18) !important;
+  border-color: rgba(124,92,255,0.7) !important;
+  color: #c4b5fd !important;
+  box-shadow: 0 0 16px rgba(124,92,255,0.25) !important;
+}
+
+/* TC SELECT */
+.pvt-tc-sub-row { margin-bottom: 16px; }
+.pvt-tc-select {
+  width: 100%; padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: #fff; font-size: 14px; font-family: 'Inter', sans-serif;
+  cursor: pointer; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pvt-tc-select:focus {
+  border-color: rgba(124,92,255,0.5);
+  box-shadow: 0 0 0 3px rgba(124,92,255,0.1);
+}
+.pvt-tc-select option { background: #1a1d2e; }
+
+/* CUSTOM TC */
+.pvt-custom-tc-row {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
+.pvt-custom-tc-field { flex: 1; }
+.pvt-custom-tc-label {
+  font-size: 11px; color: rgba(255,255,255,0.45);
+  font-weight: 600; display: block; margin-bottom: 5px;
+}
+.pvt-custom-tc-input {
+  width: 100%; padding: 9px 12px;
+  border-radius: 9px; border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07); color: #fff;
+  font-size: 14px; font-family: 'Inter', sans-serif; outline: none;
+  transition: border-color 0.15s;
+}
+.pvt-custom-tc-input:focus { border-color: rgba(124,92,255,0.5); }
+
+/* RATED TOGGLE */
+.pvt-rated-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 20px; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pvt-rated-row:hover {
+  background: rgba(124,92,255,0.07);
+  border-color: rgba(124,92,255,0.25);
+}
+.pvt-rated-label { font-size: 14px; font-weight: 700; color: #fff; }
+.pvt-rated-sub { font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+.pvt-toggle-switch {
+  position: relative; width: 44px; height: 24px; flex-shrink: 0;
+  cursor: pointer;
+}
+.pvt-toggle-switch input { opacity: 0; width: 0; height: 0; }
+.pvt-toggle-slider {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.12);
+  border-radius: 24px; transition: 0.2s;
+}
+.pvt-toggle-slider:before {
+  content: ''; position: absolute;
+  height: 18px; width: 18px; left: 3px; top: 3px;
+  background: white; border-radius: 50%; transition: 0.2s;
+}
+.pvt-toggle-switch input:checked + .pvt-toggle-slider {
+  background: #7c5cff;
+  box-shadow: 0 0 12px rgba(124,92,255,0.5);
+}
+.pvt-toggle-switch input:checked + .pvt-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* HOST BUTTON */
+.pvt-host-btn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #7c5cff, #5b21b6);
+  border: none; border-radius: 14px;
+  color: #fff; font-size: 16px; font-weight: 800;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 0; box-shadow: 0 6px 24px rgba(124,92,255,0.45);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.2px;
+}
+.pvt-host-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 36px rgba(124,92,255,0.65);
+}
+.pvt-host-btn:active { transform: translateY(0) scale(0.99); }
+.pvt-host-btn-icon { font-size: 18px; }
+
+/* WAITING ROOM CARD */
+.pvt-card-waiting {
+  border-color: rgba(124,92,255,0.4) !important;
+  box-shadow: 0 8px 40px rgba(124,92,255,0.2) !important;
+  animation: pvt-waiting-glow 2.5s ease-in-out infinite;
+}
+@keyframes pvt-waiting-glow {
+  0%, 100% { box-shadow: 0 8px 40px rgba(124,92,255,0.2); }
+  50% { box-shadow: 0 8px 56px rgba(124,92,255,0.38), 0 0 0 1px rgba(124,92,255,0.15); }
+}
+.pvt-waiting-header {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+.pvt-waiting-pulse-ring {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(124,92,255,0.5);
+  margin: 0 auto 16px;
+  animation: pvt-ring-pulse 1.6s ease-out infinite;
+  position: relative;
+}
+.pvt-waiting-pulse-ring::before {
+  content: '⏳';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22px; line-height: 1;
+}
+@keyframes pvt-ring-pulse {
+  0% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(124,92,255,0.5); }
+  70% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 14px rgba(124,92,255,0); }
+  100% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(124,92,255,0); }
+}
+.pvt-waiting-title {
+  font-size: 20px; font-weight: 800; color: #fff;
+  letter-spacing: -0.4px;
+}
+.pvt-waiting-sub {
+  font-size: 12px; color: rgba(255,255,255,0.45);
+  margin-top: 6px;
+}
+/* Animated dots */
+.pvt-dots span {
+  animation: pvt-dot-blink 1.4s ease-in-out infinite;
+  opacity: 0;
+}
+.pvt-dots span:nth-child(1) { animation-delay: 0s; }
+.pvt-dots span:nth-child(2) { animation-delay: 0.2s; }
+.pvt-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pvt-dot-blink {
+  0%, 60%, 100% { opacity: 0; }
+  30% { opacity: 1; }
+}
+
+/* CODE BLOCK */
+.pvt-code-block {
+  background: rgba(124,92,255,0.08);
+  border: 1.5px solid rgba(124,92,255,0.3);
+  border-radius: 14px; padding: 18px 18px 16px;
+  margin-bottom: 18px; text-align: center;
+}
+.pvt-code-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(124,92,255,0.7);
+  margin-bottom: 10px;
+}
+.pvt-code-text {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 12px; font-weight: 700; color: #c4b5fd;
+  word-break: break-all; line-height: 1.5;
+  margin-bottom: 14px; letter-spacing: 0.5px;
+}
+.pvt-copy-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(124,92,255,0.2);
+  border: 1px solid rgba(124,92,255,0.45);
+  border-radius: 8px; padding: 8px 18px;
+  color: #c4b5fd; font-size: 13px; font-weight: 600;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  margin: 0; box-shadow: none;
+  transition: all 0.15s ease;
+}
+.pvt-copy-btn:hover {
+  background: rgba(124,92,255,0.35);
+  box-shadow: 0 0 16px rgba(124,92,255,0.3);
+  transform: none;
+}
+.pvt-copy-btn.copied {
+  background: rgba(16,185,129,0.2);
+  border-color: rgba(16,185,129,0.5);
+  color: #34d399;
+  box-shadow: 0 0 16px rgba(16,185,129,0.3);
+}
+
+/* OPPONENT STATE */
+.pvt-opp-state {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.pvt-opp-icon { font-size: 20px; }
+.pvt-opp-text { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); }
+.pvt-opp-state.connected { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); }
+.pvt-opp-state.connected .pvt-opp-text { color: #34d399; }
+
+/* WAITING SETTINGS SUMMARY */
+.pvt-waiting-settings {
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.pvt-waiting-settings div { color: rgba(255,255,255,0.5); }
+
+/* JOIN CARD */
+.pvt-join-input-wrap {
+  margin-bottom: 10px;
+  margin-top: 8px;
+}
+.pvt-join-input {
+  width: 100%; padding: 16px 18px;
+  border-radius: 12px;
+  border: 2px solid rgba(99,179,237,0.2);
+  background: rgba(255,255,255,0.05);
+  color: #fff; font-size: 14px;
+  font-family: 'Courier New', 'Consolas', monospace;
+  outline: none; box-sizing: border-box;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  letter-spacing: 0.3px;
+}
+.pvt-join-input::placeholder { color: rgba(255,255,255,0.28); font-family: 'Inter', sans-serif; }
+.pvt-join-input:focus {
+  border-color: rgba(99,179,237,0.6);
+  background: rgba(99,179,237,0.06);
+  box-shadow: 0 0 0 3px rgba(99,179,237,0.1);
+}
+.pvt-join-input.has-value {
+  border-color: rgba(99,179,237,0.5);
+  background: rgba(99,179,237,0.07);
+}
+.pvt-join-hint {
+  font-size: 11px; color: rgba(255,255,255,0.28);
+  margin-bottom: 20px; line-height: 1.5;
+}
+.pvt-join-btn {
+  width: 100%; padding: 15px;
+  background: rgba(99,179,237,0.15);
+  border: 1.5px solid rgba(99,179,237,0.3);
+  border-radius: 14px;
+  color: rgba(99,179,237,0.6); font-size: 16px; font-weight: 800;
+  font-family: 'Inter', sans-serif; cursor: not-allowed;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 0; transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.2px; opacity: 0.55;
+}
+.pvt-join-btn:not(:disabled) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: rgba(99,179,237,0.6);
+  color: #fff; opacity: 1; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(59,130,246,0.4);
+}
+.pvt-join-btn:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 36px rgba(59,130,246,0.6);
+}
+.pvt-join-btn-icon { font-size: 18px; }
+
+/* BACK AREA */
+.pvt-back-area {
+  margin-top: 20px;
+  display: flex; justify-content: flex-start;
+}
+.pvt-back-btn {
+  background: none; border: none;
+  color: rgba(255,255,255,0.28);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 6px 10px; border-radius: 8px;
+  font-family: 'Inter', sans-serif; margin: 0; box-shadow: none;
+  transition: color 0.15s, background 0.15s;
+}
+.pvt-back-btn:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); transform: none; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .pvt-hub-grid { grid-template-columns: 1fr; }
+  .pvt-tc-buttons { grid-template-columns: 1fr 1fr; }
 }
 
 #connection-status {
@@ -6610,54 +7012,158 @@ button:active {
 
     </div>
 
-    <!-- PRIVATE GAME SETUP (original system, preserved) -->
+    <!-- PRIVATE GAME SETUP — REDESIGNED MULTIPLAYER HUB -->
     <div id="online-setup">
-      <div id="speed-select">
-        <label style="font-size:14px;opacity:0.8;">Time Control:</label><br>
-        <select id="time-control" onchange="onPrivateTCChange(this.value)">
-          <optgroup label="— Bullet —">
-            <option value="15|0">Hyperbullet (15s)</option>
-            <option value="30|0">Bullet (30s)</option>
-            <option value="60|0">Blitz (1 min)</option>
-            <option value="60|1">Blitz +1s</option>
-            <option value="60|2">Blitz +2s</option>
-          </optgroup>
-          <optgroup label="— Rapid —">
-            <option value="180|0" selected>Rapid (3 min)</option>
-            <option value="180|2">Rapid +2s</option>
-            <option value="300|0">Classical (5 min)</option>
-            <option value="300|3">Classical +3s</option>
-            <option value="600|0">Deep Chaos (10 min)</option>
-            <option value="600|5">Deep Chaos +5s</option>
-          </optgroup>
-          <optgroup label="— Other —">
-            <option value="0|0">No Timer</option>
-            <option value="custom">Custom…</option>
-          </optgroup>
-        </select>
-        <div id="custom-tc-row" style="display:none;margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;">
-          <label style="font-size:13px;opacity:0.8;">Base (s):</label>
-          <input type="number" id="custom-tc-input" min="1" max="3600" value="120" style="width:70px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;">
-          <label style="font-size:13px;opacity:0.8;">+Inc (s):</label>
-          <input type="number" id="custom-inc-input" min="0" max="60" value="0" style="width:60px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;">
+
+      <!-- TOP BAR -->
+      <div class="pvt-topbar">
+        <div class="pvt-topbar-left">
+          <div class="pvt-avatar" id="pvt-topbar-avatar">?</div>
+          <div class="pvt-topbar-info">
+            <div class="pvt-topbar-name" id="pvt-topbar-name">Guest</div>
+            <div class="pvt-topbar-rating" id="pvt-topbar-rating"></div>
+          </div>
+        </div>
+        <div class="pvt-topbar-right">
+          <button class="pvt-signout-btn" onclick="doLogout()" id="pvt-signout-btn">↪ Sign Out</button>
         </div>
       </div>
-      <label class="rated-toggle-row" for="private-rated-toggle">
-        <div>
-          <div class="rated-toggle-label">⚡ Rated Game</div>
-          <div class="rated-toggle-desc">Rating changes after match ends</div>
+
+      <!-- MAIN GRID: Host + Join side by side -->
+      <div class="pvt-hub-grid">
+
+        <!-- LEFT CARD: HOST GAME -->
+        <div class="pvt-card pvt-card-host" id="pvt-host-card">
+          <div class="pvt-card-badge">HOST</div>
+          <div class="pvt-card-title">Host Private Match</div>
+          <div class="pvt-card-sub">Configure settings and share your code</div>
+
+          <!-- Time Control Buttons -->
+          <div class="pvt-section-label">Time Control</div>
+          <div class="pvt-tc-buttons" id="pvt-tc-buttons">
+            <button class="pvt-tc-btn" data-group="blitz" onclick="pvtSelectTCGroup(this,'blitz')">⚡ Blitz</button>
+            <button class="pvt-tc-btn pvt-tc-btn-active" data-group="rapid" onclick="pvtSelectTCGroup(this,'rapid')">🔥 Rapid</button>
+            <button class="pvt-tc-btn" data-group="classical" onclick="pvtSelectTCGroup(this,'classical')">♟ Classical</button>
+            <button class="pvt-tc-btn" data-group="custom" onclick="pvtSelectTCGroup(this,'custom')">⚙ Custom</button>
+          </div>
+
+          <!-- TC Sub-options (non-custom) -->
+          <div class="pvt-tc-sub-row" id="pvt-tc-sub-row">
+            <select id="time-control" onchange="onPrivateTCChange(this.value)" class="pvt-tc-select">
+              <optgroup label="— Blitz —" class="pvt-tc-group-blitz" style="display:none">
+                <option value="60|0">1 min</option>
+                <option value="60|1">1 min +1s</option>
+                <option value="60|2">1 min +2s</option>
+              </optgroup>
+              <optgroup label="— Rapid —" class="pvt-tc-group-rapid">
+                <option value="180|0" selected>3 min</option>
+                <option value="180|2">3 min +2s</option>
+                <option value="300|0">5 min</option>
+                <option value="300|3">5 min +3s</option>
+              </optgroup>
+              <optgroup label="— Classical —" class="pvt-tc-group-classical" style="display:none">
+                <option value="600|0">10 min</option>
+                <option value="600|5">10 min +5s</option>
+              </optgroup>
+              <optgroup label="— Bullet —" style="display:none" class="pvt-tc-group-bullet">
+                <option value="15|0">15s</option>
+                <option value="30|0">30s</option>
+              </optgroup>
+              <option value="0|0" style="display:none" class="pvt-tc-notimer">No Timer</option>
+            </select>
+          </div>
+
+          <!-- Custom time control row -->
+          <div id="custom-tc-row" class="pvt-custom-tc-row" style="display:none;">
+            <div class="pvt-custom-tc-field">
+              <label class="pvt-custom-tc-label">Base (s)</label>
+              <input type="number" id="custom-tc-input" min="1" max="3600" value="120" class="pvt-custom-tc-input">
+            </div>
+            <div class="pvt-custom-tc-field">
+              <label class="pvt-custom-tc-label">+Inc (s)</label>
+              <input type="number" id="custom-inc-input" min="0" max="60" value="0" class="pvt-custom-tc-input">
+            </div>
+          </div>
+
+          <!-- Rated Toggle -->
+          <div class="pvt-rated-row">
+            <div class="pvt-rated-info">
+              <div class="pvt-rated-label">⚡ Rated Game</div>
+              <div class="pvt-rated-sub">Affects Chaos Rating</div>
+            </div>
+            <label class="pvt-toggle-switch">
+              <input type="checkbox" id="private-rated-toggle" checked onchange="pvtUpdateRatedToggle(this)">
+              <span class="pvt-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Host Button -->
+          <button class="pvt-host-btn" onclick="pvtHostGame()" id="pvt-host-btn">
+            <span class="pvt-host-btn-icon">🚀</span>
+            Create Private Match
+          </button>
         </div>
-        <div class="toggle-switch">
-          <input type="checkbox" id="private-rated-toggle" checked>
-          <span class="toggle-slider"></span>
+
+        <!-- WAITING ROOM (replaces host card after hosting) -->
+        <div class="pvt-card pvt-card-waiting" id="pvt-waiting-card" style="display:none;">
+          <div class="pvt-waiting-header">
+            <div class="pvt-waiting-pulse-ring"></div>
+            <div class="pvt-waiting-title" id="pvt-waiting-title">Waiting for Opponent<span class="pvt-dots"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="pvt-waiting-sub" id="pvt-waiting-sub">Share this code with your opponent</div>
+          </div>
+
+          <!-- Code display -->
+          <div class="pvt-code-block" id="pvt-code-block">
+            <div class="pvt-code-label">GAME CODE</div>
+            <div class="pvt-code-text" id="pvt-code-display">—</div>
+            <button class="pvt-copy-btn" onclick="pvtCopyCode()" id="pvt-copy-btn">
+              <span id="pvt-copy-icon">📋</span>
+              <span id="pvt-copy-label">Copy Code</span>
+            </button>
+          </div>
+
+          <!-- Opponent state -->
+          <div class="pvt-opp-state" id="pvt-opp-state">
+            <div class="pvt-opp-icon">👤</div>
+            <div class="pvt-opp-text">Awaiting connection…</div>
+          </div>
+
+          <!-- Settings summary (visible after host sets up, shows to both) -->
+          <div class="pvt-waiting-settings" id="pvt-waiting-settings"></div>
         </div>
-      </label>
-      <button class="menu-btn" onclick="hostGame()">Host Game</button>
-      <div style="text-align:center;margin:8px 0;opacity:0.7;">OR</div>
-      <input type="text" id="join-code" placeholder="Enter game code">
-      <button class="menu-btn" onclick="joinGame()">Join Game</button>
-      <button class="menu-btn secondary" onclick="backToLobby()">Back</button>
-    </div>
+
+        <!-- RIGHT CARD: JOIN GAME -->
+        <div class="pvt-card pvt-card-join">
+          <div class="pvt-card-badge pvt-card-badge-join">JOIN</div>
+          <div class="pvt-card-title">Join with Code</div>
+          <div class="pvt-card-sub">Enter the code your opponent shared</div>
+
+          <div class="pvt-join-input-wrap">
+            <input
+              type="text"
+              id="join-code"
+              class="pvt-join-input"
+              placeholder="Enter game code…"
+              oninput="pvtOnJoinInput(this)"
+              onpaste="setTimeout(()=>pvtOnJoinInput(this),0)"
+            >
+          </div>
+          <div class="pvt-join-hint">Paste the full code from your opponent</div>
+
+          <button class="pvt-join-btn" onclick="pvtJoinGame()" id="pvt-join-btn" disabled>
+            <span class="pvt-join-btn-icon">⚡</span>
+            Join Match
+          </button>
+        </div>
+
+      </div><!-- /pvt-hub-grid -->
+
+      <!-- BACK -->
+      <div class="pvt-back-area">
+        <button class="pvt-back-btn" onclick="backToLobby()">← Back</button>
+      </div>
+
+    </div><!-- /#online-setup -->
 
     <!-- TIME CONTROL SELECTION (shown before joining matchmaking queue) -->
     <div id="tc-select-screen">
@@ -15104,6 +15610,335 @@ function stopDraftGlitch() {
   if (h1 && !h1.dataset.text) {
     h1.dataset.text = h1.textContent;
   }
+
+})();
+
+/* ================================================================
+   PRIVATE HUB UI — JS
+   Wraps existing hostGame() / joinGame() with new UI interactions.
+   All original logic is preserved; this layer only controls
+   the new HTML elements introduced in the redesign.
+   ================================================================ */
+(function () {
+  'use strict';
+
+  // ── TC GROUP → select visibility map ─────────────────────────
+  const TC_GROUP_MAP = {
+    blitz:     { show: ['pvt-tc-group-blitz'],    hide: ['pvt-tc-group-rapid','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: '60|0'  },
+    rapid:     { show: ['pvt-tc-group-rapid'],    hide: ['pvt-tc-group-blitz','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: '180|0' },
+    classical: { show: ['pvt-tc-group-classical'],hide: ['pvt-tc-group-blitz','pvt-tc-group-rapid','pvt-tc-group-bullet'],    defaultVal: '600|0' },
+    custom:    { show: [],                         hide: ['pvt-tc-group-blitz','pvt-tc-group-rapid','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: 'custom' },
+  };
+  let _currentTCGroup = 'rapid';
+
+  window.pvtSelectTCGroup = function (btn, group) {
+    _currentTCGroup = group;
+    // Update button highlights
+    document.querySelectorAll('.pvt-tc-btn').forEach(b => b.classList.remove('pvt-tc-btn-active'));
+    btn.classList.add('pvt-tc-btn-active');
+
+    const sel   = document.getElementById('time-control');
+    const subRow = document.getElementById('pvt-tc-sub-row');
+    const custRow = document.getElementById('custom-tc-row');
+
+    if (group === 'custom') {
+      subRow.style.display  = 'none';
+      custRow.style.display = 'flex';
+      if (sel) sel.value = 'custom';
+      if (typeof onPrivateTCChange === 'function') onPrivateTCChange('custom');
+      return;
+    }
+
+    custRow.style.display = 'none';
+    subRow.style.display  = 'block';
+    if (typeof onPrivateTCChange === 'function') onPrivateTCChange('notcustom');
+
+    // Show/hide optgroups in the select
+    const cfg = TC_GROUP_MAP[group];
+    if (sel && cfg) {
+      // Show matching optgroup(s)
+      cfg.show.forEach(cls => {
+        const og = sel.querySelector('.' + cls);
+        if (og) og.style.display = '';
+      });
+      // Hide others
+      cfg.hide.forEach(cls => {
+        const og = sel.querySelector('.' + cls);
+        if (og) og.style.display = 'none';
+      });
+      // Pick first visible option as default
+      const firstOpt = sel.querySelector('optgroup.' + cfg.show[0] + ' option');
+      if (firstOpt) sel.value = firstOpt.value;
+    }
+  };
+
+  // ── RATED TOGGLE visual update ────────────────────────────────
+  window.pvtUpdateRatedToggle = function (checkbox) {
+    const row = checkbox.closest('.pvt-rated-row');
+    if (row) {
+      row.style.borderColor = checkbox.checked
+        ? 'rgba(124,92,255,0.45)'
+        : 'rgba(255,255,255,0.09)';
+    }
+  };
+
+  // ── JOIN INPUT live validation ────────────────────────────────
+  window.pvtOnJoinInput = function (input) {
+    const val = input.value.trim();
+    const btn = document.getElementById('pvt-join-btn');
+    if (btn) btn.disabled = val.length === 0;
+    input.classList.toggle('has-value', val.length > 0);
+  };
+
+  // ── COPY CODE ─────────────────────────────────────────────────
+  let _copyTimeout = null;
+  window.pvtCopyCode = function () {
+    const code = document.getElementById('pvt-code-display');
+    const btn  = document.getElementById('pvt-copy-btn');
+    const lbl  = document.getElementById('pvt-copy-label');
+    const ico  = document.getElementById('pvt-copy-icon');
+    if (!code || !btn) return;
+
+    const text = code.textContent.trim();
+    if (!text || text === '—') return;
+
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      if (lbl) lbl.textContent = 'Copied!';
+      if (ico) ico.textContent = '✅';
+      clearTimeout(_copyTimeout);
+      _copyTimeout = setTimeout(() => {
+        btn.classList.remove('copied');
+        if (lbl) lbl.textContent = 'Copy Code';
+        if (ico) ico.textContent = '📋';
+      }, 2000);
+    }).catch(() => {
+      // Fallback for browsers that block clipboard
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta);
+      btn.classList.add('copied');
+      if (lbl) lbl.textContent = 'Copied!';
+      if (ico) ico.textContent = '✅';
+      clearTimeout(_copyTimeout);
+      _copyTimeout = setTimeout(() => {
+        btn.classList.remove('copied');
+        if (lbl) lbl.textContent = 'Copy Code';
+        if (ico) ico.textContent = '📋';
+      }, 2000);
+    });
+  };
+
+  // ── SHOW WAITING ROOM ─────────────────────────────────────────
+  window.pvtShowWaitingRoom = function (peerCode) {
+    const hostCard    = document.getElementById('pvt-host-card');
+    const waitingCard = document.getElementById('pvt-waiting-card');
+    const codeDisplay = document.getElementById('pvt-code-display');
+
+    if (hostCard)    hostCard.style.display    = 'none';
+    if (waitingCard) waitingCard.style.display = 'flex';
+    if (waitingCard) waitingCard.style.flexDirection = 'column';
+    if (codeDisplay && peerCode) codeDisplay.textContent = peerCode;
+  };
+
+  // ── UPDATE WAITING ROOM STATE ─────────────────────────────────
+  window.pvtSetOpponentConnected = function (opponentName) {
+    const title   = document.getElementById('pvt-waiting-title');
+    const sub     = document.getElementById('pvt-waiting-sub');
+    const oppState= document.getElementById('pvt-opp-state');
+    const dots    = document.querySelector('.pvt-dots');
+
+    if (dots) dots.style.display = 'none';
+    if (title) title.innerHTML = '✅ Opponent Connected';
+    if (sub)   sub.textContent = opponentName
+      ? `Playing against ${opponentName}`
+      : 'Starting soon…';
+    if (oppState) {
+      oppState.classList.add('connected');
+      const icon = oppState.querySelector('.pvt-opp-icon');
+      const txt  = oppState.querySelector('.pvt-opp-text');
+      if (icon) icon.textContent = '🟢';
+      if (txt)  txt.textContent  = opponentName ? `${opponentName} is ready!` : 'Opponent ready!';
+    }
+  };
+
+  // ── RESET WAITING ROOM (for back button / new game) ──────────
+  window.pvtResetHostUI = function () {
+    const hostCard    = document.getElementById('pvt-host-card');
+    const waitingCard = document.getElementById('pvt-waiting-card');
+    const codeDisplay = document.getElementById('pvt-code-display');
+    const title       = document.getElementById('pvt-waiting-title');
+    const sub         = document.getElementById('pvt-waiting-sub');
+    const oppState    = document.getElementById('pvt-opp-state');
+    const dots        = document.querySelector('.pvt-dots');
+
+    if (hostCard)    hostCard.style.display    = 'block';
+    if (waitingCard) waitingCard.style.display = 'none';
+    if (codeDisplay) codeDisplay.textContent   = '—';
+    if (title) title.innerHTML = 'Waiting for Opponent<span class="pvt-dots"><span>.</span><span>.</span><span>.</span></span>';
+    if (sub)   sub.textContent = 'Share this code with your opponent';
+    if (oppState) {
+      oppState.classList.remove('connected');
+      const icon = oppState.querySelector('.pvt-opp-icon');
+      const txt  = oppState.querySelector('.pvt-opp-text');
+      if (icon) icon.textContent = '👤';
+      if (txt)  txt.textContent  = 'Awaiting connection…';
+    }
+    if (dots) dots.style.display = '';
+  };
+
+  // ── pvtHostGame — wrapper around original hostGame() ─────────
+  window.pvtHostGame = function () {
+    // Prevent double-hosting
+    const btn = document.getElementById('pvt-host-btn');
+    if (btn && btn.disabled) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Creating…';
+    }
+
+    // Sync the hidden time-control select from current TC group state
+    const sel = document.getElementById('time-control');
+    if (_currentTCGroup === 'custom' && sel) sel.value = 'custom';
+
+    // Call original hostGame — it reads all the same element IDs
+    if (typeof hostGame === 'function') hostGame();
+    else console.error('[pvtHostGame] hostGame not found');
+  };
+
+  // ── pvtJoinGame — wrapper around original joinGame() ─────────
+  window.pvtJoinGame = function () {
+    // Trim input before passing to joinGame
+    const input = document.getElementById('join-code');
+    if (input) input.value = input.value.trim();
+    if (typeof joinGame === 'function') joinGame();
+    else console.error('[pvtJoinGame] joinGame not found');
+  };
+
+  // ── Monkey-patch showStatus to drive the waiting room UI ─────
+  //    The original showStatus() writes to #connection-status (now hidden).
+  //    Here we intercept the message and update our new UI instead.
+  const _origShowStatus = window.showStatus;
+  window.showStatus = function (msg) {
+    // Always call original for compatibility (even though element is hidden)
+    if (typeof _origShowStatus === 'function') _origShowStatus(msg);
+
+    const plain = msg.replace(/<[^>]*>/g, '').toLowerCase();
+
+    // HOST: peer opened — show waiting room with the peer ID
+    if (plain.includes('your game code:') || plain.includes('waiting for opponent')) {
+      // Extract code from the <strong> tag
+      const match = msg.match(/<strong>([^<]+)<\/strong>/);
+      const code  = match ? match[1] : '';
+      if (code) pvtShowWaitingRoom(code);
+      // Re-enable host button in case something went wrong
+      return;
+    }
+
+    // HOST: opponent connected
+    if (plain.includes('opponent connected')) {
+      // Extract opponent name from opponentUsername global if available
+      const name = window.opponentUsername || '';
+      pvtSetOpponentConnected(name);
+      return;
+    }
+
+    // GUEST: connecting / connected states — update join button area
+    if (plain.includes('connecting to host') || plain.includes('connected!') || plain.includes('waiting for host')) {
+      const btn = document.getElementById('pvt-join-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="pvt-join-btn-icon">⏳</span> Connecting…';
+      }
+      return;
+    }
+  };
+
+  // ── Patch showPrivateSetup to also refresh topbar & reset UI ─
+  const _origShowPrivate = window.showPrivateSetup;
+  window.showPrivateSetup = function () {
+    pvtResetHostUI();
+    // Re-enable host button
+    const btn = document.getElementById('pvt-host-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="pvt-host-btn-icon">🚀</span> Create Private Match';
+    }
+    // Re-enable join button (will be re-validated by input state)
+    const jBtn = document.getElementById('pvt-join-btn');
+    if (jBtn) {
+      jBtn.disabled = true;
+      jBtn.innerHTML = '<span class="pvt-join-btn-icon">⚡</span> Join Match';
+    }
+    const joinInput = document.getElementById('join-code');
+    if (joinInput) { joinInput.value = ''; joinInput.classList.remove('has-value'); }
+
+    // Update topbar from currentProfile
+    if (typeof currentProfile !== 'undefined' && currentProfile) {
+      const letter = (currentProfile.username || '?')[0].toUpperCase();
+      const rating = currentProfile.rating || 1000;
+      const av = document.getElementById('pvt-topbar-avatar');
+      const nm = document.getElementById('pvt-topbar-name');
+      const rt = document.getElementById('pvt-topbar-rating');
+      if (av) av.textContent = letter;
+      if (nm) nm.textContent = currentProfile.username || 'Player';
+      if (rt) rt.textContent = '⚡ ' + rating + ' Chaos Rating';
+    } else if (typeof isGuest !== 'undefined' && isGuest) {
+      const av = document.getElementById('pvt-topbar-avatar');
+      const nm = document.getElementById('pvt-topbar-name');
+      const rt = document.getElementById('pvt-topbar-rating');
+      if (av) av.textContent = '👤';
+      if (nm) nm.textContent = 'Guest';
+      if (rt) rt.textContent = '';
+      // Hide sign out for guests
+      const so = document.getElementById('pvt-signout-btn');
+      if (so) so.style.display = 'none';
+    }
+
+    if (typeof _origShowPrivate === 'function') _origShowPrivate();
+  };
+
+  // ── Patch peer open event to capture code & update waiting room
+  //    The original hostGame() calls showStatus with the code.
+  //    Our monkey-patched showStatus above handles that.
+  //    Additionally, when opponentUsername becomes known (set by setupConnection),
+  //    we update the waiting room. Watch for it via the existing 'Opponent connected'
+  //    showStatus call — already handled above.
+
+  // ── Patch backToLobby to also reset the private UI ───────────
+  const _origBackToLobby = window.backToLobby;
+  window.backToLobby = function () {
+    pvtResetHostUI();
+    if (typeof _origBackToLobby === 'function') _origBackToLobby();
+  };
+
+  // ── Initial TC group state: show rapid options by default ─────
+  document.addEventListener('DOMContentLoaded', function () {
+    // Ensure only rapid optgroup is visible initially
+    const sel = document.getElementById('time-control');
+    if (sel) {
+      ['pvt-tc-group-blitz','pvt-tc-group-classical','pvt-tc-group-bullet'].forEach(cls => {
+        const og = sel.querySelector('.' + cls);
+        if (og) og.style.display = 'none';
+      });
+      const rapid = sel.querySelector('.pvt-tc-group-rapid');
+      if (rapid) rapid.style.display = '';
+    }
+
+    // Make rated toggle row clickable as a whole
+    const ratedRow = document.querySelector('.pvt-rated-row');
+    if (ratedRow) {
+      ratedRow.addEventListener('click', function (e) {
+        if (e.target.tagName === 'INPUT') return; // Let checkbox handle itself
+        const cb = document.getElementById('private-rated-toggle');
+        if (cb) { cb.checked = !cb.checked; pvtUpdateRatedToggle(cb); }
+      });
+    }
+  });
 
 })();
 
