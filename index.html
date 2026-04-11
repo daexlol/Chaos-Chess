@@ -2924,6 +2924,12 @@ button:active {
   }
 }
 
+@media (max-width: 700px) {
+  .lobby-hub-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   #menu-old-placeholder-h1-sm {
     font-size: 36px;
@@ -2944,6 +2950,12 @@ button:active {
   #info {
     font-size: 14px;
   }
+
+  .lobby-hub-grid {
+    grid-template-columns: 1fr;
+  }
+  .lobby-fm-title { font-size: 20px; }
+  .lobby-snap-wr-num { font-size: 30px; }
 }
 
 /* ===== SETTINGS PANEL ===== */
@@ -3274,6 +3286,380 @@ button:active {
 /* Apply glitch to menu h1 */
 .menu-title-area h1 {
   animation: menu-logo-glitch 13s ease-in-out infinite;
+}
+
+/* ================================================================
+   CHAOS IDENTITY SYSTEM — anomalies, glitches, corruptions
+   ================================================================ */
+
+/* ── 1. ENHANCED TITLE GLITCH — pseudo-layer RGB split + skew ── */
+.menu-title-area {
+  position: relative;
+}
+.menu-title-area h1 {
+  position: relative;
+  display: inline-block;
+}
+/* Ghost red channel clone */
+.menu-title-area h1::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ff2060 0%, #ff6090 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+  animation: chaos-title-r 11s ease-in-out infinite;
+  opacity: 0;
+}
+/* Ghost cyan channel clone */
+.menu-title-area h1::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #00c8ff 0%, #00a0dd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+  animation: chaos-title-b 11s ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes chaos-title-r {
+  0%, 88%, 100% { opacity: 0; transform: translate(0, 0); clip-path: none; }
+  89%   { opacity: 0.7; transform: translate(-3px, 0); clip-path: inset(0 0 65% 0); }
+  89.6% { opacity: 0.4; transform: translate(2px, 0);  clip-path: inset(30% 0 40% 0); }
+  90.2% { opacity: 0.6; transform: translate(-1px, 0); clip-path: inset(70% 0 0 0); }
+  91%   { opacity: 0; transform: translate(0, 0); clip-path: none; }
+  95.5% { opacity: 0; }
+  96%   { opacity: 0.5; transform: translate(-2px, 1px); clip-path: inset(15% 0 55% 0); }
+  96.5% { opacity: 0; }
+}
+@keyframes chaos-title-b {
+  0%, 88%, 100% { opacity: 0; transform: translate(0, 0); clip-path: none; }
+  89%   { opacity: 0.7; transform: translate(3px, 0);  clip-path: inset(70% 0 0 0); }
+  89.6% { opacity: 0.4; transform: translate(-2px, 0); clip-path: inset(40% 0 30% 0); }
+  90.2% { opacity: 0.6; transform: translate(1px, 0);  clip-path: inset(0 0 65% 0); }
+  91%   { opacity: 0; transform: translate(0, 0); clip-path: none; }
+  95.5% { opacity: 0; }
+  96%   { opacity: 0.5; transform: translate(2px, -1px); clip-path: inset(55% 0 15% 0); }
+  96.5% { opacity: 0; }
+}
+
+/* ── 2. TAGLINE SCRAMBLE GHOST ── */
+.menu-tagline {
+  position: relative;
+}
+.chaos-tagline-corrupt {
+  position: absolute;
+  inset: 0;
+  color: rgba(124,92,255,0.6);
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  pointer-events: none;
+  opacity: 0;
+  animation: chaos-tagline-flicker 17s ease-in-out infinite;
+  white-space: nowrap;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+@keyframes chaos-tagline-flicker {
+  0%, 84%, 100% { opacity: 0; }
+  85%   { opacity: 1; }
+  85.4% { opacity: 0; }
+  85.8% { opacity: 0.8; }
+  86.2% { opacity: 0; }
+}
+
+/* ── 3. GRID ANOMALY — occasional square lights up on bg grid ── */
+.chaos-grid-anomaly {
+  position: fixed;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid rgba(124,92,255,0.7);
+  background: rgba(124,92,255,0.06);
+  box-shadow: 0 0 14px rgba(124,92,255,0.35), inset 0 0 8px rgba(124,92,255,0.15);
+  opacity: 0;
+  border-radius: 2px;
+}
+@keyframes chaos-anomaly-pop {
+  0%   { opacity: 0; transform: scale(0.8); }
+  8%   { opacity: 1; transform: scale(1); }
+  70%  { opacity: 0.6; }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+/* ── 4. TOPBAR LOGO CORRUPTION ── */
+.menu-topbar-logo {
+  position: relative;
+  cursor: default;
+}
+.chaos-topbar-corrupt {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,20,80,0.9) 0%, rgba(0,200,255,0.9) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+  opacity: 0;
+  animation: chaos-topbar-glitch 19s ease-in-out infinite;
+  font-size: inherit; font-weight: inherit; letter-spacing: inherit;
+  white-space: nowrap;
+  display: flex; align-items: center;
+}
+@keyframes chaos-topbar-glitch {
+  0%, 91%, 100% { opacity: 0; transform: translate(0,0) skewX(0); }
+  92%   { opacity: 0.9; transform: translate(-2px, 0) skewX(-3deg); clip-path: inset(0 0 55% 0); }
+  92.4% { opacity: 0.6; transform: translate(2px, 0)  skewX(2deg);  clip-path: inset(45% 0 0 0); }
+  92.8% { opacity: 0; transform: translate(0,0) skewX(0); }
+}
+
+/* ── 5. PLAY CARD INTERFERENCE — scanline overlay on hover ── */
+.menu-play-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(124,92,255,0.025) 3px,
+    rgba(124,92,255,0.025) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.menu-play-card:hover::after { opacity: 1; }
+
+.chaos-card-chip {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  color: rgba(124,92,255,0.5);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.25s ease;
+}
+.menu-play-card:hover .chaos-card-chip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── 6. FIND MATCH CARD shimmer strip ── */
+.lobby-card-find-match {
+  overflow: hidden;
+}
+.lobby-card-find-match::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -100%;
+  width: 60%;
+  background: linear-gradient(90deg, transparent 0%, rgba(196,181,253,0.07) 50%, transparent 100%);
+  pointer-events: none;
+  transform: skewX(-15deg);
+  animation: chaos-fm-shimmer 6s ease-in-out infinite;
+}
+@keyframes chaos-fm-shimmer {
+  0%   { left: -100%; }
+  40%  { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* ── 7. MATCHMAKING — corrupted signal bars ── */
+.mm-spinner { position: relative; }
+.mm-spinner::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: rgba(255,20,80,0.4);
+  animation: mm-spin 0.6s linear infinite reverse;
+}
+.mm-static-bar {
+  width: 180px;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto 8px;
+  position: relative;
+}
+.mm-static-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%; height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(124,92,255,0.8), transparent);
+  animation: mm-static-scan 2.3s ease-in-out infinite;
+}
+.mm-static-bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -20px; height: 100%;
+  width: 6px;
+  background: rgba(255,80,80,0.7);
+  animation: mm-static-glitch 4.1s ease-in-out infinite;
+}
+@keyframes mm-static-scan {
+  0%   { left: -60%; }
+  100% { left: 120%; }
+}
+@keyframes mm-static-glitch {
+  0%, 82%, 100% { left: -20px; opacity: 0; width: 6px; }
+  83%   { left: 30%;  opacity: 1; width: 3px; }
+  83.5% { left: 70%;  opacity: 0.6; width: 8px; }
+  84%   { left: 90%;  opacity: 0; }
+}
+.mm-chaos-signal {
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  color: rgba(124,92,255,0.45);
+  letter-spacing: 2px;
+  margin-top: 10px;
+  animation: chaos-signal-flicker 3.7s ease-in-out infinite;
+}
+@keyframes chaos-signal-flicker {
+  0%, 100% { opacity: 0.45; }
+  44%  { opacity: 0.1; }
+  45%  { opacity: 0.9; }
+  46%  { opacity: 0.15; }
+  47%  { opacity: 0.7; }
+  48%  { opacity: 0.45; }
+}
+
+/* ── 8. DRAFT SCREEN — pulsing rgb border glow ── */
+#draft.active {
+  animation: chaos-draft-glow 2.8s ease-in-out infinite;
+}
+@keyframes chaos-draft-glow {
+  0%, 100% {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
+      0 0 0 2px rgba(251,191,36,0.35),
+      0 0 30px rgba(251,191,36,0.12);
+  }
+  33% {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
+      0 0 0 2px rgba(255,20,80,0.4),
+      0 0 40px rgba(255,20,80,0.1);
+  }
+  66% {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
+      0 0 0 2px rgba(124,92,255,0.5),
+      0 0 40px rgba(0,200,255,0.08);
+  }
+}
+
+/* ── 9. POSTGAME — win result flicker + rating box tear ── */
+.pg-label {
+  position: relative;
+}
+.chaos-pg-tear-overlay {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(124,92,255,0.6), rgba(0,200,255,0.4), transparent);
+  pointer-events: none;
+  animation: chaos-pg-tear 6s ease-in-out infinite;
+  opacity: 0;
+  top: 50%;
+}
+@keyframes chaos-pg-tear {
+  0%, 78%, 100% { opacity: 0; top: 50%; transform: scaleX(0.3); }
+  79%   { opacity: 0.9; top: 30%; transform: scaleX(1); }
+  79.4% { opacity: 0.4; top: 68%; transform: scaleX(0.6); }
+  79.8% { opacity: 0; }
+}
+
+/* ── 10. FLOATING CHESS RUNE PARTICLES ── */
+.chaos-rune-particle {
+  position: fixed;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  user-select: none;
+  color: rgba(124,92,255,0.4);
+  text-shadow: 0 0 8px rgba(124,92,255,0.5);
+  animation: chaos-rune-float linear forwards;
+}
+@keyframes chaos-rune-float {
+  0%   { opacity: 0;   transform: translateY(0)      rotate(0deg)   scale(0.8); }
+  8%   { opacity: 0.6; transform: translateY(-8px)    rotate(4deg)   scale(1); }
+  80%  { opacity: 0.25; }
+  100% { opacity: 0;   transform: translateY(-130px)  rotate(-12deg) scale(0.6); }
+}
+
+/* ── 11. AUTH SCREEN — horizontal tear on logo ── */
+.auth-logo { position: relative; }
+.chaos-auth-tear {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,20,80,0.8), rgba(0,200,255,0.8), transparent);
+  pointer-events: none;
+  animation: chaos-auth-tear 8s ease-in-out infinite;
+  opacity: 0;
+  top: 50%;
+}
+@keyframes chaos-auth-tear {
+  0%, 85%, 100% { opacity: 0; top: 50%; }
+  86%   { opacity: 1;   top: 35%; }
+  86.3% { opacity: 0.5; top: 65%; }
+  86.6% { opacity: 0; }
+}
+
+/* ── 12. PANEL ENTROPY BORDER ── */
+.lobby-panel {
+  position: relative;
+}
+.lobby-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(124,92,255,0);
+  pointer-events: none;
+  animation: chaos-panel-entropy 9s ease-in-out infinite;
+  transition: none;
+}
+@keyframes chaos-panel-entropy {
+  0%, 100% { border-color: rgba(124,92,255,0); }
+  50%       { border-color: rgba(124,92,255,0.14); box-shadow: 0 0 10px rgba(124,92,255,0.04) inset; }
+}
+
+/* ── 13. TOPBAR LOGO — occasional static jitter ── */
+.menu-topbar-logo {
+  animation: chaos-topbar-jitter 23s ease-in-out infinite;
+}
+@keyframes chaos-topbar-jitter {
+  0%, 95%, 100% { transform: none; }
+  96%   { transform: translate(-1px, 0); }
+  96.3% { transform: translate(1px, 0) skewX(-1deg); }
+  96.6% { transform: none; }
+}
+
+/* ── 14. FRIENDS-ONLINE COUNT — unstable number ── */
+.menu-friends-online-text {
+  display: inline-block;
+  animation: chaos-number-unstable 15s ease-in-out infinite;
+}
+@keyframes chaos-number-unstable {
+  0%, 92%, 100% { transform: none; filter: none; }
+  93%   { transform: translate(1px, 0); filter: blur(0.5px); }
+  93.3% { transform: translate(-1px, 0); }
+  93.6% { transform: none; filter: none; }
 }
 
 /* Game flicker — same as menu, different timing */
@@ -3838,64 +4224,265 @@ button:active {
 .rm-btn-decline:hover { background: rgba(239,68,68,0.35); transform: translateY(-2px); }
 
 /* ===== LOBBY / ONLINE MENU ===== */
+/* ===== LOBBY HUB REDESIGN ===== */
 #lobby-screen {
   display: none;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  gap: 0;
 }
 #lobby-screen.active { display: flex; }
 
-.lobby-header {
+/* TOP BAR */
+.lobby-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  max-width: 500px;
-  margin-bottom: 24px;
+  background: rgba(15,17,35,0.85);
+  border: 1px solid rgba(124,92,255,0.18);
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(124,92,255,0.08) inset;
 }
-.lobby-profile {
-  display: flex; align-items: center; gap: 12px;
+.lobby-topbar-left {
+  display: flex; align-items: center; gap: 14px;
 }
 .lobby-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, #7c5cff 0%, #5b21b6 100%);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700; color: #fff;
+  font-size: 20px; font-weight: 800; color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(124,92,255,0.4), 0 0 16px rgba(124,92,255,0.3);
 }
-.lobby-username { font-size: 16px; font-weight: 700; color: #fff; }
+.lobby-topbar-info { display: flex; flex-direction: column; gap: 2px; }
+.lobby-username { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
 .lobby-rating-badge {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 13px; color: #fbbf24; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 18px; font-weight: 900; color: #fbbf24;
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
-.lobby-stats { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.lobby-rating-badge span { font-size: 18px; }
+.lobby-rating-label {
+  font-size: 10px; font-weight: 600; color: rgba(251,191,36,0.6);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.lobby-stats { font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 1px; }
+.lobby-topbar-right { display: flex; align-items: center; gap: 10px; }
 .lobby-logout-btn {
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.6); border-radius: 8px; padding: 7px 14px;
-  font-size: 12px; font-weight: 600; cursor: pointer; margin: 0; box-shadow: none;
-  transition: all 0.2s;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.5); border-radius: 8px; padding: 7px 13px;
+  font-size: 11px; font-weight: 600; cursor: pointer; margin: 0; box-shadow: none;
+  transition: all 0.18s ease; letter-spacing: 0.3px;
 }
-.lobby-logout-btn:hover { background: rgba(255,255,255,0.15); color: #fff; transform: none; }
+.lobby-logout-btn:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #f87171; transform: none; }
 
-.lobby-cards {
-  display: flex; flex-direction: column; gap: 10px;
-  width: 100%; max-width: 380px;
+/* MAIN HUB GRID */
+.lobby-hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 14px;
+  align-items: start;
 }
-.lobby-card {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px; padding: 18px 20px;
-  cursor: pointer; transition: all 0.2s;
+.lobby-hub-left { display: flex; flex-direction: column; gap: 14px; }
+.lobby-hub-right { display: flex; flex-direction: column; gap: 14px; }
+
+/* FIND MATCH — hero card */
+.lobby-card-find-match {
+  background: linear-gradient(135deg, rgba(30,20,70,0.95) 0%, rgba(20,15,55,0.98) 100%);
+  border: 1.5px solid rgba(124,92,255,0.5);
+  border-radius: 16px;
+  padding: 28px 24px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%; margin: 0;
+  position: relative; overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 8px 40px rgba(124,92,255,0.25), 0 0 0 1px rgba(124,92,255,0.1) inset;
+  animation: lobby-findmatch-pulse 3s ease-in-out infinite;
+}
+@keyframes lobby-findmatch-pulse {
+  0%, 100% { box-shadow: 0 8px 40px rgba(124,92,255,0.25), 0 0 0 1px rgba(124,92,255,0.1) inset; }
+  50%       { box-shadow: 0 8px 56px rgba(124,92,255,0.42), 0 0 0 1px rgba(124,92,255,0.2) inset; }
+}
+.lobby-card-find-match::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(124,92,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.lobby-card-find-match:hover {
+  transform: translateY(-3px);
+  border-color: rgba(124,92,255,0.8);
+  box-shadow: 0 12px 56px rgba(124,92,255,0.45), 0 0 0 1px rgba(124,92,255,0.25) inset;
+  animation: none;
+}
+.lobby-fm-header {
+  display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px;
+}
+.lobby-fm-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: linear-gradient(135deg, #7c5cff, #5b21b6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(124,92,255,0.5);
+}
+.lobby-fm-title { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.8px; line-height: 1; margin-bottom: 4px; }
+.lobby-fm-sub { font-size: 12px; color: rgba(196,181,253,0.7); font-weight: 500; letter-spacing: 0.3px; }
+.lobby-fm-cta {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, rgba(124,92,255,0.25), rgba(91,33,182,0.2));
+  border: 1px solid rgba(124,92,255,0.4);
+  border-radius: 10px; padding: 12px 16px;
+}
+.lobby-fm-cta-label { font-size: 14px; font-weight: 700; color: #c4b5fd; }
+.lobby-fm-cta-arrow {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(124,92,255,0.4); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.lobby-card-find-match:hover .lobby-fm-cta-arrow { transform: translateX(3px); background: rgba(124,92,255,0.7); }
+
+/* PRIVATE GAME card */
+.lobby-card-private {
+  background: rgba(15,17,35,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 20px 22px;
+  cursor: pointer; text-align: left;
+  width: 100%; margin: 0;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   display: flex; align-items: center; gap: 16px;
-  text-align: left; width: 100%; box-shadow: none; margin: 0;
+  position: relative; overflow: hidden;
 }
-.lobby-card:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-.lobby-card-icon { font-size: 28px; flex-shrink: 0; }
-.lobby-card-title { font-size: 16px; font-weight: 700; color: #fff; }
-.lobby-card-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
-.lobby-card.primary { background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.15)); border-color: rgba(16,185,129,0.35); }
-.lobby-card.primary:hover { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.25)); }
+.lobby-card-private:hover {
+  transform: translateY(-2px);
+  background: rgba(20,23,50,0.9);
+  border-color: rgba(99,179,237,0.35);
+  box-shadow: 0 8px 32px rgba(99,179,237,0.15);
+}
+.lobby-private-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: linear-gradient(135deg, rgba(99,179,237,0.25), rgba(59,130,246,0.2));
+  border: 1px solid rgba(99,179,237,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.lobby-private-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.lobby-private-sub { font-size: 12px; color: rgba(255,255,255,0.45); }
+.lobby-private-badge {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(99,179,237,0.7); background: rgba(99,179,237,0.1);
+  border: 1px solid rgba(99,179,237,0.2); border-radius: 6px; padding: 4px 8px;
+}
+
+/* FRIENDS PANEL (right side inline) */
+.lobby-panel {
+  background: rgba(12,14,30,0.8);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px; padding: 18px;
+  backdrop-filter: blur(8px);
+}
+.lobby-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.lobby-panel-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+}
+.lobby-panel-action {
+  font-size: 11px; font-weight: 600; color: #a78bfa; cursor: pointer;
+  background: none; border: none; padding: 0; margin: 0; box-shadow: none;
+  transition: color 0.15s;
+}
+.lobby-panel-action:hover { color: #c4b5fd; transform: none; }
+
+/* Inline friend rows in lobby */
+.lobby-friend-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 10px;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+.lobby-friend-row:last-child { margin-bottom: 0; }
+.lobby-friend-row:hover { background: rgba(255,255,255,0.05); }
+.lobby-friend-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #5b21b6, #7c5cff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.lobby-friend-name { font-size: 13px; font-weight: 600; color: #fff; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-friend-status {
+  font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.4);
+}
+.lobby-friend-status.online { color: #34d399; }
+.lobby-friend-invite {
+  font-size: 11px; font-weight: 600; color: #a78bfa;
+  background: rgba(124,92,255,0.12); border: 1px solid rgba(124,92,255,0.25);
+  border-radius: 6px; padding: 4px 9px; cursor: pointer; margin: 0; box-shadow: none;
+  transition: all 0.15s ease; flex-shrink: 0;
+}
+.lobby-friend-invite:hover { background: rgba(124,92,255,0.25); color: #c4b5fd; transform: none; }
+.lobby-no-friends {
+  text-align: center; padding: 20px 10px;
+  color: rgba(255,255,255,0.25); font-size: 12px; line-height: 1.6;
+}
+.lobby-no-friends-icon { font-size: 28px; margin-bottom: 6px; opacity: 0.4; }
+
+/* PROFILE SNAPSHOT */
+.lobby-profile-snap { /* uses .lobby-panel */ }
+.lobby-snap-winrate {
+  text-align: center; padding: 10px 0 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 14px;
+}
+.lobby-snap-wr-num {
+  font-size: 38px; font-weight: 900; letter-spacing: -2px;
+  background: linear-gradient(135deg, #c4b5fd, #7c5cff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+.lobby-snap-wr-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 2px; }
+.lobby-snap-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+}
+.lobby-snap-stat {
+  background: rgba(255,255,255,0.04); border-radius: 9px; padding: 9px 10px; text-align: center;
+}
+.lobby-snap-stat-num { font-size: 16px; font-weight: 800; color: #fff; }
+.lobby-snap-stat-label { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; margin-top: 1px; }
+.lobby-snap-view-btn {
+  width: 100%; background: rgba(124,92,255,0.1); border: 1px solid rgba(124,92,255,0.25);
+  color: #a78bfa; border-radius: 9px; padding: 9px; font-size: 12px; font-weight: 600;
+  cursor: pointer; margin: 0; box-shadow: none; transition: all 0.18s;
+}
+.lobby-snap-view-btn:hover { background: rgba(124,92,255,0.22); color: #c4b5fd; transform: none; }
+
+/* BACK BUTTON AREA */
+.lobby-back-area {
+  display: flex; justify-content: flex-start;
+  margin-top: 14px;
+}
+.lobby-back-btn {
+  background: none; border: none; color: rgba(255,255,255,0.3);
+  font-size: 12px; font-weight: 600; cursor: pointer; margin: 0; box-shadow: none;
+  padding: 6px 10px; border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.lobby-back-btn:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.06); transform: none; }
+
+/* Old lobby-card kept for safety — hidden now */
+.lobby-cards { display: none !important; }
 
 /* ===== MATCHMAKING ===== */
 #matchmaking-screen { display: none; flex-direction: column; align-items: center; }
@@ -3919,42 +4506,192 @@ button:active {
 .mm-cancel-btn:hover { background: rgba(239,68,68,0.3); transform: none; }
 
 /* ===== TIME CONTROL SELECTION ===== */
-#tc-select-screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
-#tc-select-screen.active { display: flex; }
-.tc-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.5px; }
-.tc-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
-.tc-options { display: flex; flex-direction: column; gap: 10px; width: 100%; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
-.tc-group {
-  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
-  border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+/* ===== FIND MATCH — TIME CONTROL PICKER (redesigned) ===== */
+#tc-select-screen {
+  display: none; flex-direction: column; align-items: center;
+  width: 100%; max-width: 520px;
 }
-.tc-group-header { display: flex; align-items: center; gap: 10px; }
-.tc-group-icon { font-size: 20px; flex-shrink: 0; }
-.tc-group-name { font-size: 14px; font-weight: 700; color: #fff; }
-.tc-variants { display: flex; flex-wrap: wrap; gap: 6px; }
-.tc-option {
-  background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 8px; padding: 7px 13px;
-  cursor: pointer; transition: all 0.15s ease;
-  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85);
+#tc-select-screen.active { display: flex; }
+
+.tc-header {
+  width: 100%; margin-bottom: 22px; text-align: center;
+}
+.tc-title {
+  font-size: 26px; font-weight: 900; color: #fff;
+  letter-spacing: -0.8px; margin-bottom: 5px; margin-top: 0;
+}
+.tc-sub {
+  font-size: 13px; color: rgba(255,255,255,0.4);
+  margin-bottom: 0; line-height: 1.5;
+}
+
+/* SELECTED DISPLAY BAR */
+.tc-selected-bar {
+  width: 100%; background: rgba(124,92,255,0.1);
+  border: 1.5px solid rgba(124,92,255,0.3);
+  border-radius: 12px; padding: 12px 18px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+.tc-selected-bar.has-selection {
+  background: rgba(124,92,255,0.15);
+  border-color: rgba(124,92,255,0.55);
+  box-shadow: 0 0 18px rgba(124,92,255,0.12);
+}
+.tc-sel-icon { font-size: 22px; flex-shrink: 0; }
+.tc-sel-info { flex: 1; min-width: 0; }
+.tc-sel-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(124,92,255,0.7); margin-bottom: 2px;
+}
+.tc-sel-name {
+  font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.3px;
+}
+.tc-sel-hint {
+  font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 1px;
+}
+
+/* ACCORDION LIST */
+.tc-options {
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%; max-height: 55vh; overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin; scrollbar-color: rgba(124,92,255,0.3) transparent;
+}
+.tc-options::-webkit-scrollbar { width: 4px; }
+.tc-options::-webkit-scrollbar-thumb { background: rgba(124,92,255,0.3); border-radius: 4px; }
+
+/* Each accordion row */
+.tc-group {
+  background: rgba(15,17,35,0.7);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0;
+}
+.tc-group.open {
+  border-color: rgba(255,255,255,0.16);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.tc-group.has-selected-child {
+  border-color: rgba(124,92,255,0.45);
+  box-shadow: 0 4px 20px rgba(124,92,255,0.12);
+}
+
+/* Clickable header (the "dropdown trigger") */
+.tc-group-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+  position: relative;
+}
+.tc-group-header:hover { background: rgba(255,255,255,0.04); }
+.tc-group.open .tc-group-header { background: rgba(255,255,255,0.04); }
+
+.tc-group-icon {
+  font-size: 22px; flex-shrink: 0;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+.tc-group-text { flex: 1; min-width: 0; }
+.tc-group-name {
+  font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.2px;
+}
+.tc-group-desc {
+  font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 2px; font-weight: 400;
+}
+.tc-group-meta {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.tc-group-range {
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.06); border-radius: 6px; padding: 3px 8px;
   white-space: nowrap;
 }
-.tc-option:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
-.tc-option.selected { background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.6); color: #fff; }
-.tc-actions { display: flex; gap: 10px; margin-top: 20px; width: 100%; }
+.tc-group-chevron {
+  font-size: 12px; color: rgba(255,255,255,0.3);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+.tc-group.open .tc-group-chevron { transform: rotate(180deg); color: rgba(255,255,255,0.6); }
+.tc-group.has-selected-child .tc-group-chevron { color: rgba(124,92,255,0.7); }
+
+/* Variants panel — the expanding area */
+.tc-variants-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tc-group.open .tc-variants-wrap { max-height: 200px; }
+
+.tc-variants {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  padding: 4px 18px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.tc-option {
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 9px; padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap; margin: 0; box-shadow: none;
+  font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+.tc-option:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.22);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+.tc-option.selected {
+  background: rgba(124,92,255,0.2);
+  border-color: rgba(124,92,255,0.65);
+  color: #c4b5fd;
+  box-shadow: 0 0 12px rgba(124,92,255,0.2);
+}
+.tc-option.selected::before {
+  content: '✓';
+  font-size: 11px;
+  color: #a78bfa;
+}
+
+/* ACTION ROW */
+.tc-actions {
+  display: flex; gap: 10px; margin-top: 18px; width: 100%;
+}
 .tc-go-btn {
-  flex: 1; background: linear-gradient(135deg, #10b981, #059669);
-  border: none; color: #fff; border-radius: 10px; padding: 13px;
+  flex: 1;
+  background: linear-gradient(135deg, #7c5cff 0%, #5b21b6 100%);
+  border: none; color: #fff; border-radius: 12px; padding: 14px;
   font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.18s;
-  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+  box-shadow: 0 4px 20px rgba(124,92,255,0.35);
+  font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.tc-go-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+.tc-go-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,92,255,0.5); }
+.tc-go-btn:disabled {
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3);
+  box-shadow: none; cursor: not-allowed; transform: none;
+}
 .tc-back-btn {
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.7); border-radius: 10px; padding: 13px 20px;
-  font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.18s;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6); border-radius: 12px; padding: 14px 20px;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.18s;
+  font-family: 'Inter', sans-serif; white-space: nowrap; margin: 0; box-shadow: none;
 }
-.tc-back-btn:hover { background: rgba(255,255,255,0.14); }
+.tc-back-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
 
 /* ===== FRIENDS PANEL ===== */
 #friends-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
@@ -5398,7 +6135,7 @@ button:active {
 
   <!-- Actual content -->
   <div class="auth-content">
-    <div class="auth-logo">♟ Chaos Chess</div>
+    <div class="auth-logo">♟ Chaos Chess<span class="chaos-auth-tear" aria-hidden="true"></span></div>
     <div class="auth-tagline">The rules change. Can you keep up?</div>
 
     <!-- Login panel -->
@@ -5441,6 +6178,7 @@ button:active {
     <div class="pg-msg" id="pg-msg">Well played</div>
 
     <div class="pg-rating-box" id="pg-rating-box">
+      <span class="chaos-pg-tear-overlay" aria-hidden="true"></span>
       <div class="pg-rating-label">Chaos Rating</div>
       <div class="pg-rating-row">
         <div class="pg-rating-old" id="pg-rating-old">1000</div>
@@ -5481,7 +6219,7 @@ button:active {
   <div class="menu-noise"></div>
   <!-- TOP NAV BAR -->
   <div class="menu-topbar">
-    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.1</span></div>
+    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.1</span><span class="chaos-topbar-corrupt" aria-hidden="true">♟ Chaos<span>Chess</span></span></div>
     <div class="menu-topbar-right">
       <div class="menu-topbar-user" id="menu-topbar-user">
         <div class="menu-topbar-avatar" id="menu-topbar-avatar">?</div>
@@ -5500,13 +6238,14 @@ button:active {
 
       <!-- Title -->
       <div class="menu-title-area">
-        <h1>Chaos Chess</h1>
-        <div class="menu-tagline">Chess, but the rules are just suggestions.</div>
+        <h1 data-text="Chaos Chess">Chaos Chess</h1>
+        <div class="menu-tagline">Chess, but the rules are just suggestions.<span class="chaos-tagline-corrupt" aria-hidden="true">Ch4os Ch3ss — ru1es.exe corrupted</span></div>
       </div>
 
       <!-- Primary play cards -->
       <div class="menu-play-cards">
         <button class="menu-play-card online" onclick="showLobby()">
+          <span class="chaos-card-chip" aria-hidden="true">SYS::NET</span>
           <div class="menu-play-card-icon">🌐</div>
           <div class="menu-play-card-label">Multiplayer</div>
           <div class="menu-play-card-title">Play Online</div>
@@ -5514,6 +6253,7 @@ button:active {
           <div class="menu-play-card-arrow">→</div>
         </button>
         <button class="menu-play-card local" onclick="startLocal()">
+          <span class="chaos-card-chip" aria-hidden="true">SYS::LOC</span>
           <div class="menu-play-card-icon">🖥️</div>
           <div class="menu-play-card-label">Offline</div>
           <div class="menu-play-card-title">Play Local</div>
@@ -5587,54 +6327,107 @@ button:active {
 
     <!-- LOBBY SCREEN -->
     <div id="lobby-screen">
-      <div class="lobby-header">
-        <div class="lobby-profile">
+
+      <!-- TOP BAR -->
+      <div class="lobby-topbar">
+        <div class="lobby-topbar-left">
           <div class="lobby-avatar" id="lobby-avatar-letter">?</div>
-          <div>
+          <div class="lobby-topbar-info">
             <div class="lobby-username" id="lobby-username-display">Guest</div>
             <div class="lobby-rating-badge">⚡ <span id="lobby-rating-display">—</span></div>
             <div class="lobby-stats" id="lobby-stats-display"></div>
           </div>
         </div>
-        <button class="lobby-logout-btn" onclick="doLogout()" id="lobby-logout-btn">Sign out</button>
+        <div class="lobby-topbar-right">
+          <button class="lobby-logout-btn" onclick="doLogout()" id="lobby-logout-btn">↪ Sign Out</button>
+        </div>
       </div>
-      <div class="lobby-cards">
-        <button class="lobby-card primary" onclick="showMatchmaking()">
-          <span class="lobby-card-icon">🔍</span>
-          <div>
-            <div class="lobby-card-title">Find Match</div>
-            <div class="lobby-card-sub">Skill-based matchmaking • Rated</div>
+
+      <!-- MAIN GRID -->
+      <div class="lobby-hub-grid">
+
+        <!-- LEFT: PRIMARY ACTIONS -->
+        <div class="lobby-hub-left">
+
+          <!-- FIND MATCH (hero) -->
+          <button class="lobby-card-find-match" onclick="showMatchmaking()">
+            <div class="lobby-fm-header">
+              <div class="lobby-fm-icon">🔍</div>
+              <div>
+                <div class="lobby-fm-title">Find Match</div>
+                <div class="lobby-fm-sub">Ranked &nbsp;·&nbsp; Skill-Based &nbsp;·&nbsp; Live Matchmaking</div>
+              </div>
+            </div>
+            <div class="lobby-fm-cta">
+              <div class="lobby-fm-cta-label">Search for an opponent now</div>
+              <div class="lobby-fm-cta-arrow">→</div>
+            </div>
+          </button>
+
+          <!-- PRIVATE GAME -->
+          <button class="lobby-card-private" onclick="showPrivateSetup()">
+            <div class="lobby-private-icon">🔑</div>
+            <div style="flex:1;min-width:0;">
+              <div class="lobby-private-title">Private Game</div>
+              <div class="lobby-private-sub">Play with friends using a room code</div>
+            </div>
+            <div class="lobby-private-badge">Code</div>
+          </button>
+
+        </div>
+
+        <!-- RIGHT: FRIENDS + PROFILE -->
+        <div class="lobby-hub-right">
+
+          <!-- FRIENDS PANEL -->
+          <div class="lobby-panel">
+            <div class="lobby-panel-header">
+              <div class="lobby-panel-title">👥 Friends</div>
+              <button class="lobby-panel-action" onclick="showFriends()" id="lobby-friends-sub">Manage →</button>
+            </div>
+            <div id="lobby-inline-friends">
+              <div class="lobby-no-friends">
+                <div class="lobby-no-friends-icon">🌐</div>
+                No friends online right now
+              </div>
+            </div>
           </div>
-        </button>
-        <button class="lobby-card" onclick="showPrivateSetup()">
-          <span class="lobby-card-icon">🔑</span>
-          <div>
-            <div class="lobby-card-title">Private Game</div>
-            <div class="lobby-card-sub">Host or join with a room code</div>
+
+          <!-- PROFILE SNAPSHOT -->
+          <div class="lobby-panel lobby-profile-snap">
+            <div class="lobby-panel-header">
+              <div class="lobby-panel-title">📊 Your Stats</div>
+            </div>
+            <div class="lobby-snap-winrate">
+              <div class="lobby-snap-wr-num" id="lobby-snap-winrate">—%</div>
+              <div class="lobby-snap-wr-label">Win Rate</div>
+            </div>
+            <div class="lobby-snap-stats">
+              <div class="lobby-snap-stat">
+                <div class="lobby-snap-stat-num" id="lobby-snap-wins">—</div>
+                <div class="lobby-snap-stat-label">Wins</div>
+              </div>
+              <div class="lobby-snap-stat">
+                <div class="lobby-snap-stat-num" id="lobby-snap-games">—</div>
+                <div class="lobby-snap-stat-label">Games</div>
+              </div>
+            </div>
+            <button class="lobby-snap-view-btn" onclick="showProfile()">View Full Profile →</button>
           </div>
-        </button>
-        <button class="lobby-card" onclick="showFriends()">
-          <span class="lobby-card-icon">👥</span>
-          <div>
-            <div class="lobby-card-title">Friends</div>
-            <div class="lobby-card-sub" id="lobby-friends-sub">Manage friends & invite</div>
-          </div>
-        </button>
-        <button class="lobby-card" onclick="showProfile()">
-          <span class="lobby-card-icon">📊</span>
-          <div>
-            <div class="lobby-card-title">Profile & Stats</div>
-            <div class="lobby-card-sub">Your full match history & records</div>
-          </div>
-        </button>
-        <button class="lobby-card" onclick="showMainMenu()" style="opacity:0.6;">
-          <span class="lobby-card-icon">←</span>
-          <div>
-            <div class="lobby-card-title">Back</div>
-            <div class="lobby-card-sub">Return to main menu</div>
-          </div>
-        </button>
+
+        </div>
       </div>
+
+      <!-- BACK -->
+      <div class="lobby-back-area">
+        <button class="lobby-back-btn" onclick="showMainMenu()">← Back to Main Menu</button>
+      </div>
+
+      <!-- Hidden legacy card container (keeps old IDs alive for any refs) -->
+      <div class="lobby-cards" style="display:none!important">
+        <div id="_lobby-friends-sub-legacy"></div>
+      </div>
+
     </div>
 
     <!-- PRIVATE GAME SETUP (original system, preserved) -->
@@ -5688,69 +6481,169 @@ button:active {
 
     <!-- TIME CONTROL SELECTION (shown before joining matchmaking queue) -->
     <div id="tc-select-screen">
-      <div class="tc-title">⚔️ Find a Match</div>
-      <div class="tc-sub">Choose your time control — you'll be matched with players on the same format</div>
-      <div class="tc-options">
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">⚡</span><span class="tc-group-name">Hyperbullet</span></div>
-          <div class="tc-variants">
-            <button class="tc-option" data-tc="15" data-inc="0" onclick="selectTC(this)">15s</button>
+      <div class="tc-header">
+        <div class="tc-title">⚔️ Find a Match</div>
+        <div class="tc-sub">Pick a time control — you'll be matched against players on the same format</div>
+      </div>
+
+      <!-- Live selection preview bar -->
+      <div class="tc-selected-bar" id="tc-selected-bar">
+        <div class="tc-sel-icon" id="tc-sel-icon">⚡</div>
+        <div class="tc-sel-info">
+          <div class="tc-sel-label">Selected</div>
+          <div class="tc-sel-name" id="tc-sel-name">Blitz · 1 min</div>
+          <div class="tc-sel-hint" id="tc-sel-hint">Fast-paced chaos — decisions in seconds</div>
+        </div>
+      </div>
+
+      <div class="tc-options" id="tc-options-list">
+
+        <!-- HYPERBULLET -->
+        <div class="tc-group" id="tcg-hyperbullet">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-hyperbullet')">
+            <div class="tc-group-icon">⚡</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Hyperbullet</div>
+              <div class="tc-group-desc">Blink and you've lost — pure reflex</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">15s</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option" data-tc="15" data-inc="0" data-group="tcg-hyperbullet" onclick="selectTC(this)">15s</button>
+            </div>
           </div>
         </div>
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">🔥</span><span class="tc-group-name">Bullet</span></div>
-          <div class="tc-variants">
-            <button class="tc-option" data-tc="30" data-inc="0" onclick="selectTC(this)">30s</button>
+        <!-- BULLET -->
+        <div class="tc-group" id="tcg-bullet">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-bullet')">
+            <div class="tc-group-icon">🔥</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Bullet</div>
+              <div class="tc-group-desc">No time to think, only instinct</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">30s</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option" data-tc="30" data-inc="0" data-group="tcg-bullet" onclick="selectTC(this)">30s</button>
+            </div>
           </div>
         </div>
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">⚡</span><span class="tc-group-name">Blitz</span></div>
-          <div class="tc-variants">
-            <button class="tc-option selected" data-tc="60" data-inc="0" onclick="selectTC(this)">1 min</button>
-            <button class="tc-option" data-tc="60" data-inc="1" onclick="selectTC(this)">1 min +1s</button>
-            <button class="tc-option" data-tc="60" data-inc="2" onclick="selectTC(this)">1 min +2s</button>
+        <!-- BLITZ -->
+        <div class="tc-group open has-selected-child" id="tcg-blitz">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-blitz')">
+            <div class="tc-group-icon">🌩️</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Blitz</div>
+              <div class="tc-group-desc">Fast-paced chaos — decisions in seconds</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">1–3 min</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option selected" data-tc="60" data-inc="0" data-group="tcg-blitz" onclick="selectTC(this)">1 min</button>
+              <button class="tc-option" data-tc="60" data-inc="1" data-group="tcg-blitz" onclick="selectTC(this)">1 min +1s</button>
+              <button class="tc-option" data-tc="60" data-inc="2" data-group="tcg-blitz" onclick="selectTC(this)">1 min +2s</button>
+              <button class="tc-option" data-tc="120" data-inc="0" data-group="tcg-blitz" onclick="selectTC(this)">2 min</button>
+              <button class="tc-option" data-tc="120" data-inc="1" data-group="tcg-blitz" onclick="selectTC(this)">2 min +1s</button>
+            </div>
           </div>
         </div>
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">🕐</span><span class="tc-group-name">Rapid</span></div>
-          <div class="tc-variants">
-            <button class="tc-option" data-tc="180" data-inc="0" onclick="selectTC(this)">3 min</button>
-            <button class="tc-option" data-tc="180" data-inc="2" onclick="selectTC(this)">3 min +2s</button>
+        <!-- RAPID -->
+        <div class="tc-group" id="tcg-rapid">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-rapid')">
+            <div class="tc-group-icon">🕐</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Rapid</div>
+              <div class="tc-group-desc">Room to breathe — strategy matters</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">3–5 min</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option" data-tc="180" data-inc="0" data-group="tcg-rapid" onclick="selectTC(this)">3 min</button>
+              <button class="tc-option" data-tc="180" data-inc="2" data-group="tcg-rapid" onclick="selectTC(this)">3 min +2s</button>
+              <button class="tc-option" data-tc="300" data-inc="0" data-group="tcg-rapid" onclick="selectTC(this)">5 min</button>
+              <button class="tc-option" data-tc="300" data-inc="3" data-group="tcg-rapid" onclick="selectTC(this)">5 min +3s</button>
+            </div>
           </div>
         </div>
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">📚</span><span class="tc-group-name">Classical</span></div>
-          <div class="tc-variants">
-            <button class="tc-option" data-tc="300" data-inc="0" onclick="selectTC(this)">5 min</button>
-            <button class="tc-option" data-tc="300" data-inc="3" onclick="selectTC(this)">5 min +3s</button>
+        <!-- CLASSICAL -->
+        <div class="tc-group" id="tcg-classical">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-classical')">
+            <div class="tc-group-icon">📚</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Classical</div>
+              <div class="tc-group-desc">Deep planning, deliberate chaos</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">10 min</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option" data-tc="600" data-inc="0" data-group="tcg-classical" onclick="selectTC(this)">10 min</button>
+              <button class="tc-option" data-tc="600" data-inc="5" data-group="tcg-classical" onclick="selectTC(this)">10 min +5s</button>
+            </div>
           </div>
         </div>
 
-        <div class="tc-group">
-          <div class="tc-group-header"><span class="tc-group-icon">🌀</span><span class="tc-group-name">Deep Chaos</span></div>
-          <div class="tc-variants">
-            <button class="tc-option" data-tc="600" data-inc="0" onclick="selectTC(this)">10 min</button>
-            <button class="tc-option" data-tc="600" data-inc="5" onclick="selectTC(this)">10 min +5s</button>
+        <!-- DEEP CHAOS -->
+        <div class="tc-group" id="tcg-deepchaos">
+          <div class="tc-group-header" onclick="toggleTCGroup('tcg-deepchaos')">
+            <div class="tc-group-icon">🌀</div>
+            <div class="tc-group-text">
+              <div class="tc-group-name">Deep Chaos</div>
+              <div class="tc-group-desc">Maximum entropy — expect anything</div>
+            </div>
+            <div class="tc-group-meta">
+              <span class="tc-group-range">20+ min</span>
+              <span class="tc-group-chevron">▼</span>
+            </div>
+          </div>
+          <div class="tc-variants-wrap">
+            <div class="tc-variants">
+              <button class="tc-option" data-tc="1200" data-inc="0" data-group="tcg-deepchaos" onclick="selectTC(this)">20 min</button>
+              <button class="tc-option" data-tc="1200" data-inc="10" data-group="tcg-deepchaos" onclick="selectTC(this)">20 min +10s</button>
+            </div>
           </div>
         </div>
 
       </div>
+
       <div class="tc-actions">
         <button class="tc-back-btn" onclick="backToLobby()">← Back</button>
-        <button class="tc-go-btn" onclick="confirmAndQueue()">Find Match 🔍</button>
+        <button class="tc-go-btn" id="tc-go-btn" onclick="confirmAndQueue()">Find Match →</button>
       </div>
+
     </div>
 
     <!-- MATCHMAKING SCREEN -->
     <div id="matchmaking-screen">
       <div class="mm-spinner"></div>
       <div class="mm-title" id="mm-title">Searching for opponent…</div>
+      <div class="mm-static-bar"></div>
       <div class="mm-sub" id="mm-status-text">The system watches.</div>
+      <div class="mm-chaos-signal" aria-hidden="true">SIG::CHAOS — SCANNING NODES</div>
       <button class="mm-cancel-btn" onclick="cancelMatchmaking()">Cancel</button>
     </div>
 
@@ -5789,6 +6682,9 @@ button:active {
             <div class="prof-rating-hero">
               <span class="prof-rating-number" id="profile-rating-val">—</span>
               <span class="prof-rating-label-big">Chaos Rating</span>
+            </div>
+            <div style="font-size:11px;color:rgba(251,191,36,0.5);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:1px;">
+              Peak <span id="profile-peak-rating-val" style="color:rgba(251,191,36,0.75);">—</span>
             </div>
             <div class="profile-games-played" id="profile-games-played">0 games played</div>
           </div>
@@ -11041,11 +11937,73 @@ function updateLobbyUI(){
   document.getElementById('lobby-username-display').textContent = p.username;
   document.getElementById('lobby-rating-display').textContent = p.rating;
   document.getElementById('lobby-stats-display').textContent =
-    `${p.wins}W / ${p.losses}L / ${p.draws}D  •  ${p.gamesPlayed} games`;
-  // Pending requests badge
+    `${p.wins}W / ${p.losses}L / ${p.draws}D`;
+
+  // Profile snapshot panel
+  const snapWR = document.getElementById('lobby-snap-winrate');
+  const snapWins = document.getElementById('lobby-snap-wins');
+  const snapGames = document.getElementById('lobby-snap-games');
+  if(snapWR){
+    const wr = p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0;
+    snapWR.textContent = p.gamesPlayed > 0 ? `${wr}%` : '—%';
+  }
+  if(snapWins) snapWins.textContent = p.wins ?? '—';
+  if(snapGames) snapGames.textContent = p.gamesPlayed ?? '—';
+
+  // Friends panel — inline preview
   const reqCount = (p.friendRequests || []).length;
-  if(reqCount > 0){
-    document.getElementById('lobby-friends-sub').textContent = `${reqCount} pending request${reqCount>1?'s':''}`;
+  const friendsSub = document.getElementById('lobby-friends-sub');
+  if(friendsSub){
+    if(reqCount > 0){
+      friendsSub.textContent = `${reqCount} pending →`;
+    } else {
+      friendsSub.textContent = 'Manage →';
+    }
+  }
+  _populateLobbyInlineFriends(p);
+}
+
+async function _populateLobbyInlineFriends(p){
+  const container = document.getElementById('lobby-inline-friends');
+  if(!container) return;
+  const friends = p.friends || [];
+  if(friends.length === 0){
+    container.innerHTML = '<div class="lobby-no-friends"><div class="lobby-no-friends-icon">🌐</div>No friends yet — add some!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  // Show up to 5 friends
+  const shown = friends.slice(0, 5);
+  for(const username of shown){
+    const row = document.createElement('div');
+    row.className = 'lobby-friend-row';
+    const av = document.createElement('div');
+    av.className = 'lobby-friend-avatar';
+    av.textContent = username[0].toUpperCase();
+    const name = document.createElement('div');
+    name.className = 'lobby-friend-name';
+    name.textContent = username;
+    const status = document.createElement('div');
+    status.className = 'lobby-friend-status';
+    status.textContent = '●';
+    const inviteBtn = document.createElement('button');
+    inviteBtn.className = 'lobby-friend-invite';
+    inviteBtn.textContent = 'Invite';
+    inviteBtn.onclick = () => inviteFriend(username);
+    row.appendChild(av);
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0;';
+    info.appendChild(name);
+    row.appendChild(info);
+    row.appendChild(inviteBtn);
+    container.appendChild(row);
+  }
+  if(friends.length > 5){
+    const more = document.createElement('div');
+    more.style.cssText = 'text-align:center;padding:8px;font-size:11px;color:rgba(255,255,255,0.3);cursor:pointer;';
+    more.textContent = `+${friends.length - 5} more`;
+    more.onclick = () => showFriends();
+    container.appendChild(more);
   }
 }
 
@@ -11087,6 +12045,16 @@ function showLobby(){
     document.getElementById('lobby-rating-display').textContent = '—';
     document.getElementById('lobby-stats-display').textContent = 'Sign in to track stats';
     document.getElementById('lobby-logout-btn').style.display = 'none';
+    // Clear snapshot
+    const sw = document.getElementById('lobby-snap-winrate');
+    const sg = document.getElementById('lobby-snap-games');
+    const swi = document.getElementById('lobby-snap-wins');
+    if(sw) sw.textContent = '—%';
+    if(sg) sg.textContent = '—';
+    if(swi) swi.textContent = '—';
+    // Clear friends panel
+    const fi = document.getElementById('lobby-inline-friends');
+    if(fi) fi.innerHTML = '<div class="lobby-no-friends"><div class="lobby-no-friends-icon">🔒</div>Sign in to see friends</div>';
   }
 }
 
@@ -11552,6 +12520,56 @@ function showMatchmaking(){
   hideAll();
   showSubView();
   document.getElementById('tc-select-screen').classList.add('active');
+
+  // Reset: close all groups except blitz, ensure default selection
+  document.querySelectorAll('.tc-group').forEach(g => {
+    g.classList.remove('open', 'has-selected-child');
+  });
+  const blitzGroup = document.getElementById('tcg-blitz');
+  if (blitzGroup) {
+    blitzGroup.classList.add('open', 'has-selected-child');
+  }
+  // Re-select default blitz 1min button
+  document.querySelectorAll('.tc-option').forEach(b => b.classList.remove('selected'));
+  const defaultBtn = document.querySelector('#tcg-blitz .tc-option[data-tc="60"][data-inc="0"]');
+  if (defaultBtn) {
+    defaultBtn.classList.add('selected');
+    mmSelectedTC = 60;
+    mmSelectedIncrement = 0;
+  }
+  // Reset the selected bar
+  const bar = document.getElementById('tc-selected-bar');
+  if (bar) {
+    bar.classList.add('has-selection');
+    const icon = document.getElementById('tc-sel-icon');
+    const name = document.getElementById('tc-sel-name');
+    const hint = document.getElementById('tc-sel-hint');
+    if (icon) icon.textContent = '🌩️';
+    if (name) name.textContent = 'Blitz · 1 min';
+    if (hint) hint.textContent = 'Fast-paced chaos — decisions in seconds';
+  }
+}
+
+// TC group metadata for the selected bar
+const TC_GROUP_META = {
+  'tcg-hyperbullet': { icon: '⚡', name: 'Hyperbullet', hint: 'Blink and you\'ve lost — pure reflex' },
+  'tcg-bullet':      { icon: '🔥', name: 'Bullet',      hint: 'No time to think, only instinct' },
+  'tcg-blitz':       { icon: '🌩️', name: 'Blitz',       hint: 'Fast-paced chaos — decisions in seconds' },
+  'tcg-rapid':       { icon: '🕐', name: 'Rapid',       hint: 'Room to breathe — strategy matters' },
+  'tcg-classical':   { icon: '📚', name: 'Classical',   hint: 'Deep planning, deliberate chaos' },
+  'tcg-deepchaos':   { icon: '🌀', name: 'Deep Chaos',  hint: 'Maximum entropy — expect anything' },
+};
+
+// Toggle open/close a tc-group accordion
+function toggleTCGroup(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const isOpen = group.classList.contains('open');
+  // Close all others
+  document.querySelectorAll('.tc-group.open').forEach(g => {
+    if (g.id !== groupId) g.classList.remove('open');
+  });
+  group.classList.toggle('open', !isOpen);
 }
 
 // Called when user clicks a TC option button
@@ -11560,6 +12578,37 @@ function selectTC(btn){
   btn.classList.add('selected');
   mmSelectedTC = parseInt(btn.dataset.tc);
   mmSelectedIncrement = parseInt(btn.dataset.inc || '0');
+
+  // Update all group highlight states
+  document.querySelectorAll('.tc-group').forEach(g => g.classList.remove('has-selected-child'));
+  const groupId = btn.dataset.group;
+  if (groupId) {
+    const parentGroup = document.getElementById(groupId);
+    if (parentGroup) parentGroup.classList.add('has-selected-child');
+  }
+
+  // Update the selected bar
+  const bar  = document.getElementById('tc-selected-bar');
+  const icon = document.getElementById('tc-sel-icon');
+  const name = document.getElementById('tc-sel-name');
+  const hint = document.getElementById('tc-sel-hint');
+  if (bar && icon && name && hint) {
+    bar.classList.add('has-selection');
+    const meta = TC_GROUP_META[groupId] || { icon: '⚡', name: 'Custom', hint: '' };
+    icon.textContent = meta.icon;
+    const incLabel = mmSelectedIncrement > 0 ? ` +${mmSelectedIncrement}s` : '';
+    const baseLabel = mmSelectedTC < 60
+      ? `${mmSelectedTC}s`
+      : mmSelectedTC < 3600
+        ? `${Math.floor(mmSelectedTC/60)} min`
+        : `${Math.floor(mmSelectedTC/60)} min`;
+    name.textContent = `${meta.name} · ${baseLabel}${incLabel}`;
+    hint.textContent = meta.hint;
+  }
+
+  // Enable the Find Match button
+  const goBtn = document.getElementById('tc-go-btn');
+  if (goBtn) goBtn.disabled = false;
 }
 
 // Helper: human-readable label for a tc+inc combo
@@ -12200,6 +13249,8 @@ function renderProfile(){
   document.getElementById('profile-avatar-letter').textContent = p.username[0].toUpperCase();
   document.getElementById('profile-display-name').textContent = p.username;
   document.getElementById('profile-rating-val').textContent = p.rating || 1000;
+  const peakEl = document.getElementById('profile-peak-rating-val');
+  if(peakEl) peakEl.textContent = p.peakRating || p.rating || 1000;
   document.getElementById('profile-games-played').textContent = `${p.gamesPlayed || 0} games played`;
 
   const wins   = s.wins   || p.wins   || 0;
@@ -13658,6 +14709,176 @@ function stopDraftGlitch() {
   }
 })();
 
+/* ================================================================
+   CHAOS IDENTITY JS — grid anomalies, rune particles, signal text
+   ================================================================ */
+(function() {
+  'use strict';
+
+  // ── GRID ANOMALY SYSTEM ─────────────────────────────────────
+  // Randomly lights up cells that align to the 48px background grid
+  function spawnGridAnomaly() {
+    const menuHub = document.getElementById('menu-hub-view');
+    if (!menuHub || menuHub.style.display === 'none') return;
+
+    const cols = Math.floor(window.innerWidth  / 48);
+    const rows = Math.floor(window.innerHeight / 48);
+    const col  = Math.floor(Math.random() * cols);
+    const row  = Math.floor(Math.random() * rows);
+
+    const el = document.createElement('div');
+    el.className = 'chaos-grid-anomaly';
+    el.style.left = (col * 48) + 'px';
+    el.style.top  = (row * 48) + 'px';
+
+    const duration = 800 + Math.random() * 1200;
+    el.style.animation = `chaos-anomaly-pop ${duration}ms ease-out forwards`;
+
+    // Rare: double-wide or double-tall anomaly
+    if (Math.random() < 0.15) {
+      el.style.width  = '96px';
+      el.style.borderColor = 'rgba(0,200,255,0.5)';
+      el.style.boxShadow   = '0 0 14px rgba(0,200,255,0.3), inset 0 0 8px rgba(0,200,255,0.1)';
+    }
+    if (Math.random() < 0.08) {
+      el.style.background = 'rgba(255,20,80,0.04)';
+      el.style.borderColor = 'rgba(255,20,80,0.5)';
+      el.style.boxShadow   = '0 0 14px rgba(255,20,80,0.3), inset 0 0 8px rgba(255,20,80,0.1)';
+    }
+
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), duration + 50);
+  }
+
+  // Spawn anomalies at random intervals 1.5s – 5s apart
+  function scheduleAnomaly() {
+    const delay = 1500 + Math.random() * 3500;
+    setTimeout(() => {
+      spawnGridAnomaly();
+      scheduleAnomaly();
+    }, delay);
+  }
+  scheduleAnomaly();
+
+  // ── RUNE PARTICLE SYSTEM ────────────────────────────────────
+  const CHAOS_RUNES = ['♟','♜','♞','♝','♛','♚','⚡','∞','◈','⌬','⎊','⚙','▲','◆','✦'];
+
+  function spawnRuneParticle() {
+    const menuHub = document.getElementById('menu-hub-view');
+    if (!menuHub || menuHub.style.display === 'none') return;
+
+    const el = document.createElement('div');
+    el.className = 'chaos-rune-particle';
+    el.setAttribute('aria-hidden', 'true');
+    el.textContent = CHAOS_RUNES[Math.floor(Math.random() * CHAOS_RUNES.length)];
+
+    const x = 10 + Math.random() * 80; // % of viewport width
+    el.style.left    = x + 'vw';
+    el.style.bottom  = (60 + Math.random() * 30) + 'px'; // start just above nav area
+    el.style.fontSize = (11 + Math.random() * 14) + 'px';
+
+    const duration = 4000 + Math.random() * 6000;
+    el.style.animationDuration = duration + 'ms';
+
+    // Occasional colour variant
+    const r = Math.random();
+    if (r < 0.15) {
+      el.style.color      = 'rgba(0,200,255,0.35)';
+      el.style.textShadow = '0 0 8px rgba(0,200,255,0.5)';
+    } else if (r < 0.25) {
+      el.style.color      = 'rgba(255,20,80,0.3)';
+      el.style.textShadow = '0 0 8px rgba(255,20,80,0.4)';
+    } else if (r < 0.35) {
+      el.style.color      = 'rgba(251,191,36,0.35)';
+      el.style.textShadow = '0 0 8px rgba(251,191,36,0.4)';
+    }
+
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), duration + 100);
+  }
+
+  function scheduleRune() {
+    const delay = 2000 + Math.random() * 5000;
+    setTimeout(() => {
+      spawnRuneParticle();
+      scheduleRune();
+    }, delay);
+  }
+  // Stagger initial burst
+  setTimeout(scheduleRune, 1000);
+  setTimeout(spawnRuneParticle, 2500);
+  setTimeout(spawnRuneParticle, 4000);
+
+  // ── MATCHMAKING SIGNAL TEXT CYCLING ─────────────────────────
+  const CHAOS_SIGNALS = [
+    'SIG::CHAOS — SCANNING NODES',
+    'ENTROPY::SCAN — SEEKING HOST',
+    'NODE::MAP — ROUTING ANOMALY',
+    'CHAOS::NET — PROBING RIFT',
+    'SYS::MATCH — CALCULATING FATE',
+    'PROTOCOL::X — BREACH DETECTED',
+  ];
+  let _sigIdx = 0;
+  let _sigInterval = null;
+
+  function startSignalCycle() {
+    const el = document.querySelector('.mm-chaos-signal');
+    if (!el) return;
+    _sigIdx = 0;
+    el.textContent = CHAOS_SIGNALS[0];
+    _sigInterval = setInterval(() => {
+      _sigIdx = (_sigIdx + 1) % CHAOS_SIGNALS.length;
+      el.textContent = CHAOS_SIGNALS[_sigIdx];
+    }, 3200);
+  }
+  function stopSignalCycle() {
+    if (_sigInterval) { clearInterval(_sigInterval); _sigInterval = null; }
+  }
+
+  // Hook into showMatchmaking and cancelMatchmaking via monkey-patch
+  const _origShowMM = window.showMatchmaking;
+  if (typeof _origShowMM === 'function') {
+    window.showMatchmaking = function() {
+      _origShowMM.apply(this, arguments);
+      setTimeout(startSignalCycle, 100);
+    };
+  }
+  const _origCancel = window.cancelMatchmaking;
+  if (typeof _origCancel === 'function') {
+    window.cancelMatchmaking = function() {
+      stopSignalCycle();
+      _origCancel.apply(this, arguments);
+    };
+  }
+
+  // ── POSTGAME WIN FLICKER ─────────────────────────────────────
+  // Watch for the postgame screen becoming active and add win flicker class
+  const pgObserver = new MutationObserver(() => {
+    const screen = document.getElementById('postgame-screen');
+    const label  = document.getElementById('pg-label');
+    if (!screen || !label) return;
+    if (screen.classList.contains('active')) {
+      const text = label.textContent.toLowerCase();
+      if (text.includes('victory') || text.includes('win') || text.includes('you win')) {
+        label.classList.add('chaos-win-flicker');
+      } else {
+        label.classList.remove('chaos-win-flicker');
+      }
+    }
+  });
+  const pgScreen = document.getElementById('postgame-screen');
+  if (pgScreen) {
+    pgObserver.observe(pgScreen, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  // ── TITLE DATA-TEXT SYNC ─────────────────────────────────────
+  // Ensure data-text attr stays in sync if h1 text ever changes
+  const h1 = document.querySelector('.menu-title-area h1');
+  if (h1 && !h1.dataset.text) {
+    h1.dataset.text = h1.textContent;
+  }
+
+})();
 
 </script>
 </body>
