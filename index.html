@@ -2557,6 +2557,135 @@ button:active {
   .pvt-tc-buttons { grid-template-columns: 1fr 1fr; }
 }
 
+/* ── JOIN CARD STATES ─────────────────────────────────── */
+
+/* CONNECTING spinner */
+.pvt-join-connecting-anim {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px; padding: 32px 0 24px;
+}
+.pvt-join-spinner {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid rgba(99,179,237,0.15);
+  border-top-color: #63b3ed;
+  animation: pvt-spin 0.85s linear infinite;
+}
+@keyframes pvt-spin { to { transform: rotate(360deg); } }
+.pvt-join-connecting-text {
+  font-size: 14px; font-weight: 600;
+  color: rgba(255,255,255,0.55); text-align: center;
+  animation: pvt-text-pulse 1.6s ease-in-out infinite;
+}
+@keyframes pvt-text-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* SETTINGS panel */
+.pvt-join-settings-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+}
+.pvt-join-settings-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(99,179,237,0.25), rgba(59,130,246,0.2));
+  border: 1px solid rgba(99,179,237,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.pvt-join-settings-title {
+  font-size: 15px; font-weight: 800; color: #fff;
+  letter-spacing: -0.2px;
+}
+.pvt-join-settings-sub {
+  font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 2px;
+}
+.pvt-join-settings-list {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 22px;
+}
+.pvt-join-setting-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 11px 14px;
+}
+.pvt-join-setting-row.rated-on {
+  background: rgba(124,92,255,0.08);
+  border-color: rgba(124,92,255,0.25);
+}
+.pvt-join-setting-icon { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+.pvt-join-setting-label {
+  font-size: 11px; color: rgba(255,255,255,0.38);
+  font-weight: 600; letter-spacing: 0.3px;
+  text-transform: uppercase; flex: 0 0 auto; min-width: 70px;
+}
+.pvt-join-setting-value {
+  font-size: 13px; font-weight: 700; color: #fff;
+  flex: 1; text-align: right;
+}
+
+/* COUNTDOWN bar */
+.pvt-join-countdown-wrap {
+  margin-top: 4px;
+}
+.pvt-join-countdown-label {
+  font-size: 12px; font-weight: 700;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px; text-align: center;
+  letter-spacing: 0.3px;
+}
+.pvt-join-countdown-num {
+  font-size: 16px; font-weight: 900;
+  color: #63b3ed;
+  display: inline-block;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pvt-join-countdown-num.tick {
+  animation: pvt-num-tick 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes pvt-num-tick {
+  0% { transform: scale(1.5); color: #c4b5fd; }
+  100% { transform: scale(1); }
+}
+.pvt-join-countdown-track {
+  width: 100%; height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px; overflow: hidden;
+}
+.pvt-join-countdown-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #63b3ed);
+  border-radius: 999px;
+  width: 100%;
+  transition: width 1s linear;
+  box-shadow: 0 0 8px rgba(99,179,237,0.5);
+}
+
+/* READY state */
+.pvt-join-ready-inner {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 32px 0 24px; text-align: center;
+}
+.pvt-join-ready-icon {
+  font-size: 44px; line-height: 1;
+  animation: pvt-ready-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes pvt-ready-pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pvt-join-ready-text {
+  font-size: 22px; font-weight: 900; color: #34d399;
+  letter-spacing: -0.5px;
+}
+.pvt-join-ready-sub {
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  animation: pvt-text-pulse 1.6s ease-in-out infinite;
+}
+
 #connection-status {
   margin-top: 20px;
   padding: 12px 24px;
@@ -7133,27 +7262,71 @@ button:active {
         </div>
 
         <!-- RIGHT CARD: JOIN GAME -->
-        <div class="pvt-card pvt-card-join">
+        <div class="pvt-card pvt-card-join" id="pvt-join-card">
           <div class="pvt-card-badge pvt-card-badge-join">JOIN</div>
           <div class="pvt-card-title">Join with Code</div>
           <div class="pvt-card-sub">Enter the code your opponent shared</div>
 
-          <div class="pvt-join-input-wrap">
-            <input
-              type="text"
-              id="join-code"
-              class="pvt-join-input"
-              placeholder="Enter game code…"
-              oninput="pvtOnJoinInput(this)"
-              onpaste="setTimeout(()=>pvtOnJoinInput(this),0)"
-            >
-          </div>
-          <div class="pvt-join-hint">Paste the full code from your opponent</div>
+          <!-- INPUT STATE (default) -->
+          <div id="pvt-join-input-state">
+            <div class="pvt-join-input-wrap">
+              <input
+                type="text"
+                id="join-code"
+                class="pvt-join-input"
+                placeholder="Enter game code…"
+                oninput="pvtOnJoinInput(this)"
+                onpaste="setTimeout(()=>pvtOnJoinInput(this),0)"
+              >
+            </div>
+            <div class="pvt-join-hint">Paste the full code from your opponent</div>
 
-          <button class="pvt-join-btn" onclick="pvtJoinGame()" id="pvt-join-btn" disabled>
-            <span class="pvt-join-btn-icon">⚡</span>
-            Join Match
-          </button>
+            <button class="pvt-join-btn" onclick="pvtJoinGame()" id="pvt-join-btn" disabled>
+              <span class="pvt-join-btn-icon">⚡</span>
+              Join Match
+            </button>
+          </div>
+
+          <!-- CONNECTING STATE (shown immediately after Join is pressed) -->
+          <div id="pvt-join-connecting-state" style="display:none;">
+            <div class="pvt-join-connecting-anim">
+              <div class="pvt-join-spinner"></div>
+              <div class="pvt-join-connecting-text" id="pvt-join-connecting-text">Connecting to host…</div>
+            </div>
+          </div>
+
+          <!-- SETTINGS / COUNTDOWN STATE (shown when gameConfig arrives) -->
+          <div id="pvt-join-settings-state" style="display:none;">
+            <div class="pvt-join-settings-header">
+              <div class="pvt-join-settings-icon">🔗</div>
+              <div>
+                <div class="pvt-join-settings-title">Host's Match Settings</div>
+                <div class="pvt-join-settings-sub">Game starts automatically</div>
+              </div>
+            </div>
+
+            <!-- Settings rows -->
+            <div class="pvt-join-settings-list" id="pvt-join-settings-list"></div>
+
+            <!-- Countdown bar -->
+            <div class="pvt-join-countdown-wrap">
+              <div class="pvt-join-countdown-label">
+                Starting in <span class="pvt-join-countdown-num" id="pvt-join-countdown-num">5</span>s
+              </div>
+              <div class="pvt-join-countdown-track">
+                <div class="pvt-join-countdown-bar" id="pvt-join-countdown-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- READY STATE (after countdown) -->
+          <div id="pvt-join-ready-state" style="display:none;">
+            <div class="pvt-join-ready-inner">
+              <div class="pvt-join-ready-icon">✅</div>
+              <div class="pvt-join-ready-text">Ready!</div>
+              <div class="pvt-join-ready-sub">Waiting for host to start…</div>
+            </div>
+          </div>
         </div>
 
       </div><!-- /pvt-hub-grid -->
@@ -7549,7 +7722,7 @@ button:active {
       <button class="menu-btn secondary" onclick="backToLobby()" style="margin-top:16px;">← Back</button>
     </div>
 
-    <div id="connection-status"></div>
+    <div id="connection-status" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;"></div>
   </div><!-- end menu-sub-content -->
 </div><!-- end #menu -->
 
@@ -15819,41 +15992,171 @@ function stopDraftGlitch() {
     else console.error('[pvtJoinGame] joinGame not found');
   };
 
+  // ── JOIN CARD STATE MANAGEMENT ───────────────────────────────
+  function pvtJoinSetState(state) {
+    const states = ['pvt-join-input-state','pvt-join-connecting-state','pvt-join-settings-state','pvt-join-ready-state'];
+    states.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = (id === state) ? 'block' : 'none';
+    });
+  }
+
+  // Fill the settings panel and start the animated countdown bar
+  let _countdownInterval = null;
+  function pvtShowGuestSettings(timeLabel, freqLabel, bannedLabel, ratedLabel, countdownSecs) {
+    pvtJoinSetState('pvt-join-settings-state');
+
+    // Build settings rows
+    const list = document.getElementById('pvt-join-settings-list');
+    if (list) {
+      const isRated = ratedLabel.includes('⚡');
+      list.innerHTML = `
+        <div class="pvt-join-setting-row">
+          <span class="pvt-join-setting-icon">⏱</span>
+          <span class="pvt-join-setting-label">Time</span>
+          <span class="pvt-join-setting-value">${timeLabel}</span>
+        </div>
+        <div class="pvt-join-setting-row">
+          <span class="pvt-join-setting-icon">🎲</span>
+          <span class="pvt-join-setting-label">Draft</span>
+          <span class="pvt-join-setting-value">${freqLabel}</span>
+        </div>
+        <div class="pvt-join-setting-row">
+          <span class="pvt-join-setting-icon">🚫</span>
+          <span class="pvt-join-setting-label">Mods</span>
+          <span class="pvt-join-setting-value">${bannedLabel}</span>
+        </div>
+        <div class="pvt-join-setting-row ${isRated ? 'rated-on' : ''}">
+          <span class="pvt-join-setting-icon">${isRated ? '⚡' : '🎮'}</span>
+          <span class="pvt-join-setting-label">Rating</span>
+          <span class="pvt-join-setting-value">${isRated ? 'Rated' : 'Unrated'}</span>
+        </div>
+      `;
+    }
+
+    // Animate countdown bar
+    const numEl = document.getElementById('pvt-join-countdown-num');
+    const barEl = document.getElementById('pvt-join-countdown-bar');
+    if (numEl) numEl.textContent = countdownSecs;
+    if (barEl) barEl.style.width = '100%';
+
+    clearInterval(_countdownInterval);
+    let remaining = countdownSecs;
+
+    // Trigger bar shrink on next frame so CSS transition fires
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (barEl) barEl.style.width = '0%';
+      });
+    });
+
+    _countdownInterval = setInterval(() => {
+      remaining--;
+      if (numEl) {
+        numEl.textContent = remaining;
+        numEl.classList.remove('tick');
+        void numEl.offsetWidth; // reflow to retrigger animation
+        numEl.classList.add('tick');
+      }
+      if (remaining <= 0) clearInterval(_countdownInterval);
+    }, 1000);
+  }
+
+  function pvtShowGuestReady() {
+    clearInterval(_countdownInterval);
+    pvtJoinSetState('pvt-join-ready-state');
+  }
+
+  function pvtResetJoinCard() {
+    clearInterval(_countdownInterval);
+    pvtJoinSetState('pvt-join-input-state');
+    const btn = document.getElementById('pvt-join-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="pvt-join-btn-icon">⚡</span> Join Match';
+    }
+    const input = document.getElementById('join-code');
+    if (input) { input.value = ''; input.classList.remove('has-value'); }
+  }
+
   // ── Monkey-patch showStatus to drive the waiting room UI ─────
-  //    The original showStatus() writes to #connection-status (now hidden).
-  //    Here we intercept the message and update our new UI instead.
   const _origShowStatus = window.showStatus;
   window.showStatus = function (msg) {
-    // Always call original for compatibility (even though element is hidden)
+    // Always call original for compatibility (element is now hidden)
     if (typeof _origShowStatus === 'function') _origShowStatus(msg);
 
     const plain = msg.replace(/<[^>]*>/g, '').toLowerCase();
 
     // HOST: peer opened — show waiting room with the peer ID
     if (plain.includes('your game code:') || plain.includes('waiting for opponent')) {
-      // Extract code from the <strong> tag
       const match = msg.match(/<strong>([^<]+)<\/strong>/);
       const code  = match ? match[1] : '';
       if (code) pvtShowWaitingRoom(code);
-      // Re-enable host button in case something went wrong
       return;
     }
 
     // HOST: opponent connected
     if (plain.includes('opponent connected')) {
-      // Extract opponent name from opponentUsername global if available
       const name = window.opponentUsername || '';
       pvtSetOpponentConnected(name);
       return;
     }
 
-    // GUEST: connecting / connected states — update join button area
-    if (plain.includes('connecting to host') || plain.includes('connected!') || plain.includes('waiting for host')) {
-      const btn = document.getElementById('pvt-join-btn');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="pvt-join-btn-icon">⏳</span> Connecting…';
+    // GUEST: initial connecting
+    if (plain.includes('connecting to host')) {
+      pvtJoinSetState('pvt-join-connecting-state');
+      const txt = document.getElementById('pvt-join-connecting-text');
+      if (txt) txt.textContent = 'Connecting to host…';
+      return;
+    }
+
+    // GUEST: connected, waiting for settings
+    if (plain.includes('connected!') || plain.includes('waiting for host')) {
+      pvtJoinSetState('pvt-join-connecting-state');
+      const txt = document.getElementById('pvt-join-connecting-text');
+      if (txt) txt.textContent = 'Connected — waiting for settings…';
+      return;
+    }
+
+    // GUEST: settings / countdown — "Host's settings — starting in Xs..."
+    if (plain.includes("host's settings") || plain.includes('starting in')) {
+      // Extract countdown number
+      const numMatch = plain.match(/starting in (\d+)s/);
+      const secs = numMatch ? parseInt(numMatch[1]) : 5;
+
+      // On the first call (secs == 5 or whatever the initial value is), build the panel
+      // On subsequent calls (tick), just update the number
+      const settingsState = document.getElementById('pvt-join-settings-state');
+      if (!settingsState || settingsState.style.display === 'none') {
+        // First call — extract settings from the msg HTML
+        // The original msg embeds the info as HTML; parse it
+        const timeM    = msg.match(/Time control:<\/strong>\s*([^<]+)/);
+        const freqM    = msg.match(/Draft frequency:<\/strong>\s*([^<]+)/);
+        const bannedM  = msg.match(/Modifiers:<\/strong>\s*([^<]+)/);
+        const ratedM   = msg.match(/<div>(⚡[^<]*|🎮[^<]*)<\/div>/);
+
+        const timeLabel   = timeM   ? timeM[1].trim()   : '—';
+        const freqLabel   = freqM   ? freqM[1].trim()   : '—';
+        const bannedLabel = bannedM ? bannedM[1].trim()  : '—';
+        const ratedLabel  = ratedM  ? ratedM[1].trim()   : '—';
+
+        pvtShowGuestSettings(timeLabel, freqLabel, bannedLabel, ratedLabel, secs);
+      } else {
+        // Subsequent ticks — just update the countdown number & retrigger bar
+        const numEl = document.getElementById('pvt-join-countdown-num');
+        if (numEl) {
+          numEl.textContent = secs;
+          numEl.classList.remove('tick');
+          void numEl.offsetWidth;
+          numEl.classList.add('tick');
+        }
       }
+      return;
+    }
+
+    // GUEST: ready, waiting for host to start
+    if (plain.includes('ready!') || plain.includes('waiting for host to start')) {
+      pvtShowGuestReady();
       return;
     }
   };
@@ -15862,20 +16165,13 @@ function stopDraftGlitch() {
   const _origShowPrivate = window.showPrivateSetup;
   window.showPrivateSetup = function () {
     pvtResetHostUI();
+    pvtResetJoinCard();
     // Re-enable host button
     const btn = document.getElementById('pvt-host-btn');
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = '<span class="pvt-host-btn-icon">🚀</span> Create Private Match';
     }
-    // Re-enable join button (will be re-validated by input state)
-    const jBtn = document.getElementById('pvt-join-btn');
-    if (jBtn) {
-      jBtn.disabled = true;
-      jBtn.innerHTML = '<span class="pvt-join-btn-icon">⚡</span> Join Match';
-    }
-    const joinInput = document.getElementById('join-code');
-    if (joinInput) { joinInput.value = ''; joinInput.classList.remove('has-value'); }
 
     // Update topbar from currentProfile
     if (typeof currentProfile !== 'undefined' && currentProfile) {
@@ -15913,6 +16209,7 @@ function stopDraftGlitch() {
   const _origBackToLobby = window.backToLobby;
   window.backToLobby = function () {
     pvtResetHostUI();
+    pvtResetJoinCard();
     if (typeof _origBackToLobby === 'function') _origBackToLobby();
   };
 
