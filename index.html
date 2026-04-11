@@ -2253,8 +2253,8 @@ button:active {
 
 /* TC BUTTONS */
 .pvt-tc-buttons {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px; margin-bottom: 14px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px; margin-bottom: 14px;
 }
 .pvt-tc-btn {
   background: rgba(255,255,255,0.05);
@@ -2275,6 +2275,18 @@ button:active {
   border-color: rgba(124,92,255,0.7) !important;
   color: #c4b5fd !important;
   box-shadow: 0 0 16px rgba(124,92,255,0.25) !important;
+}
+
+/* Bottom row: spans full grid width, centres its two buttons */
+.pvt-tc-bottom-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+.pvt-tc-bottom-row .pvt-tc-btn {
+  flex: 0 1 calc(33.333% - 4px);
+  min-width: 0;
 }
 
 /* TC SELECT */
@@ -2554,7 +2566,7 @@ button:active {
 /* Responsive */
 @media (max-width: 640px) {
   .pvt-hub-grid { grid-template-columns: 1fr; }
-  .pvt-tc-buttons { grid-template-columns: 1fr 1fr; }
+  .pvt-tc-buttons { grid-template-columns: 1fr 1fr 1fr; }
 }
 
 /* ── JOIN CARD STATES ─────────────────────────────────── */
@@ -7170,19 +7182,33 @@ button:active {
           <!-- Time Control Buttons -->
           <div class="pvt-section-label">Time Control</div>
           <div class="pvt-tc-buttons" id="pvt-tc-buttons">
-            <button class="pvt-tc-btn" data-group="blitz" onclick="pvtSelectTCGroup(this,'blitz')">⚡ Blitz</button>
-            <button class="pvt-tc-btn pvt-tc-btn-active" data-group="rapid" onclick="pvtSelectTCGroup(this,'rapid')">🔥 Rapid</button>
-            <button class="pvt-tc-btn" data-group="classical" onclick="pvtSelectTCGroup(this,'classical')">♟ Classical</button>
-            <button class="pvt-tc-btn" data-group="custom" onclick="pvtSelectTCGroup(this,'custom')">⚙ Custom</button>
+            <button class="pvt-tc-btn" data-group="hyperbullet" onclick="pvtSelectTCGroup(this,'hyperbullet')">⚡ Hyperbullet</button>
+            <button class="pvt-tc-btn" data-group="bullet" onclick="pvtSelectTCGroup(this,'bullet')">🔥 Bullet</button>
+            <button class="pvt-tc-btn" data-group="blitz" onclick="pvtSelectTCGroup(this,'blitz')">🌩️ Blitz</button>
+            <button class="pvt-tc-btn pvt-tc-btn-active" data-group="rapid" onclick="pvtSelectTCGroup(this,'rapid')">🕐 Rapid</button>
+            <button class="pvt-tc-btn" data-group="classical" onclick="pvtSelectTCGroup(this,'classical')">📚 Classical</button>
+            <button class="pvt-tc-btn" data-group="deepchaos" onclick="pvtSelectTCGroup(this,'deepchaos')">🌀 Deep Chaos</button>
+            <div class="pvt-tc-bottom-row">
+              <button class="pvt-tc-btn" data-group="notimer" onclick="pvtSelectTCGroup(this,'notimer')">⏸ No Timer</button>
+              <button class="pvt-tc-btn" data-group="custom" onclick="pvtSelectTCGroup(this,'custom')">⚙ Custom</button>
+            </div>
           </div>
 
           <!-- TC Sub-options (non-custom) -->
           <div class="pvt-tc-sub-row" id="pvt-tc-sub-row">
             <select id="time-control" onchange="onPrivateTCChange(this.value)" class="pvt-tc-select">
+              <optgroup label="— Hyperbullet —" class="pvt-tc-group-hyperbullet" style="display:none">
+                <option value="15|0">15s</option>
+              </optgroup>
+              <optgroup label="— Bullet —" class="pvt-tc-group-bullet" style="display:none">
+                <option value="30|0">30s</option>
+              </optgroup>
               <optgroup label="— Blitz —" class="pvt-tc-group-blitz" style="display:none">
                 <option value="60|0">1 min</option>
                 <option value="60|1">1 min +1s</option>
                 <option value="60|2">1 min +2s</option>
+                <option value="120|0">2 min</option>
+                <option value="120|1">2 min +1s</option>
               </optgroup>
               <optgroup label="— Rapid —" class="pvt-tc-group-rapid">
                 <option value="180|0" selected>3 min</option>
@@ -7194,11 +7220,11 @@ button:active {
                 <option value="600|0">10 min</option>
                 <option value="600|5">10 min +5s</option>
               </optgroup>
-              <optgroup label="— Bullet —" style="display:none" class="pvt-tc-group-bullet">
-                <option value="15|0">15s</option>
-                <option value="30|0">30s</option>
+              <optgroup label="— Deep Chaos —" class="pvt-tc-group-deepchaos" style="display:none">
+                <option value="1200|0">20 min</option>
+                <option value="1200|10">20 min +10s</option>
               </optgroup>
-              <option value="0|0" style="display:none" class="pvt-tc-notimer">No Timer</option>
+              <option value="0|0" class="pvt-tc-notimer" style="display:none">No Timer</option>
             </select>
           </div>
 
@@ -12117,9 +12143,9 @@ function setupConnection(){
       const timeLabel = timeControl === 0 ? 'No timer'
         : timeControl <= 15 ? `Hyperbullet (${timeControl}s${incStr})`
         : timeControl <= 30 ? `Bullet (${timeControl}s${incStr})`
-        : timeControl <= 60 ? `Blitz (${timeControl/60}min${incStr})`
-        : timeControl <= 180 ? `Rapid (${timeControl/60}min${incStr})`
-        : timeControl <= 300 ? `Classical (${timeControl/60}min${incStr})`
+        : timeControl <= 120 ? `Blitz (${timeControl/60}min${incStr})`
+        : timeControl <= 300 ? `Rapid (${timeControl/60}min${incStr})`
+        : timeControl <= 600 ? `Classical (${timeControl/60}min${incStr})`
         : `Deep Chaos (${timeControl/60}min${incStr})`;
       const freqLabel = settings.draftFreq === 0 ? 'Never' : `Every ${settings.draftFreq} moves`;
       const bannedCount = settings.bannedMods.length;
@@ -12146,7 +12172,7 @@ function setupConnection(){
         if(countdown <= 0){
           clearInterval(countInterval);
           console.log('[GUEST] Countdown done — sending guest_ready');
-          connection.send({type: 'guest_ready'});
+          if(connection && connection.open) connection.send({type: 'guest_ready'});
           showStatus('Ready! Waiting for host to start…');
         } else {
           updateCountdown();
@@ -13334,11 +13360,17 @@ endGame = function(message, delay = 3000){
     if(gameMode === 'online' && currentProfile){
       const outcome = outcomeFromMessage(message);
       if(outcome){
-        updateRatingAfterGame(outcome); // this calls showRatingResult → showPostgameScreen
-        updateStatsAfterGame(outcome, window._lastWinType);
+        if(privateMatchRated){
+          // Rated game — update rating and show postgame with delta
+          updateRatingAfterGame(outcome); // calls showRatingResult → showPostgameScreen
+          updateStatsAfterGame(outcome, window._lastWinType);
+        } else {
+          // Unrated private match — show postgame screen but never touch rating
+          showPostgameUnrated(outcome, window._lastWinType);
+          updateStatsAfterGame(outcome, window._lastWinType);
+        }
       } else {
         // Online but outcome unclear — show unrated screen
-        hidePostgameScreen();
         showPostgameUnrated('draw', window._lastWinType || 'draw');
       }
     } else if(gameMode === 'online'){
@@ -13521,9 +13553,9 @@ function selectTC(btn){
 function tcLabel(tc, inc){
   const base = tc <= 15 ? 'Hyperbullet'
     : tc <= 30  ? 'Bullet'
-    : tc <= 60  ? 'Blitz'
-    : tc <= 180 ? 'Rapid'
-    : tc <= 300 ? 'Classical'
+    : tc <= 120 ? 'Blitz'
+    : tc <= 300 ? 'Rapid'
+    : tc <= 600 ? 'Classical'
     : 'Deep Chaos';
   return inc > 0 ? `${base} +${inc}s` : base;
 }
@@ -13690,17 +13722,24 @@ async function cancelMatchmaking(){
 // ============================================================
 function setupHUD(myUsername, myRating, oppUsername, oppRating){
   const hud = document.getElementById('player-hud');
+  if(!hud) return;
   hud.classList.add('active');
   const whiteName   = myColor === 'white' ? myUsername  : oppUsername;
   const whiteRating = myColor === 'white' ? myRating    : oppRating;
   const blackName   = myColor === 'black' ? myUsername  : oppUsername;
   const blackRating = myColor === 'black' ? myRating    : oppRating;
-  document.getElementById('hud-white-name').textContent   = whiteName;
-  document.getElementById('hud-white-rating').textContent = `⚡ ${whiteRating}`;
-  document.getElementById('hud-white-avatar').textContent = whiteName[0].toUpperCase();
-  document.getElementById('hud-black-name').textContent   = blackName;
-  document.getElementById('hud-black-rating').textContent = `⚡ ${blackRating}`;
-  document.getElementById('hud-black-avatar').textContent = blackName[0].toUpperCase();
+  const wName   = document.getElementById('hud-white-name');
+  const wRating = document.getElementById('hud-white-rating');
+  const wAvatar = document.getElementById('hud-white-avatar');
+  const bName   = document.getElementById('hud-black-name');
+  const bRating = document.getElementById('hud-black-rating');
+  const bAvatar = document.getElementById('hud-black-avatar');
+  if(wName)   wName.textContent   = whiteName;
+  if(wRating) wRating.textContent = `⚡ ${whiteRating}`;
+  if(wAvatar) wAvatar.textContent = (whiteName || '?')[0].toUpperCase();
+  if(bName)   bName.textContent   = blackName;
+  if(bRating) bRating.textContent = `⚡ ${blackRating}`;
+  if(bAvatar) bAvatar.textContent = (blackName || '?')[0].toUpperCase();
 }
 
 function hideHUD(){
@@ -15796,11 +15835,14 @@ function stopDraftGlitch() {
   'use strict';
 
   // ── TC GROUP → select visibility map ─────────────────────────
+  const ALL_TC_GROUPS = ['pvt-tc-group-hyperbullet','pvt-tc-group-bullet','pvt-tc-group-blitz','pvt-tc-group-rapid','pvt-tc-group-classical','pvt-tc-group-deepchaos'];
   const TC_GROUP_MAP = {
-    blitz:     { show: ['pvt-tc-group-blitz'],    hide: ['pvt-tc-group-rapid','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: '60|0'  },
-    rapid:     { show: ['pvt-tc-group-rapid'],    hide: ['pvt-tc-group-blitz','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: '180|0' },
-    classical: { show: ['pvt-tc-group-classical'],hide: ['pvt-tc-group-blitz','pvt-tc-group-rapid','pvt-tc-group-bullet'],    defaultVal: '600|0' },
-    custom:    { show: [],                         hide: ['pvt-tc-group-blitz','pvt-tc-group-rapid','pvt-tc-group-classical','pvt-tc-group-bullet'], defaultVal: 'custom' },
+    hyperbullet: { show: 'pvt-tc-group-hyperbullet' },
+    bullet:      { show: 'pvt-tc-group-bullet'      },
+    blitz:       { show: 'pvt-tc-group-blitz'       },
+    rapid:       { show: 'pvt-tc-group-rapid'       },
+    classical:   { show: 'pvt-tc-group-classical'   },
+    deepchaos:   { show: 'pvt-tc-group-deepchaos'   },
   };
   let _currentTCGroup = 'rapid';
 
@@ -15810,8 +15852,8 @@ function stopDraftGlitch() {
     document.querySelectorAll('.pvt-tc-btn').forEach(b => b.classList.remove('pvt-tc-btn-active'));
     btn.classList.add('pvt-tc-btn-active');
 
-    const sel   = document.getElementById('time-control');
-    const subRow = document.getElementById('pvt-tc-sub-row');
+    const sel     = document.getElementById('time-control');
+    const subRow  = document.getElementById('pvt-tc-sub-row');
     const custRow = document.getElementById('custom-tc-row');
 
     if (group === 'custom') {
@@ -15822,25 +15864,27 @@ function stopDraftGlitch() {
       return;
     }
 
+    if (group === 'notimer') {
+      custRow.style.display = 'none';
+      subRow.style.display  = 'none'; // no select needed — only one option
+      if (sel) sel.value = '0|0';
+      if (typeof onPrivateTCChange === 'function') onPrivateTCChange('notcustom');
+      return;
+    }
+
     custRow.style.display = 'none';
     subRow.style.display  = 'block';
     if (typeof onPrivateTCChange === 'function') onPrivateTCChange('notcustom');
 
-    // Show/hide optgroups in the select
+    // Show only the matching optgroup, hide all others
     const cfg = TC_GROUP_MAP[group];
     if (sel && cfg) {
-      // Show matching optgroup(s)
-      cfg.show.forEach(cls => {
+      ALL_TC_GROUPS.forEach(cls => {
         const og = sel.querySelector('.' + cls);
-        if (og) og.style.display = '';
+        if (og) og.style.display = (cls === cfg.show) ? '' : 'none';
       });
-      // Hide others
-      cfg.hide.forEach(cls => {
-        const og = sel.querySelector('.' + cls);
-        if (og) og.style.display = 'none';
-      });
-      // Pick first visible option as default
-      const firstOpt = sel.querySelector('optgroup.' + cfg.show[0] + ' option');
+      // Select the first option in the visible group
+      const firstOpt = sel.querySelector('optgroup.' + cfg.show + ' option');
       if (firstOpt) sel.value = firstOpt.value;
     }
   };
@@ -16215,15 +16259,13 @@ function stopDraftGlitch() {
 
   // ── Initial TC group state: show rapid options by default ─────
   document.addEventListener('DOMContentLoaded', function () {
-    // Ensure only rapid optgroup is visible initially
+    // Hide all optgroups except rapid on load
     const sel = document.getElementById('time-control');
     if (sel) {
-      ['pvt-tc-group-blitz','pvt-tc-group-classical','pvt-tc-group-bullet'].forEach(cls => {
+      ALL_TC_GROUPS.forEach(cls => {
         const og = sel.querySelector('.' + cls);
-        if (og) og.style.display = 'none';
+        if (og) og.style.display = (cls === 'pvt-tc-group-rapid') ? '' : 'none';
       });
-      const rapid = sel.querySelector('.pvt-tc-group-rapid');
-      if (rapid) rapid.style.display = '';
     }
 
     // Make rated toggle row clickable as a whole
