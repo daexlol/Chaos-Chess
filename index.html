@@ -4498,6 +4498,56 @@ button:active {
   background: rgba(124,92,255,0.07);
   box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
 }
+.auth-exp-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.auth-exp-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  padding: 0 2px;
+}
+.auth-exp-select {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(124,92,255,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #f5f7ff;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(167,139,250,0.7)' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.auth-exp-select:focus {
+  border-color: rgba(124,92,255,0.6);
+  background-color: rgba(124,92,255,0.07);
+  box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
+}
+.auth-exp-select option {
+  background: #1a1530;
+  color: #f5f7ff;
+}
+.auth-exp-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  padding: 0 2px;
+  transition: color 0.2s;
+}
+.auth-exp-hint span {
+  font-weight: 700;
+  color: #a78bfa;
+}
 .auth-btn {
   width: 100%;
   padding: 13px;
@@ -6885,6 +6935,18 @@ button:active {
         <input type="text" id="reg-username" placeholder="Username (3–16 chars)" maxlength="16" autocomplete="username">
         <input type="password" id="reg-password" placeholder="Password (min 6 chars)" autocomplete="new-password">
         <input type="password" id="reg-password2" placeholder="Confirm password" autocomplete="new-password">
+        <div class="auth-exp-wrap">
+          <label class="auth-exp-label" for="reg-experience">Chess Experience Level</label>
+          <select id="reg-experience" class="auth-exp-select">
+            <option value="new">🌱 Brand New — Never played chess</option>
+            <option value="beginner">♟ Beginner — Know the basics</option>
+            <option value="casual" selected>🎮 Casual — Play occasionally</option>
+            <option value="intermediate">⚔️ Intermediate — Know strategy</option>
+            <option value="advanced">🔥 Advanced — Experienced player</option>
+            <option value="expert">👑 Expert — Competitive / rated player</option>
+          </select>
+          <div class="auth-exp-hint" id="auth-exp-hint">Starting Chaos Rating: <span id="auth-exp-rating">1000</span></div>
+        </div>
       </div>
       <button class="auth-btn auth-btn-primary" onclick="doRegister()">Create Account</button>
       <button class="auth-btn auth-btn-secondary" onclick="showAuthPanel('login')" style="margin-top:10px;">← Back to sign in</button>
@@ -6942,7 +7004,7 @@ button:active {
   <div class="menu-noise"></div>
   <!-- TOP NAV BAR -->
   <div class="menu-topbar">
-    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.1</span><span class="chaos-topbar-corrupt" aria-hidden="true">♟ Chaos<span>Chess</span></span></div>
+    <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="chaos-topbar-corrupt" aria-hidden="true">♟ Chaos<span>Chess</span></span></div>
     <div class="menu-topbar-right">
       <div class="menu-topbar-user" id="menu-topbar-user">
         <div class="menu-topbar-avatar" id="menu-topbar-avatar">?</div>
@@ -7855,7 +7917,7 @@ button:active {
 
 <!-- TOP BAR -->
 <div id="game-topbar">
-  <div id="game-topbar-logo">♟ Chaos<span>Chess</span><span class="topbar-version">v1.0.1</span></div>
+  <div id="game-topbar-logo">♟ Chaos<span>Chess</span></div>
   <div id="game-topbar-right">
     <div id="game-topbar-user">
       <div id="game-topbar-avatar">?</div>
@@ -12758,6 +12820,7 @@ async function doRegister(){
   const username  = document.getElementById('reg-username').value.trim().toLowerCase();
   const password  = document.getElementById('reg-password').value;
   const password2 = document.getElementById('reg-password2').value;
+  const experience = document.getElementById('reg-experience').value;
   const errEl = document.getElementById('auth-register-error');
   errEl.textContent = '';
 
@@ -12766,6 +12829,17 @@ async function doRegister(){
   if(!/^[a-z0-9_]+$/.test(username)){ errEl.textContent = 'Username: letters, numbers, underscores only.'; return; }
   if(password.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; return; }
   if(password !== password2){ errEl.textContent = 'Passwords do not match.'; return; }
+
+  // Map experience level to starting Chaos Rating
+  const STARTING_RATINGS = {
+    new:          600,
+    beginner:     800,
+    casual:      1000,
+    intermediate: 1200,
+    advanced:     1400,
+    expert:       1600,
+  };
+  const startingRating = STARTING_RATINGS[experience] || 1000;
 
   // Check username not taken
   try {
@@ -12776,7 +12850,9 @@ async function doRegister(){
     await fbDb.collection('users').doc(username).set({
       uid: cred.user.uid,
       username: username,
-      rating: 1000,
+      rating: startingRating,
+      peakRating: startingRating,
+      experienceLevel: experience,
       wins: 0,
       losses: 0,
       draws: 0,
@@ -12790,6 +12866,23 @@ async function doRegister(){
     errEl.textContent = e.message;
   }
 }
+
+// Live rating preview for experience level dropdown
+(function() {
+  const EXP_RATINGS = { new: 600, beginner: 800, casual: 1000, intermediate: 1200, advanced: 1400, expert: 1600 };
+  function updateExpHint() {
+    const sel = document.getElementById('reg-experience');
+    const hint = document.getElementById('auth-exp-rating');
+    if (sel && hint) hint.textContent = EXP_RATINGS[sel.value] || 1000;
+  }
+  window.addEventListener('load', () => {
+    const sel = document.getElementById('reg-experience');
+    if (sel) {
+      sel.addEventListener('change', updateExpHint);
+      updateExpHint();
+    }
+  });
+})();
 
 function playAsGuest(){
   isGuest = true;
@@ -12818,21 +12911,27 @@ async function loadProfile(){
 function updateLobbyUI(){
   if(!currentProfile) return;
   const p = currentProfile;
+  const s = p.stats || {};
+  const wins   = s.wins   || p.wins   || 0;
+  const losses = s.losses || p.losses || 0;
+  const draws  = s.draws  || p.draws  || 0;
+
   document.getElementById('lobby-avatar-letter').textContent = p.username[0].toUpperCase();
   document.getElementById('lobby-username-display').textContent = p.username;
   document.getElementById('lobby-rating-display').textContent = p.rating;
   document.getElementById('lobby-stats-display').textContent =
-    `${p.wins}W / ${p.losses}L / ${p.draws}D`;
+    `${wins}W / ${losses}L / ${draws}D`;
 
   // Profile snapshot panel
   const snapWR = document.getElementById('lobby-snap-winrate');
   const snapWins = document.getElementById('lobby-snap-wins');
   const snapGames = document.getElementById('lobby-snap-games');
   if(snapWR){
-    const wr = p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0;
-    snapWR.textContent = p.gamesPlayed > 0 ? `${wr}%` : '—%';
+    const total = wins + losses + draws;
+    const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
+    snapWR.textContent = total > 0 ? `${wr}%` : '—%';
   }
-  if(snapWins) snapWins.textContent = p.wins ?? '—';
+  if(snapWins) snapWins.textContent = wins ?? '—';
   if(snapGames) snapGames.textContent = p.gamesPlayed ?? '—';
 
   // Friends panel — inline preview
@@ -12999,9 +13098,9 @@ function updateMenuHubUI(){
     const letter = (u.username||'?')[0].toUpperCase();
     const rating = u.rating || 1000;
     const peak = u.peakRating || (u.stats && u.stats.peakRating) || rating;
-    const wins = u.wins || 0;
-    const losses = u.losses || 0;
-    const draws = u.draws || 0;
+    const wins = (u.stats && u.stats.wins) || u.wins || 0;
+    const losses = (u.stats && u.stats.losses) || u.losses || 0;
+    const draws = (u.stats && u.stats.draws) || u.draws || 0;
     const total = wins + losses + draws;
     const wr = total > 0 ? Math.round(wins/total*100)+'%' : '—';
 
