@@ -690,7 +690,7 @@ h1 {
   box-shadow: 0 20px 60px rgba(0,0,0,0.7);
   border: 2px solid rgba(255,255,255,0.15);
   min-width:500px;
-  z-index: 999;
+  z-index: 9999;
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1771,6 +1771,558 @@ button:active {
 .menu-play-card.local:hover { border-color: rgba(16,185,129,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.3), 0 0 30px rgba(16,185,129,0.08); }
 .menu-play-card.local .menu-play-card-arrow { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: #34d399; }
 .menu-play-card.local:hover .menu-play-card-arrow { background: rgba(16,185,129,0.3); border-color: rgba(16,185,129,0.6); }
+
+/* Sandbox card row */
+.menu-sandbox-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.menu-play-card.sandbox {
+  max-width: 480px;
+  flex: none;
+  width: 100%;
+  border-color: rgba(251,191,36,0.2);
+}
+.menu-play-card.sandbox .menu-play-card-label { color: #f59e0b; }
+.menu-play-card.sandbox:hover { border-color: rgba(251,191,36,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.3), 0 0 30px rgba(251,191,36,0.08); }
+.menu-play-card.sandbox .menu-play-card-arrow { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+.menu-play-card.sandbox:hover .menu-play-card-arrow { background: rgba(251,191,36,0.3); border-color: rgba(251,191,36,0.6); }
+
+/* ===== SANDBOX CONTAINER ===== */
+#sandbox-container {
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1a1d2e 0%, #2a2f4a 100%);
+  position: relative;
+  z-index: 1;
+}
+#sandbox-container::before {
+  content: '';
+  position: fixed;
+  inset: 64px 0 0 0;
+  background-image:
+    linear-gradient(rgba(251,191,36,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251,191,36,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+#sandbox-container.active { display: flex; }
+
+/* TOP BAR (reuse game topbar styles) */
+#sandbox-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+#sandbox-topbar-logo {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
+}
+#sandbox-topbar-logo span { opacity: 0.65; font-weight: 400; }
+#sandbox-topbar-right { display: flex; align-items: center; gap: 12px; }
+
+/* MODE INDICATOR badge */
+#sandbox-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.25s;
+}
+#sandbox-mode-badge.play-mode {
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.4);
+  color: #34d399;
+}
+#sandbox-mode-badge.setup-mode {
+  background: rgba(251,191,36,0.15);
+  border: 1px solid rgba(251,191,36,0.4);
+  color: #fbbf24;
+}
+.sbx-mode-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  animation: sbx-dot-pulse 1.4s ease-in-out infinite;
+}
+.play-mode .sbx-mode-dot { background: #34d399; }
+.setup-mode .sbx-mode-dot { background: #fbbf24; }
+@keyframes sbx-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* MAIN AREA */
+#sandbox-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 20px 30px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+/* CENTER: mods bar + board + actions */
+#sandbox-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 10px;
+}
+
+/* RIGHT PANEL */
+#sandbox-right-panel {
+  width: 310px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 24px;
+  align-self: flex-start;
+  padding-top: 10px;
+}
+
+/* Panel box reuse */
+.sbx-panel-box {
+  background: #232744;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 15px 18px;
+}
+.sbx-panel-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #aab0d6; opacity: 0.55;
+  margin-bottom: 12px;
+}
+
+/* TABS */
+.sbx-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 14px;
+}
+.sbx-tab-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  margin: 0; box-shadow: none;
+}
+.sbx-tab-btn.active {
+  background: rgba(251,191,36,0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.3);
+}
+.sbx-tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  transform: none; box-shadow: none;
+}
+
+/* TAB PANELS */
+.sbx-tab-panel { display: none; }
+.sbx-tab-panel.active { display: block; }
+
+/* PIECE PALETTE */
+.sbx-palette-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.3);
+  margin-bottom: 6px;
+}
+.sbx-palette-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.sbx-palette-piece {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  flex-shrink: 0;
+}
+.sbx-palette-piece img { width: 30px; height: 30px; pointer-events: none; }
+.sbx-palette-piece:hover { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.4); transform: translateY(-2px); }
+.sbx-palette-piece.selected { background: rgba(251,191,36,0.22); border-color: rgba(251,191,36,0.75); box-shadow: 0 0 12px rgba(251,191,36,0.25); }
+
+/* DELETE piece button */
+.sbx-delete-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  background: rgba(239,68,68,0.1);
+  border: 1.5px solid rgba(239,68,68,0.3);
+  border-radius: 9px;
+  color: #f87171;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  margin: 0; box-shadow: none;
+  margin-top: 6px;
+  width: 100%;
+}
+.sbx-delete-btn:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.55); transform: none; }
+.sbx-delete-btn.selected { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.7); box-shadow: 0 0 12px rgba(239,68,68,0.2); }
+
+/* TURN TOGGLE */
+.sbx-turn-toggle {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sbx-turn-btn {
+  flex: 1; padding: 9px 8px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.4);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  margin: 0; box-shadow: none;
+}
+.sbx-turn-btn:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); transform: none; box-shadow: none; }
+.sbx-turn-btn.white-turn.active { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.5); color: #fff; }
+.sbx-turn-btn.black-turn.active { background: rgba(30,30,60,0.6); border-color: rgba(167,139,250,0.5); color: #c4b5fd; }
+
+/* MODIFIER CHECKBOXES */
+.sbx-mod-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(251,191,36,0.2) transparent;
+}
+.sbx-mod-list::-webkit-scrollbar { width: 4px; }
+.sbx-mod-list::-webkit-scrollbar-thumb { background: rgba(251,191,36,0.25); border-radius: 4px; }
+.sbx-mod-check-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+.sbx-mod-check-row:hover { background: rgba(255,255,255,0.05); }
+.sbx-mod-check-row input[type=checkbox] {
+  accent-color: #f59e0b;
+  width: 14px; height: 14px;
+  cursor: pointer; flex-shrink: 0;
+}
+.sbx-mod-check-label { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.3; }
+.sbx-mod-check-icon { font-size: 14px; flex-shrink: 0; }
+
+/* NUMBER INPUTS */
+.sbx-field-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px;
+  gap: 10px;
+}
+.sbx-field-label { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; }
+.sbx-number-input {
+  width: 72px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  text-align: center;
+}
+.sbx-number-input:focus { border-color: rgba(251,191,36,0.5); }
+
+/* CASTLING CHECKBOXES */
+.sbx-castle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+.sbx-castle-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.6);
+  cursor: pointer; user-select: none;
+  padding: 4px 0;
+}
+.sbx-castle-item input[type=checkbox] { accent-color: #f59e0b; cursor: pointer; }
+
+/* ACTION BUTTONS BOTTOM ROW */
+.sbx-action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.sbx-action-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.75);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  margin: 0; box-shadow: none;
+  text-align: center; white-space: nowrap;
+}
+.sbx-action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; transform: none; box-shadow: none; }
+.sbx-action-btn.primary {
+  background: rgba(124,92,255,0.18);
+  border-color: rgba(124,92,255,0.4);
+  color: #c4b5fd;
+}
+.sbx-action-btn.primary:hover { background: rgba(124,92,255,0.3); }
+.sbx-action-btn.danger {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.3);
+  color: #f87171;
+}
+.sbx-action-btn.danger:hover { background: rgba(239,68,68,0.22); }
+.sbx-action-btn.gold {
+  background: rgba(251,191,36,0.13);
+  border-color: rgba(251,191,36,0.35);
+  color: #fbbf24;
+}
+.sbx-action-btn.gold:hover { background: rgba(251,191,36,0.24); }
+
+/* EXTRA UTILITY BUTTONS */
+.sbx-util-row {
+  display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+}
+.sbx-util-btn {
+  flex: 1; padding: 8px 6px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.55);
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  margin: 0; box-shadow: none; white-space: nowrap;
+  text-align: center;
+}
+.sbx-util-btn:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.85); transform: none; box-shadow: none; }
+
+/* SAVE LIST */
+.sbx-save-list {
+  display: flex; flex-direction: column; gap: 5px;
+  max-height: 160px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(124,92,255,0.2) transparent;
+}
+.sbx-save-list::-webkit-scrollbar { width: 4px; }
+.sbx-save-list::-webkit-scrollbar-thumb { background: rgba(124,92,255,0.3); border-radius: 4px; }
+.sbx-save-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer; transition: all 0.18s;
+}
+.sbx-save-item:hover { background: rgba(124,92,255,0.1); border-color: rgba(124,92,255,0.3); }
+.sbx-save-item-name { flex: 1; font-size: 12px; font-weight: 600; color: #f5f7ff; }
+.sbx-save-item-date { font-size: 10px; color: rgba(255,255,255,0.35); }
+.sbx-save-item-del {
+  font-size: 14px; color: rgba(239,68,68,0.5); cursor: pointer;
+  padding: 2px 4px; border-radius: 4px; transition: color 0.15s;
+  line-height: 1;
+}
+.sbx-save-item-del:hover { color: #f87171; }
+.sbx-saves-empty { font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; padding: 10px 0; font-style: italic; }
+
+#sbx-save-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+}
+#sbx-save-modal.active { display: flex; }
+#sbx-save-modal-card {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(80vh, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(18,22,39,0.98) 0%, rgba(10,13,25,0.96) 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+#sbx-save-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sbx-save-modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f5f7ff;
+}
+.sbx-save-modal-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+.sbx-save-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  font-size: 16px;
+}
+.sbx-save-modal-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+#sbx-save-modal-create {
+  width: 100%;
+  justify-content: center;
+}
+#sbx-save-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.sbx-save-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.sbx-save-modal-meta {
+  flex: 1;
+  min-width: 0;
+}
+.sbx-save-modal-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f5f7ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sbx-save-modal-date {
+  margin-top: 3px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+}
+.sbx-save-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.sbx-save-mini-btn {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.85);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sbx-save-mini-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+.sbx-save-mini-btn.primary {
+  border-color: rgba(251,191,36,0.4);
+  background: rgba(251,191,36,0.14);
+  color: #fbbf24;
+}
+.sbx-save-mini-btn.primary:hover {
+  background: rgba(251,191,36,0.22);
+}
+.sbx-save-mini-btn.danger {
+  border-color: rgba(248,113,113,0.28);
+  color: #fca5a5;
+}
+.sbx-save-mini-btn.danger:hover {
+  background: rgba(248,113,113,0.14);
+}
+.sbx-save-modal-empty {
+  padding: 18px 12px;
+  text-align: center;
+  color: rgba(255,255,255,0.38);
+  font-size: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255,255,255,0.12);
+}
+
+/* Game actions bar in sandbox */
+#sandbox-actions-bar {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
 
 /* Bottom row: profile + friends + how to play */
 .menu-bottom-row {
@@ -3099,6 +3651,16 @@ button:active {
   margin-top: 24px;
 }
 #game-actions-bar .game-action-btn {
+  width: auto;
+  padding: 16px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  border-radius: 12px;
+}
+
+/* Actions bar in sandbox — same large sizing as in-game actions bar */
+#sandbox-actions-bar .game-action-btn {
   width: auto;
   padding: 16px 28px;
   font-size: 16px;
@@ -6315,7 +6877,7 @@ button:active {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 998; /* just below #draft at 999 */
+  z-index: 9998; /* just below #draft at 9999 */
   pointer-events: none; /* clicks pass through to draft panel */
 }
 
@@ -7043,6 +7605,18 @@ button:active {
           <div class="menu-play-card-label">Offline</div>
           <div class="menu-play-card-title">Play Local</div>
           <div class="menu-play-card-sub">Pass & Play · Custom Game</div>
+          <div class="menu-play-card-arrow">→</div>
+        </button>
+      </div>
+
+      <!-- Sandbox card (centered, below the two primary cards) -->
+      <div class="menu-sandbox-row">
+        <button class="menu-play-card sandbox" onclick="startSandbox()">
+          <span class="chaos-card-chip" aria-hidden="true">SYS::SBX</span>
+          <div class="menu-play-card-icon">🧪</div>
+          <div class="menu-play-card-label">Sandbox</div>
+          <div class="menu-play-card-title">Sandbox Mode</div>
+          <div class="menu-play-card-sub">Create positions · Test modifiers · Experiment freely</div>
           <div class="menu-play-card-arrow">→</div>
         </button>
       </div>
@@ -8104,6 +8678,169 @@ button:active {
 
 </div>
 
+<!-- ===== SANDBOX CONTAINER ===== -->
+<div id="sandbox-container">
+
+  <!-- TOP BAR -->
+  <div id="sandbox-topbar">
+    <div id="sandbox-topbar-logo">🧪 Sandbox<span>Mode</span></div>
+    <div id="sandbox-topbar-right">
+      <div id="sandbox-mode-badge" class="setup-mode">
+        <div class="sbx-mode-dot"></div>
+        <span id="sandbox-mode-label">SETUP MODE</span>
+      </div>
+      <div id="sandbox-topbar-user" class="menu-topbar-user">
+        <div class="menu-topbar-avatar" id="sandbox-topbar-avatar">?</div>
+        <div>
+          <div class="menu-topbar-username" id="sandbox-topbar-username">Guest</div>
+          <div class="menu-topbar-rating" id="sandbox-topbar-rating"></div>
+        </div>
+      </div>
+      <button class="menu-topbar-settings" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
+  </div>
+
+  <!-- MAIN 2-COLUMN AREA: Board + Right Panel -->
+  <div id="sandbox-main">
+
+    <!-- CENTER: mods bar + board -->
+    <div id="sandbox-center">
+
+      <!-- Logo above board (same as local mode) -->
+      <div id="game-center-title" style="display:block;">♟ Chaos<span>Chess</span></div>
+
+      <!-- Active modifiers bar -->
+      <div id="sandbox-mods-bar" style="width:100%;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;min-height:52px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;margin-bottom:6px;">
+        <div class="game-mods-empty" id="sandbox-mods-empty-label">No modifiers active</div>
+      </div>
+
+      <!-- Board (shared #board-wrapper / #board elements) redrawn in sandbox -->
+      <div id="sandbox-board-wrapper">
+        <!-- board-wrapper moved here dynamically in JS -->
+      </div>
+
+      <!-- Actions bar -->
+      <div id="sandbox-actions-bar">
+        <button class="game-action-btn primary" onclick="sandboxNewGame()">🔄 New Sandbox</button>
+        <button class="game-action-btn secondary" onclick="backToMenuFromSandbox()">← Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Tabs (Make Moves / Set Up) + controls -->
+    <div id="sandbox-right-panel">
+
+      <!-- TAB ROW -->
+      <div class="sbx-panel-box" style="padding:12px 14px;">
+        <div class="sbx-tabs">
+          <button class="sbx-tab-btn" id="sbx-tab-play" onclick="sbxSwitchTab('play')">▶ Make Moves</button>
+          <button class="sbx-tab-btn active" id="sbx-tab-setup" onclick="sbxSwitchTab('setup')">✏️ Set Up</button>
+        </div>
+
+        <!-- MAKE MOVES PANEL -->
+        <div class="sbx-tab-panel" id="sbx-panel-play">
+          <div style="font-size:12px;color:rgba(255,255,255,0.45);line-height:1.6;margin-bottom:10px;">
+            Full game rules apply. Modifiers trigger as normal.
+          </div>
+          <!-- Turn display — read-only indicator, not clickable -->
+          <div class="sbx-panel-title" style="margin-bottom:6px;">Current Turn</div>
+          <div class="sbx-turn-display" id="sbx-play-turn-display" style="padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:14px;font-weight:700;color:#f5f7ff;text-align:center;">
+            ♔ White to Move
+          </div>
+        </div>
+
+        <!-- SET UP PANEL -->
+        <div class="sbx-tab-panel active" id="sbx-panel-setup">
+
+          <!-- PIECE PALETTE -->
+          <div class="sbx-panel-title">Black Pieces</div>
+          <div class="sbx-palette-row" id="sbx-palette-black"></div>
+
+          <div class="sbx-panel-title" style="margin-top:8px;">White Pieces</div>
+          <div class="sbx-palette-row" id="sbx-palette-white"></div>
+
+          <!-- DELETE -->
+          <button class="sbx-delete-btn" id="sbx-delete-btn" onclick="sbxSelectDelete()">🗑️ Delete Piece — click piece on board</button>
+
+          <!-- TURN -->
+          <div class="sbx-panel-title" style="margin-top:12px;">Turn to Move</div>
+          <div class="sbx-turn-toggle">
+            <button class="sbx-turn-btn white-turn active" id="sbx-turn-w" onclick="sbxSetTurn('white')">♔ White</button>
+            <button class="sbx-turn-btn black-turn" id="sbx-turn-b" onclick="sbxSetTurn('black')">♚ Black</button>
+          </div>
+
+          <!-- CASTLING -->
+          <div class="sbx-panel-title" style="margin-top:12px;">Castling Rights</div>
+          <div class="sbx-castle-grid">
+            <label class="sbx-castle-item"><input type="checkbox" id="sbx-castle-wk" checked onchange="sbxUpdateCastling()"> ♔ White O-O</label>
+            <label class="sbx-castle-item"><input type="checkbox" id="sbx-castle-wq" checked onchange="sbxUpdateCastling()"> ♔ White O-O-O</label>
+            <label class="sbx-castle-item"><input type="checkbox" id="sbx-castle-bk" checked onchange="sbxUpdateCastling()"> ♚ Black O-O</label>
+            <label class="sbx-castle-item"><input type="checkbox" id="sbx-castle-bq" checked onchange="sbxUpdateCastling()"> ♚ Black O-O-O</label>
+          </div>
+
+          <!-- UTIL BUTTONS: Clear / Flip / Random -->
+          <div class="sbx-util-row" style="margin-top:12px;">
+            <button class="sbx-util-btn" onclick="sbxClearBoard()">🗑 Clear</button>
+            <button class="sbx-util-btn" onclick="sbxFlipBoard()">🔄 Flip</button>
+            <button class="sbx-util-btn" onclick="sbxRandomPosition()">🎲 Random</button>
+          </div>
+
+        </div><!-- /sbx-panel-setup -->
+      </div>
+
+      <!-- MOVE HISTORY (only visible in play mode) -->
+      <div class="sbx-panel-box" id="sbx-move-history-panel" style="display:none;">
+        <div class="sbx-panel-title">Move History</div>
+        <div id="sbx-move-list" style="overflow-y:auto;max-height:260px;font-family:'Courier New',monospace;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.9);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;"></div>
+      </div>
+
+      <!-- MODIFIER CONTROLS (hidden in play mode) -->
+      <div class="sbx-panel-box" id="sbx-modifier-panel">
+        <div class="sbx-panel-title">Modifiers</div>
+        <div class="sbx-mod-list" id="sbx-mod-list"></div>
+
+        <!-- Move count + Draft frequency -->
+        <div class="sbx-field-row" style="margin-top:12px;">
+          <div class="sbx-field-label">Move Count</div>
+          <input type="number" class="sbx-number-input" id="sbx-move-count" min="0" max="9999" value="0" onchange="sbxSetMoveCount(this.value)">
+        </div>
+        <div class="sbx-field-row">
+          <div class="sbx-field-label">Draft every N moves</div>
+          <input type="number" class="sbx-number-input" id="sbx-draft-freq" min="1" max="100" value="10" onchange="sbxSetDraftFreq(this.value)">
+        </div>
+      </div>
+
+      <!-- SAVE / LOAD -->
+      <div class="sbx-panel-box">
+        <div class="sbx-panel-title">Saves</div>
+        <div class="sbx-action-row">
+          <button class="sbx-action-btn danger" onclick="sandboxNewGame()">↺ Reset</button>
+          <button class="sbx-action-btn primary" onclick="sbxSave()">💾 Save</button>
+        </div>
+        <div id="sbx-save-list-wrap" style="margin-top:10px;">
+          <div class="sbx-save-list" id="sbx-save-list"></div>
+        </div>
+      </div>
+
+    </div><!-- /sandbox-right-panel -->
+
+  </div><!-- /sandbox-main -->
+
+</div><!-- /sandbox-container -->
+
+<div id="sbx-save-modal" onclick="sbxCloseSaveModal()">
+  <div id="sbx-save-modal-card" onclick="event.stopPropagation()">
+    <div id="sbx-save-modal-header">
+      <div>
+        <div class="sbx-save-modal-title">Save Sandbox</div>
+        <div class="sbx-save-modal-sub">Create a new save, or overwrite an existing one.</div>
+      </div>
+      <button class="sbx-save-modal-close" onclick="sbxCloseSaveModal()" title="Close">✕</button>
+    </div>
+    <button class="sbx-action-btn primary" id="sbx-save-modal-create" onclick="sbxPromptCreateSave()">＋ Create New Save</button>
+    <div id="sbx-save-modal-list"></div>
+  </div>
+</div>
+
 <!-- Request modal lives outside game-container so desktop display:none doesn't hide it -->
 <div id="request-modal">
   <span class="req-icon" id="req-icon">🤝</span>
@@ -8953,12 +9690,12 @@ function draw(){
     setTimeout(() => wrapper.classList.remove(`chaos-flicker-${color}`), 300);
   }
   
-  // Flip board for black player in online mode
-  if(settings.flipBoard && gameMode === 'online' && myColor === 'black'){
-    b.classList.add('flipped');
-  } else {
-    b.classList.remove('flipped');
-  }
+  // Sandbox may not be initialized yet during the very first startup draw.
+  const sandboxActive = document.getElementById('sandbox-container')?.classList.contains('active');
+  const shouldFlipBoard = sandboxActive
+    ? b.classList.contains('flipped')
+    : (settings.flipBoard && gameMode === 'online' && myColor === 'black');
+  b.classList.toggle('flipped', !!shouldFlipBoard);
 
   // Board glow: green when it's your turn in online mode
   if(gameMode === 'online' && myColor){
@@ -11777,6 +12514,7 @@ function placeRoyalGuard(x, y){
 }
 
 function chaosDraft(){
+  ensureGlobalOverlayHosts();
   console.log('=== CHAOS DRAFT TRIGGERED ===');
   console.log('gameMode:', gameMode);
   console.log('moveCount:', moveCount);
@@ -11962,6 +12700,8 @@ function chaosDraft(){
       modifiers.push(mod.name);
     }
 
+    syncModifierDisplays();
+
     // Special handling for Duck
     if (mod.name === 'Duck of Eternal Blocking') {
       spawnDuck();
@@ -11995,6 +12735,7 @@ function chaosDraft(){
 }
 
 function restart(){
+  resetDraftUIState({ instant: true });
   pieceData={};
   initBoard();
   modifiers=[];
@@ -12028,6 +12769,7 @@ function restart(){
 }
 
 function backToMenu(){
+  resetDraftUIState({ instant: true });
   hidePostgameScreen();
   document.getElementById('game-container').classList.remove('active');
   
@@ -12045,6 +12787,54 @@ function backToMenu(){
   gameMode = 'local';
 }
 
+const GLOBAL_OVERLAY_IDS = [
+  'draft-backdrop',
+  'draft',
+  'effects',
+  'toast',
+  'promotion-modal',
+  'modifier-info-modal'
+];
+
+function ensureGlobalOverlayHosts() {
+  GLOBAL_OVERLAY_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode !== document.body) {
+      document.body.appendChild(el);
+    }
+  });
+}
+
+function resetDraftUIState(opts = {}) {
+  const instant = !!opts.instant;
+  if (typeof stopDraftTimer === 'function') stopDraftTimer();
+  if (typeof stopDraftGlitch === 'function') stopDraftGlitch();
+  const draft = document.getElementById('draft');
+  const backdrop = document.getElementById('draft-backdrop');
+  if (draft) {
+    draft.classList.remove('active');
+    draft.style.display = 'none';
+    draft.innerHTML = '';
+  }
+  if (backdrop) {
+    backdrop.classList.remove('active');
+    if (instant) {
+      backdrop.style.display = 'none';
+    } else {
+      setTimeout(() => { backdrop.style.display = 'none'; }, 380);
+    }
+  }
+}
+
+function syncModifierDisplays() {
+  updateGameModsList();
+  if (sandboxMode) {
+    if (typeof sbxBuildModList === 'function') sbxBuildModList();
+    if (typeof sbxUpdateModsBar === 'function') sbxUpdateModsBar();
+  }
+}
+
+ensureGlobalOverlayHosts();
 loadSettings();
 applyAllSettings();
 initBoard();
@@ -16379,6 +17169,615 @@ function stopDraftGlitch() {
   });
 
 })();
+
+// ============================================================
+// SANDBOX MODE
+// ============================================================
+
+let sandboxMode = false;           // true when sandbox is active
+let sandboxTabMode = 'setup';      // 'setup' | 'play'
+let sbxSelectedPiece = null;       // { piece: 'P'|'p'|... } for palette, or 'delete'
+let sbxBoardFlipped = false;       // visual flip flag (does NOT mutate board array)
+let sbxDraftFreq = 10;             // modifier draft frequency override
+
+// All piece codes for palette
+const SBX_PIECES_WHITE = ['P','R','N','B','Q','K'];
+const SBX_PIECES_BLACK = ['p','r','n','b','q','k'];
+const SBX_PIECE_NAMES  = {P:'Pawn',R:'Rook',N:'Knight',B:'Bishop',Q:'Queen',K:'King',
+                           p:'Pawn',r:'Rook',n:'Knight',b:'Bishop',q:'Queen',k:'King'};
+
+function startSandbox() {
+  ensureGlobalOverlayHosts();
+  resetDraftUIState({ instant: true });
+  sandboxMode = true;
+  sbxBoardFlipped = false;
+  sbxSelectedPiece = null;
+
+  let menu = document.getElementById('menu');
+  menu.classList.add('hidden');
+  menu.style.display = '';
+  document.getElementById('game-container').classList.remove('active');
+  document.getElementById('sandbox-container').classList.add('active');
+
+  let bw = document.getElementById('board-wrapper');
+  let sbxBoardSlot = document.getElementById('sandbox-board-wrapper');
+  if (bw && sbxBoardSlot) sbxBoardSlot.appendChild(bw);
+
+  gameMode = 'local';
+  myColor = null;
+  restart();
+  sandboxMode = true;
+
+  document.getElementById('board').classList.remove('flipped');
+
+  sbxBuildPalette();
+  sbxBuildModList();
+  sbxSwitchTab('setup');
+  sbxRefreshTurnButtons();
+  sbxRenderSaveList();
+  sbxUpdateModsBar();
+  sbxUpdateTopbar();
+
+  let mcEl = document.getElementById('sbx-move-count');
+  let dfEl = document.getElementById('sbx-draft-freq');
+  if (mcEl) mcEl.value = moveCount;
+  if (dfEl) dfEl.value = sbxDraftFreq;
+  settings.draftFreq = sbxDraftFreq;
+  sbxSyncCastlingCheckboxes();
+  draw();
+}
+
+function sbxUpdateTopbar() {
+  const u = typeof currentProfile !== 'undefined' ? currentProfile : null;
+  const av = document.getElementById('sandbox-topbar-avatar');
+  const un = document.getElementById('sandbox-topbar-username');
+  const rt = document.getElementById('sandbox-topbar-rating');
+  if (u) {
+    if (av) av.textContent = (u.username || '?')[0].toUpperCase();
+    if (un) un.textContent = u.username || 'Player';
+    if (rt) rt.textContent = '\u26a1 ' + (u.rating || 1000);
+  } else {
+    if (av) av.textContent = '?';
+    if (un) un.textContent = 'Guest';
+    if (rt) rt.textContent = '';
+  }
+}
+
+function backToMenuFromSandbox() {
+  resetDraftUIState({ instant: true });
+  sbxCloseSaveModal();
+  sandboxMode = false;
+  sbxSelectedPiece = null;
+  sbxBoardFlipped = false;
+  document.getElementById('board').classList.remove('flipped');
+
+  let bw = document.getElementById('board-wrapper');
+  let gameCenter = document.getElementById('game-center');
+  if (bw && gameCenter) {
+    let actionsBar = document.getElementById('game-actions-bar');
+    if (actionsBar) gameCenter.insertBefore(bw, actionsBar);
+    else gameCenter.appendChild(bw);
+  }
+
+  document.getElementById('sandbox-container').classList.remove('active');
+  let menu = document.getElementById('menu');
+  menu.classList.remove('hidden');
+  menu.style.display = '';
+  showHubView();
+  updateMenuHubUI();
+}
+
+function sbxSwitchTab(tab) {
+  sandboxTabMode = tab;
+
+  document.getElementById('sbx-tab-play').classList.toggle('active', tab === 'play');
+  document.getElementById('sbx-tab-setup').classList.toggle('active', tab === 'setup');
+  document.getElementById('sbx-panel-play').classList.toggle('active', tab === 'play');
+  document.getElementById('sbx-panel-setup').classList.toggle('active', tab === 'setup');
+
+  const modPanel  = document.getElementById('sbx-modifier-panel');
+  const histPanel = document.getElementById('sbx-move-history-panel');
+  if (modPanel)  modPanel.style.display  = tab === 'play' ? 'none' : '';
+  if (histPanel) histPanel.style.display = tab === 'play' ? '' : 'none';
+
+  let badge = document.getElementById('sandbox-mode-badge');
+  let label = document.getElementById('sandbox-mode-label');
+  if (tab === 'play') {
+    badge.className = 'play-mode';
+    label.textContent = 'PLAY MODE';
+    sbxSelectedPiece = null;
+    sbxDeselectAll();
+    selected = null;
+    legalMoves = [];
+  } else {
+    badge.className = 'setup-mode';
+    label.textContent = 'SETUP MODE';
+    selected = null;
+    legalMoves = [];
+  }
+  sbxRefreshTurnDisplay();
+  draw();
+}
+
+function sbxBuildPalette() {
+  let blackRow = document.getElementById('sbx-palette-black');
+  let whiteRow = document.getElementById('sbx-palette-white');
+  if (!blackRow || !whiteRow) return;
+  blackRow.innerHTML = '';
+  whiteRow.innerHTML = '';
+
+  SBX_PIECES_BLACK.forEach(p => {
+    let btn = document.createElement('div');
+    btn.className = 'sbx-palette-piece';
+    btn.title = 'Black ' + SBX_PIECE_NAMES[p];
+    btn.dataset.piece = p;
+    let img = document.createElement('img');
+    img.src = pieceImages[p];
+    btn.appendChild(img);
+    btn.onclick = () => sbxSelectPiece(p);
+    blackRow.appendChild(btn);
+  });
+
+  SBX_PIECES_WHITE.forEach(p => {
+    let btn = document.createElement('div');
+    btn.className = 'sbx-palette-piece';
+    btn.title = 'White ' + SBX_PIECE_NAMES[p];
+    btn.dataset.piece = p;
+    let img = document.createElement('img');
+    img.src = pieceImages[p];
+    btn.appendChild(img);
+    btn.onclick = () => sbxSelectPiece(p);
+    whiteRow.appendChild(btn);
+  });
+}
+
+function sbxSelectPiece(p) {
+  if (sbxSelectedPiece && sbxSelectedPiece.piece === p) {
+    sbxDeselectAll();
+    return;
+  }
+  sbxSelectedPiece = { piece: p };
+  document.querySelectorAll('.sbx-palette-piece').forEach(el => {
+    el.classList.toggle('selected', el.dataset.piece === p);
+  });
+  let db = document.getElementById('sbx-delete-btn');
+  if (db) db.classList.remove('selected');
+  selected = null; legalMoves = []; draw();
+}
+
+function sbxSelectDelete() {
+  if (sbxSelectedPiece === 'delete') { sbxDeselectAll(); return; }
+  sbxSelectedPiece = 'delete';
+  document.querySelectorAll('.sbx-palette-piece').forEach(el => el.classList.remove('selected'));
+  let db = document.getElementById('sbx-delete-btn');
+  if (db) db.classList.add('selected');
+  selected = null; legalMoves = []; draw();
+}
+
+function sbxDeselectAll() {
+  sbxSelectedPiece = null;
+  document.querySelectorAll('.sbx-palette-piece').forEach(el => el.classList.remove('selected'));
+  let db = document.getElementById('sbx-delete-btn');
+  if (db) db.classList.remove('selected');
+}
+
+function sbxSetTurn(color) {
+  turn = color;
+  sbxRefreshTurnButtons();
+  sbxRefreshTurnDisplay();
+  draw();
+}
+
+function sbxRefreshTurnButtons() {
+  let tw = document.getElementById('sbx-turn-w');
+  let tb = document.getElementById('sbx-turn-b');
+  if (tw) tw.classList.toggle('active', turn === 'white');
+  if (tb) tb.classList.toggle('active', turn === 'black');
+}
+
+function sbxRefreshTurnDisplay() {
+  let disp = document.getElementById('sbx-play-turn-display');
+  if (!disp) return;
+  if (turn === 'white') {
+    disp.textContent = '\u2654 White to Move';
+    disp.style.borderColor = 'rgba(255,255,255,0.3)';
+    disp.style.color = '#fff';
+  } else {
+    disp.textContent = '\u265a Black to Move';
+    disp.style.borderColor = 'rgba(167,139,250,0.4)';
+    disp.style.color = '#c4b5fd';
+  }
+}
+
+function sbxUpdateCastling() {
+  castleRights.whiteKing  = document.getElementById('sbx-castle-wk').checked;
+  castleRights.whiteRookK = document.getElementById('sbx-castle-wk').checked;
+  castleRights.whiteRookQ = document.getElementById('sbx-castle-wq').checked;
+  castleRights.blackKing  = document.getElementById('sbx-castle-bk').checked;
+  castleRights.blackRookK = document.getElementById('sbx-castle-bk').checked;
+  castleRights.blackRookQ = document.getElementById('sbx-castle-bq').checked;
+}
+
+function sbxSyncCastlingCheckboxes() {
+  let wk = document.getElementById('sbx-castle-wk');
+  let wq = document.getElementById('sbx-castle-wq');
+  let bk = document.getElementById('sbx-castle-bk');
+  let bq = document.getElementById('sbx-castle-bq');
+  if (wk) wk.checked = castleRights.whiteKing;
+  if (wq) wq.checked = castleRights.whiteRookQ;
+  if (bk) bk.checked = castleRights.blackKing;
+  if (bq) bq.checked = castleRights.blackRookQ;
+}
+
+function sbxSetMoveCount(val) {
+  let n = parseInt(val) || 0;
+  moveCount = Math.max(0, n);
+  document.getElementById('sbx-move-count').value = moveCount;
+}
+
+function sbxSetDraftFreq(val) {
+  let n = parseInt(val) || 10;
+  sbxDraftFreq = Math.max(1, Math.min(100, n));
+  document.getElementById('sbx-draft-freq').value = sbxDraftFreq;
+  if (sandboxMode) settings.draftFreq = sbxDraftFreq;
+}
+
+function sbxBuildModList() {
+  let container = document.getElementById('sbx-mod-list');
+  if (!container) return;
+  container.innerHTML = '';
+  [...allMods, ...evolvedMods].forEach(mod => {
+    let row = document.createElement('label');
+    row.className = 'sbx-mod-check-row';
+    let cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = modifiers.includes(mod.name);
+    cb.onchange = () => sbxToggleModifier(mod.name, cb.checked);
+    let icon = document.createElement('span');
+    icon.className = 'sbx-mod-check-icon';
+    icon.textContent = mod.icon;
+    let lbl = document.createElement('span');
+    lbl.className = 'sbx-mod-check-label';
+    lbl.textContent = mod.name;
+    row.appendChild(cb); row.appendChild(icon); row.appendChild(lbl);
+    container.appendChild(row);
+  });
+}
+
+function sbxToggleModifier(name, on) {
+  if (on) {
+    if (!modifiers.includes(name)) modifiers.push(name);
+    if (name === 'Duck of Eternal Blocking') spawnDuck();
+  } else {
+    modifiers = modifiers.filter(m => m !== name);
+  }
+  syncModifierDisplays();
+  draw();
+}
+
+function sbxUpdateModsBar() {
+  let bar = document.getElementById('sandbox-mods-bar');
+  let emptyLabel = document.getElementById('sandbox-mods-empty-label');
+  if (!bar) return;
+  bar.querySelectorAll('.mod').forEach(el => el.remove());
+  if (modifiers.length === 0) {
+    if (emptyLabel) emptyLabel.style.display = '';
+  } else {
+    if (emptyLabel) emptyLabel.style.display = 'none';
+    modifiers.forEach(name => {
+      const modData = allMods.find(m => m.name === name);
+      const evoData = evolvedMods.find(m => m.name === name);
+      const isEvo   = !!evoData;
+      const rarity  = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
+      const icon    = isEvo ? evoData.icon : (modData ? modData.icon : '');
+      let chip = document.createElement('div');
+      chip.className = 'mod mod-' + rarity;
+      chip.style.cursor = 'pointer';
+      chip.title = 'Click for details';
+      chip.textContent = icon + ' ' + name;
+      chip.onclick = () => showModifierInfo(name);
+      bar.appendChild(chip);
+    });
+  }
+}
+
+function sbxClearBoard() {
+  for (let y = 0; y < 8; y++)
+    for (let x = 0; x < 8; x++)
+      board[y][x] = '';
+  pieceData = {};
+  draw();
+}
+
+// Flip is purely visual: toggles .flipped CSS class on #board.
+// Board array is NOT mutated, so pawn directions, legal moves, and
+// all game logic remain correct regardless of visual orientation.
+function sbxFlipBoard() {
+  sbxBoardFlipped = !sbxBoardFlipped;
+  document.getElementById('board').classList.toggle('flipped', sbxBoardFlipped);
+  draw();
+}
+
+function sbxRandomPosition() {
+  sbxClearBoard();
+  const pieces = ['P','P','P','P','P','R','N','B','Q','K',
+                  'p','p','p','p','p','r','n','b','q','k'];
+  let squares = [];
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) squares.push({x, y});
+  squares.sort(() => Math.random() - 0.5);
+  pieces.forEach((piece, i) => { if (squares[i]) board[squares[i].y][squares[i].x] = piece; });
+  draw();
+}
+
+// ---- BOARD CLICK INTERCEPT ----
+// PLAY mode: delegate 100% to the real engine (identical to Local mode).
+//            Royal Guard, tornado placement, draft triggers all work normally.
+// SETUP mode: our own placement logic, no game rules applied.
+const _sbxBaseClickSquare = window.clickSquare;
+window.clickSquare = function(x, y) {
+  if (!sandboxMode) {
+    _sbxBaseClickSquare(x, y);
+    return;
+  }
+
+  // PLAY MODE — pass straight through; engine handles everything
+  if (sandboxTabMode === 'play') {
+    _sbxBaseClickSquare(x, y);
+    sbxRefreshTurnDisplay();
+    let mcEl = document.getElementById('sbx-move-count');
+    if (mcEl) mcEl.value = moveCount;
+    return;
+  }
+
+  // SETUP MODE — custom handling, zero game rules
+  if (sbxSelectedPiece === 'delete') {
+    board[y][x] = ''; clearPieceData(x, y); draw(); return;
+  }
+
+  if (sbxSelectedPiece && sbxSelectedPiece.piece) {
+    board[y][x] = sbxSelectedPiece.piece; clearPieceData(x, y); draw(); return;
+  }
+
+  // No tool selected — free piece movement (click-click, any square to any square)
+  let piece = board[y][x];
+  if (selected) {
+    if (selected.x === x && selected.y === y) {
+      // Re-click same square = deselect
+      selected = null; legalMoves = []; draw(); return;
+    }
+    let from = selected;
+    board[y][x] = board[from.y][from.x];
+    board[from.y][from.x] = '';
+    movePieceData(from.x, from.y, x, y);
+    selected = null; legalMoves = []; draw(); return;
+  }
+
+  if (piece) { selected = {x, y}; legalMoves = []; draw(); }
+  else { selected = null; legalMoves = []; draw(); }
+};
+
+function sbxSyncMoveHistory() {
+  let list = document.getElementById('sbx-move-list');
+  if (!list) return;
+  let html = '';
+  for (let i = 0; i < moveHistory.length; i += 2) {
+    const n = Math.floor(i / 2) + 1;
+    const wm = moveHistory[i];
+    const bm = moveHistory[i + 1];
+    html += '<div class="move-pair"><span class="move-number">' + n + '.</span>' +
+            '<span class="move-white">' + wm.notation + '</span>' +
+            '<span class="move-black">' + (bm ? bm.notation : '') + '</span></div>';
+  }
+  list.innerHTML = html;
+  list.scrollTop = list.scrollHeight;
+}
+
+function sandboxNewGame() {
+  resetDraftUIState({ instant: true });
+  sbxCloseSaveModal();
+  pieceData = {}; initBoard();
+  modifiers = []; moveCount = 0; turn = 'white';
+  selected = null; legalMoves = []; lastMove = null;
+  whiteCaptured = []; blackCaptured = []; moveHistory = [];
+  kamikazeBombs = []; nuclearZones = []; tornadoes = [];
+  tornadoPlacementMode = false;
+  castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
+  royalGuardPlacementMode = false; royalGuardKingX = -1; royalGuardKingY = -1;
+  royalGuardPendingCallback = null; positionHistory = [];
+  sbxSelectedPiece = null; sbxBoardFlipped = false; sbxDraftFreq = 10;
+
+  document.getElementById('board').classList.remove('flipped');
+  settings.draftFreq = 10;
+
+  sbxBuildPalette(); sbxBuildModList();
+  sbxRefreshTurnButtons(); sbxRefreshTurnDisplay();
+  sbxSyncCastlingCheckboxes(); sbxUpdateModsBar();
+  sbxDeselectAll(); sbxSyncMoveHistory();
+  let mcEl = document.getElementById('sbx-move-count');
+  let dfEl = document.getElementById('sbx-draft-freq');
+  if (mcEl) mcEl.value = 0;
+  if (dfEl) dfEl.value = 10;
+  draw();
+}
+
+const SBX_SAVES_KEY = 'chaosChessSandboxSaves';
+
+function sbxGetSaves() {
+  try { return JSON.parse(localStorage.getItem(SBX_SAVES_KEY) || '[]'); } catch(e) { return []; }
+}
+function sbxPutSaves(saves) {
+  try { localStorage.setItem(SBX_SAVES_KEY, JSON.stringify(saves)); } catch(e) {}
+}
+
+function sbxCreateSaveEntry(name, existingId) {
+  const timestamp = new Date().toLocaleString();
+  return {
+    id: existingId || Date.now(),
+    name,
+    timestamp,
+    board: board.map(r => r.slice()),
+    modifiers: modifiers.slice(),
+    turn,
+    moveCount,
+    castleRights: Object.assign({}, castleRights),
+    draftFreq: sbxDraftFreq
+  };
+}
+
+function sbxSave() {
+  sbxOpenSaveModal();
+}
+
+function sbxPromptCreateSave() {
+  let name = prompt('Save name (leave blank for auto):', '');
+  if (name === null) return;
+  let timestamp = new Date().toLocaleString();
+  name = (name || '').trim();
+  if (!name) name = 'Sandbox ' + timestamp;
+  let saves = sbxGetSaves();
+  saves.unshift(sbxCreateSaveEntry(name));
+  if (saves.length > 20) saves = saves.slice(0, 20);
+  sbxPutSaves(saves);
+  sbxRenderSaveList();
+  sbxRenderSaveModalList();
+  showToast('\ud83d\udcbe Sandbox saved: ' + name, 2000);
+}
+
+function sbxOpenSaveModal() {
+  sbxRenderSaveModalList();
+  document.getElementById('sbx-save-modal').classList.add('active');
+}
+
+function sbxCloseSaveModal() {
+  let modal = document.getElementById('sbx-save-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function sbxOverwriteSave(id) {
+  let saves = sbxGetSaves();
+  let existing = saves.find(s => s.id === id);
+  if (!existing) return;
+  if (!confirm('Are you sure you want to overwrite this save? This cannot be undone.')) return;
+  saves = saves.filter(s => s.id !== id);
+  saves.unshift(sbxCreateSaveEntry(existing.name, existing.id));
+  sbxPutSaves(saves);
+  sbxRenderSaveList();
+  sbxRenderSaveModalList();
+  showToast('\ud83d\udcbe Overwrote save: ' + existing.name, 2000);
+}
+
+function sbxLoad(id) {
+  let entry = sbxGetSaves().find(s => s.id === id);
+  if (!entry) return;
+  resetDraftUIState({ instant: true });
+  sbxCloseSaveModal();
+  board = entry.board.map(r => r.slice());
+  modifiers = entry.modifiers.slice();
+  turn = entry.turn || 'white';
+  moveCount = entry.moveCount || 0;
+  castleRights = Object.assign({ whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true }, entry.castleRights);
+  sbxDraftFreq = entry.draftFreq || 10;
+  pieceData = {}; selected = null; legalMoves = []; moveHistory = [];
+  settings.draftFreq = sbxDraftFreq;
+  sbxBuildModList(); sbxRefreshTurnButtons(); sbxRefreshTurnDisplay();
+  sbxSyncCastlingCheckboxes(); syncModifierDisplays(); sbxSyncMoveHistory();
+  let mcEl = document.getElementById('sbx-move-count');
+  let dfEl = document.getElementById('sbx-draft-freq');
+  if (mcEl) mcEl.value = moveCount;
+  if (dfEl) dfEl.value = sbxDraftFreq;
+  draw();
+  showToast('\ud83d\udcc2 Loaded: ' + entry.name, 2000);
+}
+
+function sbxDeleteSave(id) {
+  if (!confirm('Are you sure you want to delete this save? This cannot be undone.')) return;
+  sbxPutSaves(sbxGetSaves().filter(s => s.id !== id));
+  sbxRenderSaveList();
+  sbxRenderSaveModalList();
+}
+
+function sbxRenderSaveList() {
+  let container = document.getElementById('sbx-save-list');
+  if (!container) return;
+  container.innerHTML = '';
+  let saves = sbxGetSaves();
+  if (saves.length === 0) {
+    let e = document.createElement('div');
+    e.className = 'sbx-saves-empty'; e.textContent = 'No saves yet';
+    container.appendChild(e); return;
+  }
+  saves.forEach(s => {
+    let row = document.createElement('div');
+    row.className = 'sbx-save-item';
+    let nm = document.createElement('div'); nm.className = 'sbx-save-item-name';
+    nm.textContent = s.name; nm.onclick = () => sbxLoad(s.id);
+    let dt = document.createElement('div'); dt.className = 'sbx-save-item-date';
+    dt.textContent = s.timestamp; dt.onclick = () => sbxLoad(s.id);
+    let dl = document.createElement('div'); dl.className = 'sbx-save-item-del';
+    dl.textContent = '\ud83d\uddd1'; dl.title = 'Delete save';
+    dl.onclick = e => { e.stopPropagation(); sbxDeleteSave(s.id); };
+    row.appendChild(nm); row.appendChild(dt); row.appendChild(dl);
+    container.appendChild(row);
+  });
+}
+
+function sbxRenderSaveModalList() {
+  let container = document.getElementById('sbx-save-modal-list');
+  if (!container) return;
+  container.innerHTML = '';
+  let saves = sbxGetSaves();
+  if (saves.length === 0) {
+    let empty = document.createElement('div');
+    empty.className = 'sbx-save-modal-empty';
+    empty.textContent = 'No existing saves yet. Use Create New Save to store this sandbox.';
+    container.appendChild(empty);
+    return;
+  }
+  saves.forEach(s => {
+    let row = document.createElement('div');
+    row.className = 'sbx-save-modal-row';
+
+    let meta = document.createElement('div');
+    meta.className = 'sbx-save-modal-meta';
+    let name = document.createElement('div');
+    name.className = 'sbx-save-modal-name';
+    name.textContent = s.name;
+    let date = document.createElement('div');
+    date.className = 'sbx-save-modal-date';
+    date.textContent = s.timestamp;
+    meta.appendChild(name);
+    meta.appendChild(date);
+
+    let actions = document.createElement('div');
+    actions.className = 'sbx-save-modal-actions';
+
+    let overwrite = document.createElement('button');
+    overwrite.className = 'sbx-save-mini-btn primary';
+    overwrite.textContent = 'Overwrite';
+    overwrite.onclick = () => sbxOverwriteSave(s.id);
+
+    let del = document.createElement('button');
+    del.className = 'sbx-save-mini-btn danger';
+    del.textContent = 'Delete';
+    del.onclick = () => sbxDeleteSave(s.id);
+
+    actions.appendChild(overwrite);
+    actions.appendChild(del);
+    row.appendChild(meta);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+// Keep sandbox move history and turn display in sync after every draw
+const _sbxDrawPatch = draw;
+draw = function() {
+  _sbxDrawPatch.apply(this, arguments);
+  if (sandboxMode && sandboxTabMode === 'play') {
+    sbxRefreshTurnDisplay();
+    sbxSyncMoveHistory();
+  }
+};
 
 </script>
 </body>
