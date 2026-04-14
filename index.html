@@ -9850,6 +9850,7 @@ function draw(){
           // Evolved glows (rainbow — highest priority after phantom/decoy/jesterDecoy)
           if((modifiers.includes('Fast Pawn (Evolved)') && pieceType==='p') ||
              (modifiers.includes('Viral Pawn (Evolved)') && pieceType==='p') ||
+             (modifiers.includes('Pawn Bayonet (Evolved)') && pieceType==='p') ||
              (modifiers.includes('Pegasus (Evolved)') && pieceType==='n') ||
              (modifiers.includes('Copycat Knight (Evolved)') && pieceType==='n') ||
              (modifiers.includes('Royal Guard (Evolved)') && pieceType==='k') ||
@@ -10457,11 +10458,12 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
           moves.push({x:nx,y:ny});
         }
       });
-      // Pawn Bayonet: forward capture
-      if(modifiers.includes('Pawn Bayonet') && board[y+dir]?.[x] && isWhite(board[y+dir][x])!==isWhite(piece)) {
+      // Pawn Bayonet / Pawn Bayonet (Evolved): forward capture
+      let hasBayonet = modifiers.includes('Pawn Bayonet') || modifiers.includes('Pawn Bayonet (Evolved)');
+      if(hasBayonet && board[y+dir]?.[x] && isWhite(board[y+dir][x])!==isWhite(piece)) {
         let target = board[y+dir][x];
         if(target !== 'D' && !(target.toLowerCase()==='n' && getPieceData(x,y+dir).phantom)) {
-          moves.push({x,y:y+dir});
+          moves.push({x,y:y+dir,bayonetForward:true});
         }
       }
       // Sniper Pawn: 2-tile diagonal capture (jumps over pieces)
@@ -11361,6 +11363,32 @@ function move(x1,y1,x2,y2,castleType){
     }
   }
 
+  // Pawn Bayonet (Evolved): after a forward capture, pierce the file
+  // Destroys consecutive enemy pieces with no gap — stops at empty square, friendly, king, or duck
+  if(piece.toLowerCase()==='p' && captured && modifiers.includes('Pawn Bayonet (Evolved)') && x1 === x2){
+    // Only triggers on a forward capture (diagonal bayonet doesn't pierce)
+    let pierceDir = isWhite(piece) ? -1 : 1;
+    let pierceY = y2 + pierceDir; // start one step beyond the capture square
+    while(pierceY >= 0 && pierceY <= 7){
+      let target = board[pierceY][x2];
+      if(!target) break; // gap — stop
+      if(isWhite(target) === isWhite(piece)) break; // friendly — stop
+      if(target.toLowerCase() === 'k') break; // can't capture kings
+      if(target === 'D') break; // ducks are immune
+      // Destroy this enemy piece
+      board[pierceY][x2] = '';
+      clearPieceData(x2, pierceY);
+      if(isWhite(piece)){
+        whiteCaptured.push(target);
+      } else {
+        blackCaptured.push(target);
+      }
+      showExplosion(x2, pierceY);
+      incrementEffectsTriggered(1);
+      pierceY += pierceDir;
+    }
+  }
+
   // Hive Mind Pawns: when a pawn moves, move all other pawns in the same direction
   if(piece.toLowerCase()==='p' && modifiers.includes('Hive Mind Pawns')){
     let dx = x2 - x1;
@@ -11790,6 +11818,7 @@ function stormRookStrike(rx,ry){
 }
 
 const MODIFIER_LORE = {
+  'Pawn Bayonet (Evolved)': 'It no longer stops at the first thing it meets. The momentum carries forward, and whatever stands in a straight line shares the consequence. Not cruelty — just physics.',
   'Pawn Bayonet':       'Pawns learned that the shortest path forward is not always the safest. They no longer wait to be approached. If they see a target ahead, they strike without hesitation. It’s a bold, aggressive stance that changes the way they move across the board.',
   'Reinforced Pawn':    'It doesn’t stand taller than the others, but it refuses to fall like them. There’s something quietly stubborn about it, as if it remembers being pushed before and decided it wouldn’t happen again.',
   'Phase Bishop':       'It moves with a kind of calm detachment, like the board doesn’t fully apply to it. The bishop doesn’t rush or force—it simply arrives where others cannot follow, as if it’s slipping through a version of the board no one else sees. It’s not invincible, but it’s elusive.',
@@ -12378,7 +12407,7 @@ function showToast(message, duration=2000){
 }
 
 const allMods=[
-  {name:'Pawn Bayonet',rarity:'common',desc:'Pawns can capture directly forward',icon:'♟'},
+  {name:'Pawn Bayonet',rarity:'common',desc:'Pawns can capture directly forward',icon:'♟',evolvesTo:'Pawn Bayonet (Evolved)'},
   {name:'Reinforced Pawn',rarity:'common',desc:'Pawns have 50% chance to survive first capture attempt',icon:'♟'},
   {name:'Phase Bishop',rarity:'common',desc:'Bishops can move through one piece',icon:'♗'},
   {name:'Sidestep Knight',rarity:'common',desc:'Knights can also move 1 square in any direction',icon:'♞'},
@@ -12469,6 +12498,14 @@ const evolvedMods = [
     icon: '♟',
     isEvolution: true,
     baseModifier: 'Viral Pawn'
+  },
+  {
+    name: 'Pawn Bayonet (Evolved)',
+    rarity: 'common',
+    desc: 'Forward captures pierce along the file — all connected enemy pieces on that column are destroyed until a gap',
+    icon: '♟',
+    isEvolution: true,
+    baseModifier: 'Pawn Bayonet'
   },
 ];
 
