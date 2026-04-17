@@ -142,6 +142,11 @@ h1 {
   animation: pulse-green 1.5s ease-in-out infinite;
 }
 
+.puzzle-hint-square {
+  box-shadow: inset 0 0 0 4px #22d3ee !important;
+  animation: puzzle-hint-pulse 1.2s ease-in-out infinite;
+}
+
 /* Make sure highlight shows even on special squares */
 .bomb-warning.highlight,
 .king-in-check.highlight,
@@ -155,6 +160,11 @@ h1 {
 @keyframes pulse-green {
   0%, 100% { box-shadow: inset 0 0 0 4px #10b981; }
   50% { box-shadow: inset 0 0 0 4px #34d399; }
+}
+
+@keyframes puzzle-hint-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 4px rgba(34,211,238,0.95); }
+  50% { box-shadow: inset 0 0 0 4px rgba(103,232,249,0.55), 0 0 22px rgba(34,211,238,0.35); }
 }
 
 .glow-legendary img { 
@@ -1776,18 +1786,28 @@ button:active {
 .menu-sandbox-row {
   display: flex;
   justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
   width: 100%;
 }
 .menu-play-card.sandbox {
-  max-width: 480px;
-  flex: none;
-  width: 100%;
+  flex: 1;
+  max-width: 380px;
   border-color: rgba(251,191,36,0.2);
 }
 .menu-play-card.sandbox .menu-play-card-label { color: #f59e0b; }
-.menu-play-card.sandbox:hover { border-color: rgba(251,191,36,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.3), 0 0 30px rgba(251,191,36,0.08); }
-.menu-play-card.sandbox .menu-play-card-arrow { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+.menu-play-card.sandbox:hover { background: #2f355f; border-color: rgba(251,191,36,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.3), 0 0 30px rgba(251,191,36,0.08); }
 .menu-play-card.sandbox:hover .menu-play-card-arrow { background: rgba(251,191,36,0.3); border-color: rgba(251,191,36,0.6); }
+.menu-play-card.sandbox .menu-play-card-arrow { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+.menu-play-card.puzzle {
+  flex: 1;
+  max-width: 380px;
+  border-color: rgba(34,211,238,0.2);
+}
+.menu-play-card.puzzle .menu-play-card-label { color: #22d3ee; }
+.menu-play-card.puzzle:hover { background: #2f355f; border-color: rgba(34,211,238,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,211,238,0.3), 0 0 30px rgba(34,211,238,0.08); }
+.menu-play-card.puzzle:hover .menu-play-card-arrow { background: rgba(34,211,238,0.28); border-color: rgba(34,211,238,0.55); }
+.menu-play-card.puzzle .menu-play-card-arrow { background: rgba(34,211,238,0.15); border-color: rgba(34,211,238,0.3); color: #67e8f9; }
 
 /* ===== SANDBOX CONTAINER ===== */
 #sandbox-container {
@@ -7616,7 +7636,15 @@ button:active {
           <div class="menu-play-card-icon">🧪</div>
           <div class="menu-play-card-label">Sandbox</div>
           <div class="menu-play-card-title">Sandbox Mode</div>
-          <div class="menu-play-card-sub">Create positions · Test modifiers · Experiment freely</div>
+          <div class="menu-play-card-sub">Create positions · Test modifiers · Experiment</div>
+          <div class="menu-play-card-arrow">→</div>
+        </button>
+        <button class="menu-play-card puzzle" onclick="startPuzzle()">
+          <span class="chaos-card-chip" aria-hidden="true">SYS::PZL</span>
+          <div class="menu-play-card-icon">🧩</div>
+          <div class="menu-play-card-label">Puzzles</div>
+          <div class="menu-play-card-title">Puzzle Mode</div>
+          <div class="menu-play-card-sub">Fixed positions · Practice scenarios</div>
           <div class="menu-play-card-arrow">→</div>
         </button>
       </div>
@@ -8602,6 +8630,12 @@ button:active {
         <button class="game-action-btn primary" onclick="restart()">🔄 New Game</button>
         <button class="game-action-btn secondary" onclick="backToMenu()">← Back to Menu</button>
       </div>
+      <div id="new-puzzle-controls" style="display:none; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <button class="game-action-btn primary" onclick="restart()">🔄 Retry Puzzle</button>
+        <button class="game-action-btn secondary" onclick="requestPuzzleHint()">💡 Hint</button>
+        <button class="game-action-btn secondary" id="puzzle-next-btn" onclick="startNextPuzzle()">➡ Next Puzzle</button>
+        <button class="game-action-btn secondary" onclick="backToMenu()">← Back to Menu</button>
+      </div>
     </div>
 
   </div>
@@ -8624,6 +8658,19 @@ button:active {
         <span class="gir-label">Modifiers</span>
         <span class="gir-val" id="gir-mod-count">0</span>
       </div>
+      <div class="game-info-row" id="puzzle-goal-row" style="display:none;">
+        <span class="gir-label">Goal</span>
+        <span class="gir-val" id="puzzle-goal-val">—</span>
+      </div>
+      <div class="game-info-row" id="puzzle-moves-row" style="display:none;">
+        <span class="gir-label" id="puzzle-moves-label">Moves Left</span>
+        <span class="gir-val" id="puzzle-moves-val">—</span>
+      </div>
+    </div>
+
+    <div class="game-panel-box" id="puzzle-hint-box" style="display:none;">
+      <div class="game-panel-title">Puzzle Hint</div>
+      <div id="puzzle-hint-text" style="font-size:13px; line-height:1.5; color:rgba(255,255,255,0.82);">No hints used yet.</div>
     </div>
 
     <!-- Move history fills the rest -->
@@ -9135,6 +9182,163 @@ let myColor = null; // 'white' or 'black' for online games
 let peer = null;
 let connection = null;
 let autoDeclineRequests = false; // Auto-decline incoming draw/restart requests
+
+// Puzzle mode state
+let puzzleModeActive = false;
+let currentPuzzleIndex = -1;
+let activePuzzle = null;
+let puzzleStepIndex = 0;
+let puzzlePlayerMovesUsed = 0;
+let puzzleHintStage = 0;
+let puzzleHintSquares = [];
+let puzzleHintText = 'No hints used yet.';
+let puzzleInputLocked = false;
+let puzzleAutoPlaying = false;
+let puzzleAutoMoveTimeout = null;
+let puzzleCheckpoints = []; // Board snapshots before each player-move segment, for rewind-on-fail
+
+const PUZZLES = [
+  {
+    id: 'double-trouble',
+    title: 'Double Trouble',
+    goal: 'Mate in 1',
+    playerColor: 'white',
+    turn: 'white',
+    moveLimit: 1,
+    modifiers: ['Decoy Rook'],
+    board: [
+      '......k.',
+      '........',
+      '.....K.R',
+      '........',
+      '........',
+      '........',
+      '........',
+      '........'
+    ],
+    solution: [
+      { from: 'h6', to: 'h8' }
+    ],
+    hints: [
+      { text: 'The rook’s decoy when moving can create perfect backup here.', from: 'h6', to: 'h8' }
+    ]
+  },
+  {
+    id: 'bayonet-breach',
+    title: 'Bayonet Breach',
+    goal: 'Use Pawn Bayonet (Evolved) to pierce the file',
+    playerColor: 'white',
+    turn: 'white',
+    moveLimit: 1,
+    modifiers: ['Pawn Bayonet (Evolved)'],
+    board: [
+      '....r..k',
+      '....n...',
+      '....q...',
+      '....p...',
+      '....P...',
+      '........',
+      '........',
+      'K.......'
+    ],
+    solution: [
+      { from: 'e4', to: 'e5' }
+    ],
+    hints: [
+      { text: 'The evolved pawn can strike straight forward here.', from: 'e4', to: 'e5' }
+    ]
+  },
+  {
+    id: 'nuclear-cleanup',
+    title: 'Nuclear Cleanup',
+    goal: 'Use the explosion to wipe multiple pieces',
+    playerColor: 'white',
+    turn: 'white',
+    moveLimit: 1,
+    modifiers: ['Nuclear Queen'],
+    board: [
+      '....k...',
+      '...bpb..',
+      '...npn..',
+      '....Q...',
+      '........',
+      '........',
+      '........',
+      'K.......'
+    ],
+    solution: [
+      { from: 'e5', to: 'e6' }
+    ],
+    hints: [
+      { text: 'A direct capture triggers something bigger.', from: 'e5', to: 'e6' }
+    ]
+  },
+  {
+  id: 'viral-spread',
+  title: 'Viral Spread',
+  goal: 'Duplicate your pawn to gain advantage',
+  playerColor: 'white',
+  turn: 'white',
+  moveLimit: 1,
+  modifiers: ['Viral Pawn'],
+  board: [
+    '....k...',
+    '........',
+    '....p...',
+    '...P....',
+    '........',
+    '........',
+    '........',
+    'K.......'
+  ],
+  solution: [
+    { from: 'd5', to: 'e6' }
+  ],
+  hints: [
+    { text: 'Capturing here creates more than just one pawn.', from: 'd5', to: 'e6' }
+  ]
+  },
+  // ── MULTI-PART SHOWCASE ───────────────────────────────────────────────────────
+  // Parts format:
+  //   parts: [
+  //     {
+  //       playerMove:   { from: 'algebraic', to: 'algebraic' },  // required
+  //       opponentMove: { from: 'algebraic', to: 'algebraic' },  // optional (omit on final part)
+  //       hint: { text: '...', from: 'algebraic', to: 'algebraic' }
+  //     },
+  //     ...
+  //   ]
+  // The engine auto-generates solution[], hints[], moveLimit, and partCount from parts[].
+  {
+    id: 'fast-cutoff',
+    title: 'Fast Cutoff',
+    goal: 'Cut off the king’s escape squares and deliver checkmate',
+    playerColor: 'white',
+    turn: 'white',
+    modifiers: ['Fast Pawn'],
+    board: [
+      '.k......',
+      'pp.p....',
+      '........',
+      'r.......',
+      '...P....',
+      '.....B..',
+      'P....BPP',
+      '....R.K.'
+    ],
+    parts: [
+      {
+        playerMove:   { from: 'd4', to: 'd6' },
+        opponentMove: { from: 'b8', to: 'c8' },
+        hint: { text: 'Look at the modifier list, your pawn can reach the king’s only escape square quickly.', from: 'd4', to: 'd6' }
+      },
+      {
+        playerMove:   { from: 'e1', to: 'e8' },
+        hint: { text: 'The king has no escape squares left - deliver checkmate!', from: 'e1', to: 'e8' }
+      }
+    ]
+  }
+];
 
 // ===== SETTINGS =====
 const BOARD_THEMES = [
@@ -9694,7 +9898,9 @@ function draw(){
   const sandboxActive = document.getElementById('sandbox-container')?.classList.contains('active');
   const shouldFlipBoard = sandboxActive
     ? b.classList.contains('flipped')
-    : (settings.flipBoard && gameMode === 'online' && myColor === 'black');
+    : (puzzleModeActive
+      ? (!!activePuzzle && activePuzzle.playerColor === 'black' && settings.flipBoard)
+      : (settings.flipBoard && gameMode === 'online' && myColor === 'black'));
   b.classList.toggle('flipped', !!shouldFlipBoard);
 
   // Board glow: green when it's your turn in online mode
@@ -9737,6 +9943,10 @@ function draw(){
       // Highlight legal moves FIRST (goes over right-click highlight)
       if(settings.showLegal && legalMoves.some(m => m.x === x && m.y === y)) {
         sq.classList.add('highlight');
+      }
+
+      if(puzzleModeActive && puzzleHintSquares.some(h => h.x === x && h.y === y)) {
+        sq.classList.add('puzzle-hint-square');
       }
 
       // Last-move highlight
@@ -10038,7 +10248,9 @@ function updateCapturedPieces(){
   // In local mode: opponent card = White (top), self card = Black (bottom)
   //   → opponent captured = whiteCaptured, self captured = blackCaptured
   // In online mode: figure out from myColor
-  const selfIsWhite = gameMode === 'online' ? (myColor === 'white') : false;
+  const selfIsWhite = puzzleModeActive
+    ? !!(activePuzzle && activePuzzle.playerColor === 'white')
+    : (gameMode === 'online' ? (myColor === 'white') : false);
   const selfCaptures  = selfIsWhite ? whiteCaptured : blackCaptured;
   const oppCaptures   = selfIsWhite ? blackCaptured  : whiteCaptured;
   const selfMatAdv    = selfIsWhite ? Math.max(0, diff) : Math.max(0, -diff);
@@ -10078,6 +10290,469 @@ function coordToAlgebraic(x, y) {
 
 function fileOf(x) {
   return ['a','b','c','d','e','f','g','h'][x];
+}
+
+function algebraicToCoord(square) {
+  if(!square || typeof square !== 'string' || square.length < 2) return null;
+  const file = 'abcdefgh'.indexOf(square[0].toLowerCase());
+  const rank = parseInt(square.slice(1), 10);
+  if(file < 0 || !rank || rank < 1 || rank > 8) return null;
+  return { x: file, y: 8 - rank };
+}
+
+function puzzleOppColor(color){
+  return color === 'white' ? 'black' : 'white';
+}
+
+function parsePuzzleBoard(rows){
+  return rows.map(row => row.split('').map(ch => ch === '.' ? '' : ch));
+}
+
+function normalizePuzzleMove(step, index, firstColor){
+  const from = typeof step.from === 'string' ? algebraicToCoord(step.from) : step.from;
+  const to = typeof step.to === 'string' ? algebraicToCoord(step.to) : step.to;
+  return Object.assign({}, step, {
+    fromX: from.x,
+    fromY: from.y,
+    toX: to.x,
+    toY: to.y,
+    color: step.color || (index % 2 === 0 ? firstColor : puzzleOppColor(firstColor))
+  });
+}
+
+function normalizePuzzleDefinition(puzzle, index){
+  // Multi-part puzzle support:
+  // If puzzle has a `parts` array, each part is:
+  //   { playerMove: {from, to}, opponentMove: {from, to} (optional), hint: {text, from, to} }
+  // This auto-generates `solution`, `hints`, and `moveLimit` from the parts.
+  if(puzzle.parts && puzzle.parts.length > 0){
+    const firstColor = puzzle.turn || 'white';
+    const oppColor = puzzleOppColor(firstColor);
+    const solution = [];
+    const hints = [];
+    puzzle.parts.forEach(part => {
+      // Player move
+      solution.push(Object.assign({}, part.playerMove, { color: firstColor }));
+      // Hint for this part's player move
+      hints.push(part.hint || {});
+      // Opponent response (optional)
+      if(part.opponentMove){
+        solution.push(Object.assign({}, part.opponentMove, { color: oppColor }));
+      }
+    });
+    const normalized = Object.assign({}, puzzle, {
+      index,
+      solution: solution.map((step, stepIndex) => normalizePuzzleMove(step, stepIndex, firstColor)),
+      hints,
+      moveLimit: puzzle.parts.length,
+      playerColor: firstColor,
+      // Mark as multi-part for UI labelling
+      partCount: puzzle.parts.length,
+    });
+    delete normalized.parts; // avoid confusion — already expanded
+    return normalized;
+  }
+  return Object.assign({}, puzzle, {
+    index,
+    solution: (puzzle.solution || []).map((step, stepIndex) => normalizePuzzleMove(step, stepIndex, puzzle.turn || 'white'))
+  });
+}
+
+function clearPuzzleAutoMoveTimeout(){
+  if(puzzleAutoMoveTimeout){
+    clearTimeout(puzzleAutoMoveTimeout);
+    puzzleAutoMoveTimeout = null;
+  }
+}
+
+function resetPuzzleHints(){
+  puzzleHintStage = 0;
+  puzzleHintSquares = [];
+  puzzleHintText = 'No hints used yet.';
+}
+
+function clearPuzzleState(opts = {}){
+  clearPuzzleAutoMoveTimeout();
+  puzzleModeActive = false;
+  activePuzzle = null;
+  if(!opts.keepIndex) currentPuzzleIndex = -1;
+  puzzleStepIndex = 0;
+  puzzlePlayerMovesUsed = 0;
+  puzzleInputLocked = false;
+  puzzleAutoPlaying = false;
+  puzzleCheckpoints = [];
+  resetPuzzleHints();
+}
+
+function getCurrentPuzzleStep(){
+  return activePuzzle && activePuzzle.solution ? activePuzzle.solution[puzzleStepIndex] || null : null;
+}
+
+function getNextPuzzlePlayerStepIndex(){
+  if(!activePuzzle || !activePuzzle.solution) return -1;
+  for(let i = puzzleStepIndex; i < activePuzzle.solution.length; i++){
+    if(activePuzzle.solution[i].color === activePuzzle.playerColor) return i;
+  }
+  return -1;
+}
+
+function getPuzzleHintData(){
+  if(!activePuzzle || !activePuzzle.hints) return null;
+  return activePuzzle.hints[puzzlePlayerMovesUsed] || null;
+}
+
+function updatePuzzleUI(){
+  const titleEl = document.getElementById('game-center-title');
+  const modeEl = document.getElementById('gir-mode');
+  const goalRow = document.getElementById('puzzle-goal-row');
+  const movesRow = document.getElementById('puzzle-moves-row');
+  const goalVal = document.getElementById('puzzle-goal-val');
+  const movesVal = document.getElementById('puzzle-moves-val');
+  const hintBox = document.getElementById('puzzle-hint-box');
+  const hintText = document.getElementById('puzzle-hint-text');
+  const nextBtn = document.getElementById('puzzle-next-btn');
+  const qcwWrap = document.getElementById('qcw-trigger-wrap');
+  const infoTitle = document.querySelector('#game-info-box .game-panel-title');
+
+  if(titleEl){
+    titleEl.innerHTML = puzzleModeActive && activePuzzle
+      ? `🧩 ${activePuzzle.title}`
+      : '♟ Chaos<span>Chess</span>';
+  }
+  if(modeEl && puzzleModeActive){
+    modeEl.textContent = 'Puzzle';
+  }
+  if(infoTitle){
+    infoTitle.textContent = puzzleModeActive ? 'Puzzle Info' : 'Match Info';
+  }
+  if(goalRow) goalRow.style.display = puzzleModeActive ? 'flex' : 'none';
+  if(movesRow) movesRow.style.display = puzzleModeActive ? 'flex' : 'none';
+  if(goalVal && puzzleModeActive && activePuzzle) goalVal.textContent = activePuzzle.goal || 'Solve the line';
+  const movesLabel = document.getElementById('puzzle-moves-label');
+  if(movesVal && puzzleModeActive && activePuzzle){
+    if(activePuzzle.partCount && activePuzzle.partCount > 1){
+      if(movesLabel) movesLabel.textContent = 'Progress';
+      movesVal.textContent = `Part ${puzzlePlayerMovesUsed + 1} / ${activePuzzle.partCount}`;
+    } else {
+      if(movesLabel) movesLabel.textContent = 'Moves Left';
+      movesVal.textContent = Math.max(0, activePuzzle.moveLimit - puzzlePlayerMovesUsed).toString();
+    }
+  }
+  if(hintBox) hintBox.style.display = puzzleModeActive ? 'block' : 'none';
+  if(hintText) hintText.textContent = puzzleModeActive ? puzzleHintText : 'No hints used yet.';
+  if(nextBtn){
+    nextBtn.disabled = !puzzleModeActive || currentPuzzleIndex >= PUZZLES.length - 1;
+    nextBtn.style.opacity = nextBtn.disabled ? '0.45' : '1';
+    nextBtn.style.cursor = nextBtn.disabled ? 'default' : 'pointer';
+  }
+  if(qcwWrap) qcwWrap.style.display = puzzleModeActive ? 'none' : '';
+
+  // Keep Retry button hidden while the puzzle is actively in progress
+  const puzzleControls = document.getElementById('new-puzzle-controls');
+  const retryBtn = puzzleControls ? puzzleControls.querySelector('button[onclick="restart()"]') : null;
+  if(retryBtn){
+    const inProgress = puzzleModeActive && puzzlePlayerMovesUsed > 0 && !puzzleInputLocked;
+    retryBtn.style.display = inProgress ? 'none' : '';
+  }
+}
+
+function applyPuzzlePosition(puzzle){
+  pieceData = puzzle.pieceData ? JSON.parse(JSON.stringify(puzzle.pieceData)) : {};
+  board = parsePuzzleBoard(puzzle.board);
+  modifiers = (puzzle.modifiers || []).slice();
+  turn = puzzle.turn || 'white';
+  moveCount = 0;
+  selected = null;
+  legalMoves = [];
+  lastMove = null;
+  whiteCaptured = [];
+  blackCaptured = [];
+  moveHistory = [];
+  kamikazeBombs = [];
+  nuclearZones = [];
+  tornadoes = [];
+  tornadoPlacementMode = false;
+  royalGuardPlacementMode = false;
+  royalGuardKingX = -1;
+  royalGuardKingY = -1;
+  royalGuardPendingCallback = null;
+  doubleStrikeActive = false;
+  doubleStrikeRookX = -1;
+  doubleStrikeRookY = -1;
+  positionHistory = [];
+  castleRights = Object.assign(
+    { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true },
+    puzzle.castleRights || {}
+  );
+  gameEffectsTriggered = 0;
+  myMovesThisGame = 0;
+  clearArrows();
+  rightClickHighlight = [];
+  stopTimer();
+  document.getElementById('draft').style.display = 'none';
+  updateMoveDisplay();
+}
+
+function loadPuzzle(index){
+  const rawPuzzle = PUZZLES[index];
+  if(!rawPuzzle) return;
+  const puzzle = normalizePuzzleDefinition(rawPuzzle, index);
+  ensureGlobalOverlayHosts();
+  resetDraftUIState({ instant: true });
+  clearPuzzleAutoMoveTimeout();
+
+  currentPuzzleIndex = index;
+  activePuzzle = puzzle;
+  puzzleModeActive = true;
+  puzzleStepIndex = 0;
+  puzzlePlayerMovesUsed = 0;
+  puzzleInputLocked = false;
+  puzzleAutoPlaying = false;
+  resetPuzzleHints();
+
+  gameMode = 'local';
+  myColor = null;
+
+  const menu = document.getElementById('menu');
+  menu.classList.add('hidden');
+  menu.style.display = '';
+  document.getElementById('game-container').classList.add('active');
+
+  applyPuzzlePosition(puzzle);
+  puzzleCheckpoints = [];
+  savePuzzleCheckpoint(); // checkpoint 0 = starting position
+  draw();
+  updateGameTopbar();
+  setupLocalGameCards();
+  updateGameInfoPanel();
+  updateGameActionButtons();
+  updatePuzzleUI();
+
+  showToast(`🧩 Puzzle loaded: ${puzzle.title}`, 1800);
+
+  const currentStep = getCurrentPuzzleStep();
+  if(currentStep && currentStep.color !== puzzle.playerColor){
+    queuePuzzleAutoMove();
+  }
+}
+
+function startPuzzle(index = 0){
+  loadPuzzle(index);
+}
+
+function startNextPuzzle(){
+  if(currentPuzzleIndex < 0 || currentPuzzleIndex >= PUZZLES.length - 1){
+    showToast('No more puzzles yet.', 1500);
+    return;
+  }
+  loadPuzzle(currentPuzzleIndex + 1);
+}
+
+function requestPuzzleHint(){
+  if(!puzzleModeActive || !activePuzzle || puzzleInputLocked || puzzleAutoPlaying){
+    return;
+  }
+  const nextPlayerStepIndex = getNextPuzzlePlayerStepIndex();
+  if(nextPlayerStepIndex === -1){
+    showToast('No player move left to hint.', 1400);
+    return;
+  }
+  const step = activePuzzle.solution[nextPlayerStepIndex];
+  const hint = getPuzzleHintData() || {};
+  const fromSq = hint.from ? algebraicToCoord(hint.from) : { x: step.fromX, y: step.fromY };
+  const toSq = hint.to ? algebraicToCoord(hint.to) : { x: step.toX, y: step.toY };
+
+  if(puzzleHintStage === 0){
+    puzzleHintStage = 1;
+    puzzleHintSquares = fromSq ? [fromSq] : [];
+    puzzleHintText = hint.text || 'Start with this piece.';
+  } else if(puzzleHintStage === 1){
+    puzzleHintStage = 2;
+    puzzleHintSquares = [fromSq, toSq].filter(Boolean);
+    puzzleHintText = hint.text || `The destination is ${coordToAlgebraic(step.toX, step.toY)}.`;
+  } else {
+    showToast('No more hints for this move.', 1400);
+    return;
+  }
+
+  updatePuzzleUI();
+  draw();
+}
+
+function failPuzzle(message){
+  clearPuzzleAutoMoveTimeout();
+  selected = null;
+  legalMoves = [];
+  puzzleInputLocked = true;
+  puzzleAutoPlaying = false;
+  puzzleHintSquares = [];
+  puzzleHintText = message;
+  updatePuzzleUI();
+  draw();
+  showToast(message, 2600);
+}
+
+// ── Puzzle checkpoint helpers ──────────────────────────────────────────────────
+function savePuzzleCheckpoint(){
+  if(!puzzleModeActive || !activePuzzle) return;
+  puzzleCheckpoints.push({
+    board: board.map(r => r.slice()),
+    pieceData: JSON.parse(JSON.stringify(pieceData)),
+    turn: turn,
+    modifiers: modifiers.slice(),
+    moveCount: moveCount,
+    stepIndex: puzzleStepIndex,
+    playerMovesUsed: puzzlePlayerMovesUsed,
+    castleRights: Object.assign({}, castleRights),
+    lastMove: lastMove ? Object.assign({}, lastMove) : null,
+    whiteCaptured: whiteCaptured.slice(),
+    blackCaptured: blackCaptured.slice(),
+    kamikazeBombs: JSON.parse(JSON.stringify(kamikazeBombs)),
+  });
+}
+
+function rewindToCurrentCheckpoint(message){
+  if(!puzzleModeActive || !activePuzzle || puzzleCheckpoints.length === 0) return;
+  clearPuzzleAutoMoveTimeout();
+
+  // Pop back to the most recent checkpoint (last saved = current player segment start)
+  const cp = puzzleCheckpoints[puzzleCheckpoints.length - 1];
+
+  board = cp.board.map(r => r.slice());
+  pieceData = JSON.parse(JSON.stringify(cp.pieceData));
+  turn = cp.turn;
+  modifiers = cp.modifiers.slice();
+  moveCount = cp.moveCount;
+  puzzleStepIndex = cp.stepIndex;
+  puzzlePlayerMovesUsed = cp.playerMovesUsed;
+  castleRights = Object.assign({}, cp.castleRights);
+  lastMove = cp.lastMove ? Object.assign({}, cp.lastMove) : null;
+  whiteCaptured = cp.whiteCaptured.slice();
+  blackCaptured = cp.blackCaptured.slice();
+  kamikazeBombs = JSON.parse(JSON.stringify(cp.kamikazeBombs));
+
+  selected = null;
+  legalMoves = [];
+  puzzleInputLocked = false;
+  puzzleAutoPlaying = false;
+  resetPuzzleHints();
+  updatePuzzleUI();
+  draw();
+  showToast(`❌ ${message || 'Not quite — try again.'}`, 2000);
+}
+
+function winPuzzle(){
+  clearPuzzleAutoMoveTimeout();
+  selected = null;
+  legalMoves = [];
+  puzzleInputLocked = true;
+  puzzleAutoPlaying = false;
+  puzzleHintSquares = [];
+  puzzleHintText = 'Puzzle solved.';
+  updatePuzzleUI();
+  draw();
+  showToast(`✅ Puzzle solved: ${activePuzzle.title}`, 2600);
+}
+
+function validatePuzzleMoveAttempt(x1, y1, x2, y2, castleType){
+  if(!puzzleModeActive || !activePuzzle) return { ok: true };
+  const expected = getCurrentPuzzleStep();
+  if(!expected) return { ok: false, rewind: false, message: 'This puzzle is already complete.' };
+  if(expected.fromX !== x1 || expected.fromY !== y1 || expected.toX !== x2 || expected.toY !== y2){
+    return { ok: false, rewind: true, message: 'Not quite — try again.' };
+  }
+  if((expected.castle || null) !== (castleType || null)){
+    return { ok: false, rewind: true, message: 'Not quite — try again.' };
+  }
+  return { ok: true };
+}
+
+function handlePuzzleProgressAfterMove(piece){
+  if(!puzzleModeActive || !activePuzzle) return true;
+  const completedStep = getCurrentPuzzleStep();
+  if(!completedStep) return true;
+
+  if(completedStep.color === activePuzzle.playerColor){
+    puzzlePlayerMovesUsed++;
+  }
+
+  puzzleStepIndex++;
+  resetPuzzleHints();
+  updatePuzzleUI();
+
+  if(puzzleStepIndex >= activePuzzle.solution.length){
+    winPuzzle();
+    return true;
+  }
+
+  const remainingPlayerStep = getNextPuzzlePlayerStepIndex();
+  if(remainingPlayerStep !== -1 && puzzlePlayerMovesUsed >= activePuzzle.moveLimit){
+    failPuzzle('Move limit exceeded. Puzzle failed.');
+    return true;
+  }
+
+  const nextStep = getCurrentPuzzleStep();
+  if(!nextStep || nextStep.color !== turn){
+    failPuzzle('Puzzle sequence desynced.');
+    return true;
+  }
+
+  if(nextStep.color !== activePuzzle.playerColor){
+    // Save a checkpoint AFTER the opponent finishes so player can retry from here on next wrong move.
+    // We schedule the checkpoint save AFTER the auto-move plays (done inside queuePuzzleAutoMove).
+    queuePuzzleAutoMove();
+    return true;
+  }
+
+  updatePuzzleUI();
+  draw();
+  return true;
+}
+
+function queuePuzzleAutoMove(){
+  if(!puzzleModeActive || !activePuzzle || puzzleInputLocked){
+    return;
+  }
+  const step = getCurrentPuzzleStep();
+  if(!step) return;
+
+  clearPuzzleAutoMoveTimeout();
+  puzzleInputLocked = true;
+  puzzleAutoPlaying = true;
+  puzzleHintSquares = [];
+  const partNum = puzzlePlayerMovesUsed + 1;
+  const totalParts = (activePuzzle && activePuzzle.partCount) || 1;
+  puzzleHintText = totalParts > 1
+    ? `Opponent is responding… (Part ${partNum} of ${totalParts} complete)`
+    : 'Puzzle reply is playing…';
+  updatePuzzleUI();
+
+  puzzleAutoMoveTimeout = setTimeout(() => {
+    puzzleAutoMoveTimeout = null;
+    if(!puzzleModeActive || !activePuzzle) return;
+
+    const movingPiece = board[step.fromY]?.[step.fromX];
+    if(!movingPiece){
+      failPuzzle('Puzzle reply could not be played.');
+      return;
+    }
+
+    lastMove = { fromX: step.fromX, fromY: step.fromY, toX: step.toX, toY: step.toY };
+
+    let fromSq = document.querySelector(`[data-x="${step.fromX}"][data-y="${step.fromY}"]`);
+    let srcImg = fromSq ? fromSq.querySelector('img') : null;
+    if(srcImg) srcImg.style.visibility = 'hidden';
+
+    animating = true;
+    animatePieceMove(step.fromX, step.fromY, step.toX, step.toY, movingPiece, () => {
+      animating = false;
+      puzzleAutoPlaying = false;
+      puzzleInputLocked = false;
+      move(step.fromX, step.fromY, step.toX, step.toY, step.castle || null);
+      // After opponent move resolves, save checkpoint so player can retry from this position
+      setTimeout(() => { if(puzzleModeActive) savePuzzleCheckpoint(); }, 100);
+    });
+  }, 1000);
 }
 
 function pieceToNotation(piece) {
@@ -10298,6 +10973,16 @@ function clickSquare(x,y){
   // In online mode, only allow moves on your turn
   if(gameMode === 'online' && ((turn === 'white' && myColor !== 'white') || (turn === 'black' && myColor !== 'black'))){
     return;
+  }
+
+  if(puzzleModeActive){
+    if(puzzleInputLocked || puzzleAutoPlaying){
+      return;
+    }
+    if(!activePuzzle || turn !== activePuzzle.playerColor){
+      showToast('Wait for the puzzle response.', 1200);
+      return;
+    }
   }
 
   let piece = board[y][x];
@@ -11049,6 +11734,21 @@ function playExplosionSound() {
 function move(x1,y1,x2,y2,castleType){
   let piece=board[y1][x1];
   let captured=board[y2][x2];
+
+  if(puzzleModeActive){
+    const puzzleValidation = validatePuzzleMoveAttempt(x1, y1, x2, y2, castleType);
+    if(!puzzleValidation.ok){
+      selected = null;
+      legalMoves = [];
+      lastMove = null;
+      if(puzzleValidation.rewind){
+        rewindToCurrentCheckpoint(puzzleValidation.message);
+      } else {
+        failPuzzle(puzzleValidation.message);
+      }
+      return;
+    }
+  }
   
   // Play sound effect
   if(captured && captured !== 'D' && captured !== 'G' && captured !== 'g') {
@@ -11088,7 +11788,7 @@ function move(x1,y1,x2,y2,castleType){
   let castleMove = castleType ? { castle: castleType } : null;
   
   // Reinforced Pawn: 50% chance to survive first capture
-  if(captured && captured.toLowerCase()==='p' && modifiers.includes('Reinforced Pawn')){
+  if(!puzzleModeActive && captured && captured.toLowerCase()==='p' && modifiers.includes('Reinforced Pawn')){
     let data = getPieceData(x2,y2);
     if(!data.shieldBurned && Math.random() < 0.5){
       // Board hasn't been updated yet at this point — piece is still at x1,y1 in data.
@@ -11105,7 +11805,7 @@ function move(x1,y1,x2,y2,castleType){
   
   // Mind Control Bishop: 25% chance to convert instead of capture
   let mindControlled = false;
-  if(captured && piece.toLowerCase()==='b' && modifiers.includes('Mind Control Bishop') && Math.random() < 0.25){
+  if(!puzzleModeActive && captured && piece.toLowerCase()==='b' && modifiers.includes('Mind Control Bishop') && Math.random() < 0.25){
     mindControlled = true;
     captured = isWhite(piece) ? captured.toUpperCase() : captured.toLowerCase();
     console.log('Mind control activated!');
@@ -11171,7 +11871,7 @@ function move(x1,y1,x2,y2,castleType){
   } else {
     // JESTER KNIGHT: Calculate decoy position BEFORE moving the knight!
     let jesterDecoyMove = null;
-    if(piece.toLowerCase()==='n' && modifiers.includes('Jester Knight') && !mindControlled){
+    if(!puzzleModeActive && piece.toLowerCase()==='n' && modifiers.includes('Jester Knight') && !mindControlled){
       console.log(`[Jester] Knight about to move ${x1},${y1} → ${x2},${y2}`);
       
       // Get legal moves from the CURRENT position (before moving)
@@ -11516,6 +12216,12 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   clearPhantomForTurn();
   console.log('After clearPhantomForTurn, pieceData:', pieceData);
 
+  if(puzzleModeActive){
+    draw();
+    handlePuzzleProgressAfterMove(piece);
+    return;
+  }
+
   // Start/restart timer
   if(gameMode === 'online'){
     startTimer();
@@ -11767,7 +12473,7 @@ function applyMagneticDrift(){
       }
       
       // 30% chance to drift
-      if(Math.random() < 0.3 && (dx !== 0 || dy !== 0)){
+      if(!puzzleModeActive && Math.random() < 0.3 && (dx !== 0 || dy !== 0)){
         let newX = x + dx;
         let newY = y + dy;
         
@@ -11794,6 +12500,7 @@ function applyMagneticDrift(){
 }
 
 function stormRookStrike(rx,ry){
+  if(puzzleModeActive) return;
   // Pick random non-king square in same row or column
   let targets = [];
   for(let x=0;x<8;x++) if(x!==rx) targets.push({x,y:ry});
@@ -11971,6 +12678,7 @@ function promotePawn(x, y, onComplete){
 }
 
 function spawnDuck(){
+  if(puzzleModeActive) return;
   // Spawn duck on any random empty square
   let emptySquares = [];
   for(let y=0; y<8; y++){
@@ -11990,6 +12698,7 @@ function spawnDuck(){
 }
 
 function respawnPhoenixPawn(pawnPiece){
+  if(puzzleModeActive) return;
   // Respawn pawn on random empty square
   let emptySquares = [];
   for(let y=0; y<8; y++){
@@ -12551,6 +13260,7 @@ function placeRoyalGuard(x, y){
 }
 
 function chaosDraft(){
+  if(puzzleModeActive) return;
   ensureGlobalOverlayHosts();
   console.log('=== CHAOS DRAFT TRIGGERED ===');
   console.log('gameMode:', gameMode);
@@ -12772,6 +13482,10 @@ function chaosDraft(){
 }
 
 function restart(){
+  if(puzzleModeActive && currentPuzzleIndex >= 0){
+    loadPuzzle(currentPuzzleIndex);
+    return;
+  }
   resetDraftUIState({ instant: true });
   pieceData={};
   initBoard();
@@ -12806,6 +13520,7 @@ function restart(){
 }
 
 function backToMenu(){
+  clearPuzzleState();
   resetDraftUIState({ instant: true });
   hidePostgameScreen();
   document.getElementById('game-container').classList.remove('active');
@@ -12879,6 +13594,7 @@ draw();
 
 // Menu functions
 function startLocal(){
+  clearPuzzleState();
   gameMode = 'local';
   myColor = null;
   let menu = document.getElementById('menu');
@@ -13128,6 +13844,7 @@ function setupConnection(){
 }
 
 function startOnlineGame(){
+  clearPuzzleState();
   const role = myColor === 'white' ? 'HOST' : 'GUEST';
   console.log(`[${role}] startOnlineGame() called`);
   console.log(`[${role}] menu hidden:`, document.getElementById('menu').classList.contains('hidden'));
@@ -15521,6 +16238,7 @@ function setupLocalGameCards() {
   const userName = (currentProfile && currentProfile.username) ? currentProfile.username : 'Player 2';
   const userRating = (currentProfile && currentProfile.rating) ? currentProfile.rating : null;
   const userInitial = userName[0].toUpperCase();
+  const opponentName = puzzleModeActive ? 'Puzzle' : 'Player 1';
 
   if (selfAvatar) { selfAvatar.textContent = userInitial; selfAvatar.className = 'gpc-avatar ' + bottomAvatarClass; }
   if (selfNameEl) selfNameEl.textContent = userName;
@@ -15528,9 +16246,9 @@ function setupLocalGameCards() {
   if (selfLbl) selfLbl.textContent = bottomColor + ' (You)';
 
   if (oppAvatar) { oppAvatar.textContent = topAvatar; oppAvatar.className = 'gpc-avatar ' + topAvatarClass; }
-  if (oppNameEl) oppNameEl.textContent = 'Player 1';
+  if (oppNameEl) oppNameEl.textContent = opponentName;
   if (oppRatingEl) oppRatingEl.textContent = '';
-  if (oppLbl) oppLbl.textContent = topColor;
+  if (oppLbl) oppLbl.textContent = puzzleModeActive ? topColor + ' (Puzzle)' : topColor;
 }
 
 // Update which player card is highlighted as active turn
@@ -15589,6 +16307,12 @@ function updateNewTimerDisplay() {
   // Timers are now inside the player cards in the left panel
   const selfTimerBox = document.getElementById('new-self-timer');
   const oppTimerBox = document.getElementById('new-opp-timer');
+
+  if (puzzleModeActive) {
+    if (selfTimerBox) selfTimerBox.style.display = 'none';
+    if (oppTimerBox) oppTimerBox.style.display = 'none';
+    return;
+  }
 
   if (typeof timeControl === 'undefined' || timeControl === 0) {
     if (selfTimerBox) selfTimerBox.style.display = 'none';
@@ -15687,14 +16411,18 @@ function updateGameInfoPanel() {
   const modeEl = document.getElementById('gir-mode');
   const tcEl = document.getElementById('gir-tc');
   if (modeEl) {
-    if (gameMode === 'online') {
+    if (puzzleModeActive) {
+      modeEl.textContent = 'Puzzle';
+    } else if (gameMode === 'online') {
       modeEl.textContent = typeof privateMatchRated !== 'undefined' && privateMatchRated ? 'Ranked' : 'Online';
     } else {
       modeEl.textContent = 'Local';
     }
   }
   if (tcEl) {
-    if (typeof timeControl !== 'undefined' && timeControl > 0) {
+    if (puzzleModeActive) {
+      tcEl.textContent = '—';
+    } else if (typeof timeControl !== 'undefined' && timeControl > 0) {
       const mins = Math.floor(timeControl / 60);
       const secs = timeControl % 60;
       let label = mins > 0 ? mins + 'm' : '';
@@ -15711,12 +16439,25 @@ function updateGameInfoPanel() {
 function updateGameActionButtons() {
   const mpControls = document.getElementById('new-mp-controls');
   const localControls = document.getElementById('new-local-controls');
-  if (gameMode === 'online') {
+  const puzzleControls = document.getElementById('new-puzzle-controls');
+  if (puzzleModeActive) {
+    if (mpControls) mpControls.style.display = 'none';
+    if (localControls) localControls.style.display = 'none';
+    if (puzzleControls) { puzzleControls.style.display = 'flex'; puzzleControls.style.flexDirection = 'row'; }
+    // Hide Retry while puzzle is actively in progress (moves made but not yet finished/failed)
+    const retryBtn = puzzleControls ? puzzleControls.querySelector('button[onclick="restart()"]') : null;
+    if(retryBtn){
+      const inProgress = puzzlePlayerMovesUsed > 0 && !puzzleInputLocked;
+      retryBtn.style.display = inProgress ? 'none' : '';
+    }
+  } else if (gameMode === 'online') {
     if (mpControls) { mpControls.style.display = 'flex'; mpControls.style.flexDirection = 'row'; }
     if (localControls) localControls.style.display = 'none';
+    if (puzzleControls) puzzleControls.style.display = 'none';
   } else {
     if (mpControls) mpControls.style.display = 'none';
     if (localControls) { localControls.style.display = 'flex'; localControls.style.flexDirection = 'row'; }
+    if (puzzleControls) puzzleControls.style.display = 'none';
   }
 }
 
@@ -15725,6 +16466,7 @@ function updateNewGameUI() {
   updateTurnCards();
   updateNewTimerDisplay();
   updateGameModsList();
+  updatePuzzleUI();
 }
 
 // Patch into the existing draw() / updateTimerDisplay() to keep new UI in sync
