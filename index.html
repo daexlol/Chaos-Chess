@@ -215,6 +215,26 @@ h1 {
   filter: drop-shadow(0 0 16px #06b6d4) drop-shadow(0 0 8px #22d3ee) !important;
 }
 
+/* Fog of War Bishop — completely hidden when not in enemy capture vision */
+.fog-bishop-hidden img {
+  opacity: 0 !important;
+  filter: none !important;
+  pointer-events: none;
+}
+.fog-bishop-hidden::after {
+  display: none !important;
+}
+
+/* Fog of War Bishop — revealed (in enemy vision): legendary amber glow */
+.fog-bishop-visible img {
+  filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #f59e0b) !important;
+  animation: fog-bishop-reveal-pulse 1.8s ease-in-out infinite;
+}
+@keyframes fog-bishop-reveal-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #f59e0b); }
+  50%       { filter: drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 30px #f59e0b); }
+}
+
 .tornado-square {
   background: rgba(100, 200, 255, 0.25) !important;
   box-shadow: inset 0 0 20px rgba(100, 200, 255, 0.5), 0 0 20px rgba(100, 200, 255, 0.3) !important;
@@ -10207,6 +10227,41 @@ function draw(){
             sq.appendChild(iconEl);
           }
         }
+
+        // ── Fog of War Bishop ───────────────────────────────────────────────
+        // Bishops owned by the Fog player are hidden from the enemy unless
+        // at least one enemy piece can capture the square they're on.
+        if(modifiers.includes('Fog of War Bishop') && pieceType === 'b'){
+          let bishopIsWhite = isWhite(piece);
+          let inEnemyVision = isBishopInEnemyCaptureVision(x, y, bishopIsWhite);
+
+          // Determine whether THIS render should show or hide the bishop.
+          // In online mode: always show your own bishops; only fog enemy bishops.
+          // In local mode: fog ALL bishops that aren't in enemy vision (both sides).
+          let shouldHide;
+          if(gameMode === 'online' && myColor){
+            let viewerIsWhite = (myColor === 'white');
+            if(viewerIsWhite === bishopIsWhite){
+              // This is our own bishop — always visible to us
+              shouldHide = false;
+            } else {
+              // This is the enemy's bishop — hide it unless we can see it
+              shouldHide = !inEnemyVision;
+            }
+          } else {
+            // Local mode — fog both sides' bishops when not in enemy vision
+            shouldHide = !inEnemyVision;
+          }
+
+          // Strip any glow classes already applied, then apply fog class
+          sq.classList.remove('glow-legendary','glow-mythic','glow-rare','glow-evolved');
+          if(shouldHide){
+            sq.classList.add('fog-bishop-hidden');
+          } else {
+            // Visible — apply the reveal glow (only when actively seen)
+            sq.classList.add('fog-bishop-visible');
+          }
+        }
       }
 
 
@@ -10909,6 +10964,181 @@ function movePieceData(x1,y1,x2,y2){
 }
 
 function clearPieceData(x,y){ delete pieceData[getPieceKey(x,y)]; }
+
+/**
+ * Fog of War Bishop — returns true if the square (bx, by) is reachable
+ * as a capture by ANY enemy piece (i.e. the bishop is "seen").
+ * Accounts for ALL movement-modifying modifiers.
+ */
+function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
+  const knightOffsets = [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
+
+  // Helper: slide ray from (sx,sy) in direction (dx,dy), can the ray reach (bx,by)?
+  // canPhase = true means the piece can jump over exactly one blocker.
+  function rayReaches(sx, sy, dx, dy, canPhase){
+    let nx = sx+dx, ny = sy+dy;
+    let hopped = false;
+    while(nx>=0 && nx<8 && ny>=0 && ny<8){
+      if(nx===bx && ny===by) return true;
+      if(board[ny][nx]){
+        if(canPhase && !hopped){ hopped = true; }
+        else { break; }
+      }
+      nx+=dx; ny+=dy;
+    }
+    return false;
+  }
+
+  for(let sy = 0; sy < 8; sy++){
+    for(let sx = 0; sx < 8; sx++){
+      let p = board[sy][sx];
+      if(!p) continue;
+      if(isWhite(p) === bishopIsWhite) continue; // only enemy pieces
+      let pt = p.toLowerCase();
+      let pIsWhite = isWhite(p);
+
+      // ── Pawns ────────────────────────────────────────────────────────────
+      if(pt === 'p'){
+        let dir = pIsWhite ? -1 : 1;
+        // Standard diagonal capture
+        if((sx-1===bx || sx+1===bx) && sy+dir===by) return true;
+        // Pawn Bayonet / Evolved: forward capture
+        if((modifiers.includes('Pawn Bayonet') || modifiers.includes('Pawn Bayonet (Evolved)'))
+           && sx===bx && sy+dir===by) return true;
+        // Sniper Pawn: 2-diagonal capture (jumps)
+        if(modifiers.includes('Sniper Pawn')
+           && (sx-2===bx || sx+2===bx) && sy+2*dir===by) return true;
+        continue;
+      }
+
+      // ── Knights ──────────────────────────────────────────────────────────
+      if(pt === 'n'){
+        let data = getPieceData(sx, sy);
+        if(data.phantom) continue; // phantom knights can't capture
+
+        // Copycat Knight: if active, it moves like its captured piece instead
+        let isCopycatBase    = data.copycatPiece && modifiers.includes('Copycat Knight');
+        let isCopycatEvolved = data.copycatPiece && modifiers.includes('Copycat Knight (Evolved)');
+        if(isCopycatBase || isCopycatEvolved){
+          let cp = data.copycatPiece;
+          if(cp === 'p'){
+            let dir = pIsWhite ? -1 : 1;
+            if((sx-1===bx || sx+1===bx) && sy+dir===by) return true;
+          } else if(cp === 'b'){
+            let dirs = [[1,1],[1,-1],[-1,1],[-1,-1]];
+            if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy,false))) return true;
+          } else if(cp === 'r'){
+            let dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy,false))) return true;
+          } else if(cp === 'q'){
+            let dirs = [[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+            if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy,false))) return true;
+          } else if(cp === 'k' || cp === 'n'){
+            // King-like or knight-like copycat
+            let deltas = cp==='n' ? knightOffsets : [[1,1],[1,0],[1,-1],[-1,1],[-1,0],[-1,-1],[0,1],[0,-1]];
+            if(deltas.some(([dx,dy]) => sx+dx===bx && sy+dy===by)) return true;
+          }
+          // Copycat replaces normal movement — skip standard knight checks
+          continue;
+        }
+
+        // Sidestep Knight: also attacks all adjacent squares
+        if(modifiers.includes('Sidestep Knight')){
+          let kingDeltas = [[1,1],[1,0],[1,-1],[-1,1],[-1,0],[-1,-1],[0,1],[0,-1]];
+          if(kingDeltas.some(([dx,dy]) => sx+dx===bx && sy+dy===by)) return true;
+        }
+
+        // Standard knight jump
+        if(knightOffsets.some(([dx,dy]) => sx+dx===bx && sy+dy===by)) return true;
+
+        // Pegasus / Evolved: second L-jump
+        let hasPegasus = modifiers.includes('Pegasus') || modifiers.includes('Pegasus (Evolved)');
+        let pegasusEvolved = modifiers.includes('Pegasus (Evolved)');
+        if(hasPegasus){
+          for(let [d1x,d1y] of knightOffsets){
+            let mx = sx+d1x, my = sy+d1y;
+            if(mx<0||mx>7||my<0||my>7) continue;
+            let mid = board[my][mx];
+            if(mid && isWhite(mid)===pIsWhite) continue; // can't pass through own piece
+            for(let [d2x,d2y] of knightOffsets){
+              let fx = mx+d2x, fy = my+d2y;
+              if(fx!==bx || fy!==by) continue;
+              if(fy<0||fy>7||fx<0||fx>7) continue;
+              // Base Pegasus: second jump must move closer to the fog-bishop's side king
+              if(!pegasusEvolved){
+                let enemyKing = findKing(bishopIsWhite); // king of bishop's side
+                if(enemyKing){
+                  let distBefore = Math.abs(mx-enemyKing.x)+Math.abs(my-enemyKing.y);
+                  let distAfter  = Math.abs(fx-enemyKing.x)+Math.abs(fy-enemyKing.y);
+                  if(distAfter >= distBefore) continue;
+                }
+              }
+              return true;
+            }
+          }
+        }
+        continue;
+      }
+
+      // ── Kings (and Royal Guard bodyguard 'g'/'G') ─────────────────────────
+      if(pt === 'k' || pt === 'g'){
+        if(Math.abs(sx-bx)<=1 && Math.abs(sy-by)<=1 && !(sx===bx&&sy===by)) return true;
+        // Sprinting King: 2-square reach (non-leaping), only for kings
+        if(pt === 'k' && modifiers.includes('Sprinting King')){
+          let adx = Math.abs(sx-bx), ady = Math.abs(sy-by);
+          if(adx<=2 && ady<=2 && (adx===2||ady===2)){
+            let midX = sx+Math.sign(bx-sx), midY = sy+Math.sign(by-sy);
+            if(!board[midY][midX]) return true; // unobstructed
+          }
+        }
+        continue;
+      }
+
+      // ── Sliding pieces ───────────────────────────────────────────────────
+      let canPhaseB = (pt==='b') && modifiers.includes('Phase Bishop');
+      let canPhaseR = (pt==='r') && modifiers.includes('Phase Rook');
+
+      // Rook / Queen: rank+file rays
+      if(pt==='r' || pt==='q'){
+        let dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+        if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy, canPhaseR))) return true;
+      }
+
+      // Bishop / Queen: diagonal rays
+      if(pt==='b' || pt==='q'){
+        let dirs = [[1,1],[1,-1],[-1,1],[-1,-1]];
+        if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy, canPhaseB))) return true;
+
+        // Pinballing Bishop: bounce off edges
+        if(pt==='b' && modifiers.includes('Pinballing Bishop')){
+          const pinDirs = [[1,1],[-1,1],[1,-1],[-1,-1]];
+          for(let [dx,dy] of pinDirs){
+            let nx=sx+dx, ny=sy+dy;
+            // Trace to edge (stop on any piece)
+            while(nx>=0&&nx<8&&ny>=0&&ny<8 && !board[ny][nx]){ nx+=dx; ny+=dy; }
+            // nx,ny is off-board or blocked — back up to last valid square
+            nx-=dx; ny-=dy;
+            if(nx<0||nx>7||ny<0||ny>7) continue;
+            // Determine bounce direction
+            let bdx=dx, bdy=dy;
+            let atHorizEdge = (nx===0||nx===7);
+            let atVertEdge  = (ny===0||ny===7);
+            if(atHorizEdge) bdx=-dx;
+            if(atVertEdge)  bdy=-dy;
+            // Trace bounced ray
+            let bnx=nx+bdx, bny=ny+bdy;
+            while(bnx>=0&&bnx<8&&bny>=0&&bny<8){
+              if(bnx===bx&&bny===by) return true;
+              if(board[bny][bnx]) break;
+              bnx+=bdx; bny+=bdy;
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
 
 function findKing(white){
   let target = white ? 'K' : 'k';
@@ -12602,6 +12832,7 @@ const MODIFIER_LORE = {
   'Nuclear Queen (Evolved)': 'The first explosion was expected. The second one wasn’t. The board remembers where she landed, and for three turns it holds that memory like a wound that hasn’t finished opening.',
   'Duck of Eternal Blocking': 'Something small watches over the board, refusing to move. It does not fight, it does not leave. It simply exists—and that is enough to matter.',
   'Phoenix Pawn':       'It falls like any other pawn… but there’s a moment where it doesn’t feel final. Like something quietly decides that this isn’t the end of its story.',
+  'Fog of War Bishop': 'It only exists when it is noticed. To some, it appears clearly; to others, it is nothing at all. The board doesn’t agree on where it is, only that it might be. That uncertainty becomes its presence.',
   'Decoy Rook':         'It doesn’t look different—but something about it feels slightly off. Like it’s waiting to be noticed, or hoping you look at the wrong one.',
   'Kamikaze Pawn':      'It moves with purpose that doesn’t feel uncertain. There’s a quiet acceptance in its action—like it’s already decided what it’s here to do, even if it won’t be around after.',
   'Viral Pawn':         'It doesn’t leave a gap. Where it stood, something remains—identical, patient, ready. It’s not a copy in any cheap sense. It just refuses to let forward motion mean abandonment.',
@@ -13186,6 +13417,7 @@ const allMods=[
   {name:'Jester Knight',rarity:'legendary',desc:'Knights spawn a fake decoy knight on a random legal move square',icon:'♞'},
   {name:'Storm Rook',rarity:'legendary',desc:'Rooks strike lightning on random square in their row/column when moving',icon:'♜'},
   {name:'Magnetic Poles',rarity:'legendary',desc:'a8/h1 attract pieces, a1/h8 repel pieces',icon:'🧲'},
+  {name:'Fog of War Bishop',rarity:'legendary',desc:'Bishops are completely invisible to the enemy unless in their capture vision',icon:'♗'},
   {name:'Nuclear Queen',rarity:'mythic',desc:'Queen captures destroy all adjacent pieces (except kings), including the Queen itself',icon:'♛',evolvesTo:'Nuclear Queen (Evolved)'},
   {name:'Duck of Eternal Blocking',rarity:'mythic',desc:'Summons an uncapturable duck on a random empty square',icon:'🦆'},
   {name:'Phoenix Pawn',rarity:'legendary',desc:'Captured pawns respawn on random square (once per pawn)',icon:'♟'},
