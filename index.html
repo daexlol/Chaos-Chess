@@ -1775,12 +1775,63 @@ button:active {
   transform: translateX(3px);
 }
 
+/* ── Online card — vivid purple idle glow + strong hover ── */
 .menu-play-card.online .menu-play-card-label { color: #7c5cff; }
+.menu-play-card.online {
+  border-color: rgba(124,92,255,0.45);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 22px rgba(124,92,255,0.22), 0 0 6px rgba(124,92,255,0.12);
+  animation: online-card-pulse 3s ease-in-out infinite;
+}
+.menu-play-card.online:hover {
+  background: #2f355f;
+  border-color: rgba(124,92,255,0.8);
+  transform: translateY(-8px);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.45), 0 0 0 1px rgba(124,92,255,0.5), 0 0 48px rgba(124,92,255,0.35), 0 0 80px rgba(124,92,255,0.15);
+  animation: none;
+}
+.menu-play-card.online:hover .menu-play-card-arrow {
+  background: rgba(124,92,255,0.4);
+  border-color: rgba(124,92,255,0.8);
+}
+
+@keyframes online-card-pulse {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 22px rgba(124,92,255,0.22), 0 0 6px rgba(124,92,255,0.12);
+    border-color: rgba(124,92,255,0.45);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 34px rgba(124,92,255,0.38), 0 0 12px rgba(124,92,255,0.2);
+    border-color: rgba(124,92,255,0.65);
+  }
+}
+
+/* ── Local card — vivid green idle glow + strong hover ── */
 .menu-play-card.local .menu-play-card-label { color: #10b981; }
-.menu-play-card.local { border-color: rgba(16,185,129,0.2); }
-.menu-play-card.local:hover { border-color: rgba(16,185,129,0.5); box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.3), 0 0 30px rgba(16,185,129,0.08); }
-.menu-play-card.local .menu-play-card-arrow { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: #34d399; }
-.menu-play-card.local:hover .menu-play-card-arrow { background: rgba(16,185,129,0.3); border-color: rgba(16,185,129,0.6); }
+.menu-play-card.local {
+  border-color: rgba(16,185,129,0.45);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 22px rgba(16,185,129,0.2), 0 0 6px rgba(16,185,129,0.1);
+  animation: local-card-pulse 3s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+.menu-play-card.local:hover {
+  border-color: rgba(16,185,129,0.8);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.45), 0 0 0 1px rgba(16,185,129,0.5), 0 0 48px rgba(16,185,129,0.3), 0 0 80px rgba(16,185,129,0.12);
+  transform: translateY(-8px);
+  animation: none;
+}
+.menu-play-card.local .menu-play-card-arrow { background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.45); color: #34d399; }
+.menu-play-card.local:hover .menu-play-card-arrow { background: rgba(16,185,129,0.4); border-color: rgba(16,185,129,0.8); }
+
+@keyframes local-card-pulse {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 22px rgba(16,185,129,0.2), 0 0 6px rgba(16,185,129,0.1);
+    border-color: rgba(16,185,129,0.45);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 34px rgba(16,185,129,0.34), 0 0 12px rgba(16,185,129,0.18);
+    border-color: rgba(16,185,129,0.65);
+  }
+}
 
 /* Sandbox card row */
 .menu-sandbox-row {
