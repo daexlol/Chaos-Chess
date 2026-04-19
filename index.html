@@ -9240,6 +9240,8 @@ let whiteCaptured = [];
 let blackCaptured = [];
 let doubleStrikeActive = false; // Track if we're in a double strike second move
 let doubleStrikeRookX = -1, doubleStrikeRookY = -1; // Position of the rook that must move
+let cowardRetreatActive = false; // Track if we're in a coward knight retreat step
+let cowardKnightX = -1, cowardKnightY = -1; // Position of the knight that must retreat
 
 // Arrow drawing variables
 let arrows = [];           // [{x1,y1,x2,y2}] in board coords
@@ -10163,6 +10165,7 @@ function draw(){
                   (modifiers.includes('Magnetic Queen') && pieceType==='q') ||
                   (modifiers.includes('Double Strike Rook') && pieceType==='r') ||
                   (modifiers.includes('Copycat Knight') && pieceType==='n') ||
+                  (modifiers.includes('Coward Knight') && pieceType==='n') ||
                   (modifiers.includes('Copycat Knight (Evolved)') && pieceType==='n') ||
                   (modifiers.includes('Boomerang Bishop') && pieceType==='b') ||
                   (modifiers.includes('Pinballing Bishop') && pieceType==='b') ||
@@ -10585,6 +10588,9 @@ function applyPuzzlePosition(puzzle){
   doubleStrikeActive = false;
   doubleStrikeRookX = -1;
   doubleStrikeRookY = -1;
+  cowardRetreatActive = false;
+  cowardKnightX = -1;
+  cowardKnightY = -1;
   positionHistory = [];
   castleRights = Object.assign(
     { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true },
@@ -11297,6 +11303,12 @@ function clickSquare(x,y){
         showToast('You must move the rook again! (Double Strike)', 1500);
         return;
       }
+
+      // During coward retreat, can ONLY select the knight that just moved
+      if(cowardRetreatActive && !(x === cowardKnightX && y === cowardKnightY)){
+        showToast('Coward Knight must retreat first! 🐴', 1500);
+        return;
+      }
       
       // Can't select decoy pieces
       let data = getPieceData(x,y);
@@ -11828,11 +11840,13 @@ function addSlides(x,y,piece,moves,dirs){
   let isBishop = piece.toLowerCase() === 'b';
   let isRook = piece.toLowerCase() === 'r';
   let canHop = (isBishop && modifiers.includes('Phase Bishop')) || (isRook && modifiers.includes('Phase Rook'));
-  
+  // Decoy Rook buff: the owning rook phases through its own decoy (not the enemy's)
+  let hasDecoyRook = isRook && modifiers.includes('Decoy Rook');
+
   dirs.forEach(([dx,dy])=>{
     let nx=x+dx, ny=y+dy;
     let hopped = false;
-    
+
     while(board[ny]?.[nx]!==undefined){
       if(board[ny][nx]===""){
         moves.push({x:nx,y:ny});
@@ -11844,11 +11858,19 @@ function addSlides(x,y,piece,moves,dirs){
           moves.push({x:nx,y:ny});
         }
         break;
-      } else if(canHop && !hopped){
-        // Phase Bishop / Phase Rook can jump over one piece
-        hopped = true;
       } else {
-        break;
+        // Friendly piece — normally blocks. Exception: own decoy for Decoy Rook owner.
+        let targetData = getPieceData(nx, ny);
+        if(hasDecoyRook && targetData.decoy && isWhite(board[ny][nx]) === isWhite(piece)){
+          // Phase through own decoy — it will be removed when rook lands on or past it
+          moves.push({x:nx,y:ny}); // can land on decoy square (clears it)
+          // keep sliding past the decoy too
+        } else if(canHop && !hopped){
+          // Phase Bishop / Phase Rook can jump over one piece
+          hopped = true;
+        } else {
+          break;
+        }
       }
       nx+=dx; ny+=dy;
     }
@@ -12169,6 +12191,16 @@ function move(x1,y1,x2,y2,castleType){
       }
     }
     
+    // Decoy Rook buff: if the rook lands on its own decoy, silently clear it first
+    if(piece.toLowerCase()==='r' && modifiers.includes('Decoy Rook')){
+      let landData = getPieceData(x2, y2);
+      if(landData.decoy && board[y2][x2] && isWhite(board[y2][x2]) === isWhite(piece)){
+        board[y2][x2] = '';
+        clearPieceData(x2, y2);
+        captured = null; // don't count it as a real capture
+      }
+    }
+
     // NOW move the piece
     board[y2][x2]=piece;
     board[y1][x1]='';
@@ -12319,6 +12351,51 @@ function move(x1,y1,x2,y2,castleType){
     doubleStrikeRookY = -1;
   }
   
+
+  // Coward Knight: after any move, knight takes one free step away from nearest enemy
+  if(piece.toLowerCase()==='n' && modifiers.includes('Coward Knight') && !cowardRetreatActive){
+    // Find the nearest enemy piece to determine "away" direction
+    let enemyPieceIsWhite = !isWhite(piece);
+    let nearest = null, nearestDist = Infinity;
+    for(let ey=0; ey<8; ey++){
+      for(let ex=0; ex<8; ex++){
+        let ep = board[ey][ex];
+        if(!ep || isWhite(ep) !== enemyPieceIsWhite) continue;
+        let dist = Math.abs(ex - x2) + Math.abs(ey - y2);
+        if(dist < nearestDist){ nearestDist = dist; nearest = {x:ex, y:ey}; }
+      }
+    }
+    // Build retreat moves: 1-square steps that increase distance from nearest enemy
+    let retreatMoves = [];
+    if(nearest){
+      [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx,dy])=>{
+        let rx = x2+dx, ry = y2+dy;
+        if(rx<0||rx>7||ry<0||ry>7) return;
+        if(board[ry][rx]) return; // must be empty
+        let distAfter = Math.abs(rx - nearest.x) + Math.abs(ry - nearest.y);
+        if(distAfter > nearestDist) retreatMoves.push({x:rx, y:ry});
+      });
+    }
+    if(retreatMoves.length > 0){
+      cowardRetreatActive = true;
+      cowardKnightX = x2;
+      cowardKnightY = y2;
+      setTimeout(()=>{
+        selected = {x:x2, y:y2};
+        legalMoves = retreatMoves;
+        draw();
+      }, 300);
+      return; // Don't switch turn yet
+    }
+  }
+
+  // Clear coward retreat flag after retreat move (or if no retreat was possible)
+  if(cowardRetreatActive){
+    cowardRetreatActive = false;
+    cowardKnightX = -1;
+    cowardKnightY = -1;
+  }
+
   // Viral Pawn: when a pawn captures, spawn a duplicate on origin square (once per pawn — duplicates can't duplicate)
   if(piece.toLowerCase()==='p' && captured && captured !== 'D' && captured !== 'G' && captured !== 'g' && modifiers.includes('Viral Pawn')){
     let pawnData = getPieceData(x2, y2);
@@ -12819,6 +12896,7 @@ const MODIFIER_LORE = {
   'Magnetic Queen':     'She doesn’t chase control. Pieces lean toward her naturally, as if they’ve already accepted the outcome. Her presence doesn’t force the board—it reorganizes it.',
   'Magnetic Queen (Evolved)': 'Something shifted. The pull reversed. Now pieces don’t lean toward her—they scatter. As if whatever she captured disturbed something fundamental, and the board is still trying to recover.',
   'Double Strike Rook': 'It doesn’t stop after contact. There’s a sense of follow-through, like once it commits, it refuses to let go. Momentum isn’t just power—it’s identity.',
+  'Coward Knight':      'It leaps with conviction, then immediately looks for the exit. Not cowardice exactly — more like a very strong instinct for self-preservation. It knows what it did. It just doesn’t want to be there when someone notices.',
   'Copycat Knight':     'It watches carefully before acting, almost curious. When it moves, there’s a hint of something borrowed in its motion. Not imitation—understanding, taken just far enough. It’s like it’s saying, “I see you, and I can be like you too.”',
   'Copycat Knight (Evolved)': 'It no longer borrows. It keeps. Every capture leaves a mark on how it moves—not a memory, but a replacement. It doesn’t remember what it was before. It only knows what it took last.',
   'Boomerang Bishop':   'It moves forward like any other bishop… but there’s a subtle pull, like something about its path doesn’t want to be left behind. Its return isn’t a surprise—it’s part of the movement.',
@@ -13409,6 +13487,7 @@ const allMods=[
   {name:'Pegasus',rarity:'mythic',desc:'Knights leap twice, second jump must move closer to enemy king',icon:'♞',evolvesTo:'Pegasus (Evolved)'},
   {name:'Magnetic Queen',rarity:'rare',desc:'Queen captures pull all enemy pieces within 5x5 area 1 square closer',icon:'♛',evolvesTo:'Magnetic Queen (Evolved)'},
   {name:'Double Strike Rook',rarity:'rare',desc:'Rook can move again immediately after capturing (no second capture)',icon:'♜'},
+  {name:'Coward Knight',rarity:'rare',desc:'After every move, the knight takes one free step away from the nearest enemy piece',icon:'♞'},
   {name:'Copycat Knight',rarity:'rare',desc:'After capturing, knight can move like captured piece for 1 turn',icon:'♞',evolvesTo:'Copycat Knight (Evolved)'},
   {name:'Boomerang Bishop',rarity:'rare',desc:'Bishop can return to its starting square at any point if free',icon:'♗'},
   {name:'Pinballing Bishop',rarity:'rare',desc:'Bishops can deflect off edges of the board',icon:'♗'},
