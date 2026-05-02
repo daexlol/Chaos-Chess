@@ -7547,6 +7547,134 @@ button:active {
   opacity: 0.4;
   pointer-events: none;
 }
+
+/* ================================================================
+   GUEST SIGN-IN PROMPT MODAL
+   ================================================================ */
+#guest-signin-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+}
+#guest-signin-modal.active { display: flex; }
+
+.guest-modal-panel {
+  background: linear-gradient(160deg, #1e1b3a 0%, #181630 100%);
+  border: 1px solid rgba(124,92,255,0.25);
+  border-radius: 22px;
+  width: 420px;
+  max-width: 92vw;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,92,255,0.1);
+  overflow: hidden;
+  animation: guestModalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes guestModalIn {
+  from { transform: scale(0.88) translateY(16px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.guest-modal-top {
+  padding: 32px 32px 0;
+  text-align: center;
+}
+.guest-modal-icon {
+  font-size: 52px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+.guest-modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f5f7ff;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+.guest-modal-sub {
+  font-size: 14px;
+  color: #aab0d6;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.guest-modal-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 32px 24px;
+}
+.guest-modal-perk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #d4d8f0;
+}
+.guest-modal-perk-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.guest-modal-perk-text {
+  font-weight: 500;
+}
+.guest-modal-perk-text span {
+  display: block;
+  font-size: 11px;
+  color: #aab0d6;
+  font-weight: 400;
+  margin-top: 1px;
+}
+
+.guest-modal-actions {
+  padding: 0 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guest-modal-btn-primary {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c5cff, #6d4fe0);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(124,92,255,0.4);
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+.guest-modal-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124,92,255,0.5);
+}
+.guest-modal-btn-dismiss {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.55);
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+.guest-modal-btn-dismiss:hover {
+  background: rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.75);
+}
 </style>
 </head>
 <body>
@@ -15409,6 +15537,11 @@ let gameOpponentDataListener = null;  // Persistent listener for opponent data d
 
 // Step 1: Show time control picker (replaces old showMatchmaking)
 function showMatchmaking(){
+  if(!requireLogin({
+    icon: '⚡',
+    title: 'Ranked Matchmaking',
+    sub: 'Sign in to compete in ranked games and climb the leaderboard.'
+  })) return;
   if(!currentProfile){
     showToast('Sign in to use matchmaking!', 2500);
     return;
@@ -15772,6 +15905,11 @@ handleRemoteData = function(data){
 //  FRIENDS SYSTEM
 // ============================================================
 async function showFriends(){
+  if(!requireLogin({
+    icon: '👥',
+    title: 'Friends',
+    sub: "Sign in to add friends, see who’s online, and send game invites."
+  })) return;
   if(!currentProfile){
     showToast('Sign in to use friends!', 2500);
     return;
@@ -16181,6 +16319,11 @@ function winTypeFromMessage(msg){
 // ============================================================
 
 function showProfile(){
+  if(!requireLogin({
+    icon: '📊',
+    title: 'Your Profile',
+    sub: 'Sign in to track your Chaos Rating, match history, and win rate.'
+  })) return;
   if(!currentProfile){
     showToast('Sign in to view your profile!', 2500);
     return;
@@ -18920,6 +19063,82 @@ draw = function() {
   }
 };
 
+
+// ── Guest sign-in prompt modal ──────────────────────────────────────────────
+function showGuestModal(opts){
+  opts = opts || {};
+  const iconEl  = document.getElementById('guest-modal-icon');
+  const titleEl = document.getElementById('guest-modal-title');
+  const subEl   = document.getElementById('guest-modal-sub');
+  if(iconEl  && opts.icon)  iconEl.textContent  = opts.icon;
+  if(titleEl && opts.title) titleEl.textContent  = opts.title;
+  if(subEl   && opts.sub)   subEl.textContent    = opts.sub;
+  document.getElementById('guest-signin-modal').classList.add('active');
+}
+function dismissGuestModal(){
+  document.getElementById('guest-signin-modal').classList.remove('active');
+}
+// Close on backdrop click
+document.addEventListener('click', function(e){
+  const modal = document.getElementById('guest-signin-modal');
+  if(e.target === modal) dismissGuestModal();
+});
+
+// Guard helper — returns true if action is allowed, shows modal and returns false if not
+function requireLogin(opts){
+  if(currentProfile && !isGuest) return true;
+  showGuestModal(opts);
+  return false;
+}
 </script>
+
+<!-- Guest Sign-In Prompt Modal -->
+<div id="guest-signin-modal">
+  <div class="guest-modal-panel">
+    <div class="guest-modal-top">
+      <div class="guest-modal-icon" id="guest-modal-icon">🔒</div>
+      <div class="guest-modal-title" id="guest-modal-title">Sign In to Continue</div>
+      <div class="guest-modal-sub" id="guest-modal-sub">Create a free account to unlock the full Chaos Chess experience.</div>
+    </div>
+    <div class="guest-modal-perks">
+      <div class="guest-modal-perk">
+        <span class="guest-modal-perk-icon">⚡</span>
+        <div class="guest-modal-perk-text">
+          Track your Chaos Rating
+          <span>Win, lose, and climb the ranks with an Elo-style rating system</span>
+        </div>
+      </div>
+      <div class="guest-modal-perk">
+        <span class="guest-modal-perk-icon">🌐</span>
+        <div class="guest-modal-perk-text">
+          Play online against others
+          <span>Ranked matchmaking, private games, and friend invites</span>
+        </div>
+      </div>
+      <div class="guest-modal-perk">
+        <span class="guest-modal-perk-icon">👥</span>
+        <div class="guest-modal-perk-text">
+          Add and challenge friends
+          <span>Build a friends list and send direct game invites</span>
+        </div>
+      </div>
+      <div class="guest-modal-perk">
+        <span class="guest-modal-perk-icon">📊</span>
+        <div class="guest-modal-perk-text">
+          Full match history & stats
+          <span>See every game you've played and your win rate over time</span>
+        </div>
+      </div>
+    </div>
+    <div class="guest-modal-actions">
+      <button class="guest-modal-btn-primary" onclick="dismissGuestModal(); showAuthPanel('register'); showAuthScreen();">
+        Create Free Account
+      </button>
+      <button class="guest-modal-btn-dismiss" onclick="dismissGuestModal()">
+        Maybe later
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
