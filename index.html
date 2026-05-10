@@ -2996,6 +2996,146 @@ button:active {
   font-weight: 700;
 }
 
+/* ── Modifier Replay Preview ── */
+.codex-replay-section {
+  margin-top: 22px;
+}
+.codex-replay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.codex-replay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  transition: all 0.4s ease;
+}
+.codex-replay-badge.good {
+  background: rgba(16,185,129,0.18);
+  border: 1px solid rgba(16,185,129,0.4);
+  color: #34d399;
+}
+.codex-replay-badge.bad {
+  background: rgba(239,68,68,0.18);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #f87171;
+}
+.codex-replay-caption {
+  font-size: 12px;
+  color: rgba(226,232,240,0.68);
+  line-height: 1.5;
+  min-height: 34px;
+  transition: opacity 0.3s ease;
+}
+.codex-replay-board-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08);
+  margin-top: 10px;
+  background: #1a1d2e;
+}
+.codex-replay-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+}
+.codex-replay-sq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.codex-replay-sq.light { background: #fdfbfb; }
+.codex-replay-sq.dark  { background: #4b6cb7; }
+.codex-replay-sq.last-from { background: rgba(255,210,50,0.45) !important; }
+.codex-replay-sq.last-to   { background: rgba(255,210,50,0.6) !important; }
+.codex-replay-sq img {
+  width: 82%;
+  height: 82%;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+  position: relative;
+  z-index: 2;
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+/* Piece glows inside replay board */
+.codex-replay-sq.glow-legendary img { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b); }
+.codex-replay-sq.glow-mythic img    { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #f59e0b); }
+.codex-replay-sq.glow-rare img      { filter: drop-shadow(0 0 7px #a78bfa) drop-shadow(0 0 14px #8b5cf6); }
+.codex-replay-sq.glow-evolved img   { filter: drop-shadow(0 0 7px #a78bfa) drop-shadow(0 0 14px #8b5cf6) drop-shadow(0 0 20px #06b6d4); }
+.codex-replay-sq.phantom img        { opacity: 0.5; filter: drop-shadow(0 0 12px #06b6d4); }
+.codex-replay-sq.decoy img          { opacity: 0.55; filter: drop-shadow(0 0 6px rgba(100,116,139,0.6)); }
+/* Special square overlays in replay */
+.codex-replay-sq .replay-bomb-sq    { position: absolute; inset: 0; background: rgba(239,68,68,0.35); z-index: 1; }
+.codex-replay-sq .replay-nuclear-sq { position: absolute; inset: 0; background: rgba(251,191,36,0.32); z-index: 1; }
+.codex-replay-sq .replay-tornado-sq { position: absolute; inset: 0; background: rgba(100,200,255,0.3); z-index: 1; }
+.codex-replay-sq .replay-pit-sq     { position: absolute; inset: 0; background: rgba(30,10,50,0.7); z-index: 1; font-size: 60%; display: flex; align-items: center; justify-content: center; }
+.codex-replay-sq .replay-magnetic-attract { position: absolute; inset: 0; background: rgba(239,68,68,0.2); z-index: 1; }
+.codex-replay-sq .replay-magnetic-repel   { position: absolute; inset: 0; background: rgba(59,130,246,0.2); z-index: 1; }
+.codex-replay-sq .replay-overlay-num {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 1.8vmin;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 6px #000, 1px 1px 0 rgba(0,0,0,0.9);
+  z-index: 3;
+  pointer-events: none;
+}
+.codex-replay-sq .replay-overlay-emoji {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 2.5vmin;
+  z-index: 3;
+  pointer-events: none;
+  line-height: 1;
+}
+.codex-replay-progress {
+  margin-top: 8px;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+.codex-replay-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: background 0.3s ease;
+}
+.codex-replay-dot.active {
+  background: #67e8f9;
+}
+.codex-replay-no-data {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(226,232,240,0.38);
+  text-align: center;
+  font-style: italic;
+}
+/* Fade transition on caption swap */
+@keyframes replay-caption-fade {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.codex-replay-caption.animating {
+  animation: replay-caption-fade 0.35s ease forwards;
+}
+
 /* Mobile adjustments for hub menu */
 @media (max-width: 700px) {
   .menu-topbar { padding: 0 16px; }
@@ -14410,6 +14550,7 @@ function openModifierCodex(category){
 }
 
 function closeModifierCodex(){
+  replayStop();
   const modal = document.getElementById('modifier-codex-modal');
   if(modal) modal.classList.remove('active');
 }
@@ -14476,6 +14617,7 @@ function renderCodexEmptyDetail(){
 }
 
 function renderCodexDetail(mod, unlocked){
+  replayStop(); // Stop any running replay when switching modifiers
   const detail = document.getElementById('codex-detail');
   if(!detail) return;
   if(!unlocked){
@@ -14511,10 +14653,1858 @@ function renderCodexDetail(mod, unlocked){
       </div>
     </div>
   `;
+  // Inject live replay preview below Archive Tags
+  injectReplayPanel(mod, detail);
 }
 
 
-// ── Royal Guard: place bodyguard on chosen square ──────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// MODIFIER REPLAY PREVIEW SYSTEM
+// Lives exclusively inside the Modifier Codex detail panel.
+// Uses real board/modifier logic cloned into a sandboxed state object.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Replay scenario definitions ───────────────────────────────────────────────
+// board: 8x8 array (row 0 = rank 8, row 7 = rank 1). '' = empty.
+// modifiers: active modifiers for this scenario.
+// turn: 'white' or 'black' to make the scripted move.
+// moves: [{fromX,fromY,toX,toY}] — the scripted move sequence.
+// type: 'good'|'bad'
+// caption: educational text shown during the sequence.
+
+const CODEX_REPLAYS = {
+
+  'Railgun Rook': [
+    {
+      type: 'good',
+      caption: '😀 Railgun Rook pierces through three enemy pawns in a line; all captured in one shot.',
+      modifiers: ['Railgun Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','p','','','','','',''],
+        ['','p','','','','','',''],
+        ['','p','','','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:2}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook captures normally, value is wasted.',
+      modifiers: ['Railgun Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','p','','','','','',''],
+        ['','p','','','','','',''],
+        ['','p','','','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:5}]
+    }
+  ],
+
+  'Phantom Knight': [
+    {
+      type: 'good',
+      caption: '😀 Phantom Knight captures the queen and becomes untargetable; recapture fails.',
+      modifiers: ['Phantom Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','b','','',''],
+        ['','','','q','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:3,toX:3,toY:1}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Knight captures a lowly pawn, phantom protection used on a throwaway trade.',
+      modifiers: ['Phantom Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','p','','','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:1,toY:3}]
+    }
+  ],
+
+  'Jester Knight': [
+    {
+      type: 'good',
+      caption: '😀 Knight moves into enemy territory — decoy spawns to confuse which knight is real.',
+      modifiers: ['Jester Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','q','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:4,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Knight retreats to a corner — decoy spawns far from the action, providing no confusion.',
+      modifiers: ['Jester Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:4,toX:0,toY:6}]
+    }
+  ],
+
+  'Nuclear Queen': [
+    {
+      type: 'good',
+      caption: '😀 Queen trades herself to detonate a cluster of EIGHT enemy pieces! A devastating exchange.',
+      modifiers: ['Nuclear Queen'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','r','b','r','','',''],
+        ['','p','b','q','b','p','',''],
+        ['','','n','','n','','',''],
+        ['','','','','','','',''],
+        ['K','','','Q','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Nuclear Queen captures a lone pawn. The explosion hits nothing and the Queen is wasted.',
+      modifiers: ['Nuclear Queen'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','p','','','',''],
+        ['','','','','','','',''],
+        ['K','','','Q','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:5}]
+    }
+  ],
+
+  'Magnetic Queen': [
+    {
+      type: 'good',
+      caption: '😀 Queen captures into a cluster of weaker pieces, cannot be captured.',
+      modifiers: ['Magnetic Queen'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','b','','','n','','',''],
+        ['','','','p','','','',''],
+        ['K','','','','','','',''],
+        ['','','','Q','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Queen captures, but pulls in dangerous pieces and can be captured.',
+      modifiers: ['Magnetic Queen'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','r','','','',''],
+        ['','r','','','n','','',''],
+        ['','','','p','','','',''],
+        ['','','','','','','',''],
+        ['K','','','Q','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:5}]
+    }
+  ],
+
+  'Tectonic Rook': [
+    {
+      type: 'good',
+      caption: '😀 Rook takes a pawn. The tectonic push shoves a bishop and knight off the rank into worse squares.',
+      modifiers: ['Tectonic Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','p','b','n','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook captures on a clear rank with no pieces nearby to push. Tectonic effect does nothing.',
+      modifiers: ['Tectonic Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','p','','','','',''],
+        ['','','','','','','',''],
+        ['K','','R','','','','','']
+      ],
+      moves: [{fromX:2,fromY:7,toX:2,toY:5}]
+    }
+  ],
+
+  'Pawn Bayonet': [
+    {
+      type: 'good',
+      caption: '😀 Bayonet pawn captures forward and takes the enemy Knight ahead.',
+      modifiers: ['Pawn Bayonet'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','n','','','','',''],
+        ['','','P','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:2,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn moves forward when a diagonal capture was available. A missed opportunity!',
+      modifiers: ['Pawn Bayonet'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','n','','','',''],
+        ['','','P','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:2,toY:4}]
+    }
+  ],
+
+  'Fast Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Fast Pawn leaps two squares from the middle of the board; the King cannot stop promotion.',
+      modifiers: ['Fast Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:3,toX:3,toY:1},{fromX:0,fromY:0,toX:1,toY:1}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Fast Pawn moves just one square, the King stops promotion!',
+      modifiers: ['Fast Pawn'],
+      turn: 'white',
+      board: [
+        ['','','','','','','',''],
+        ['','k','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:3,toX:3,toY:2},{fromX:1,fromY:1,toX:2,toY:0}]
+    }
+  ],
+
+  'Viral Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Viral Pawn captures. A clone spawns on the origin square, doubling pawn pressure.',
+      modifiers: ['Viral Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','p','','','','','',''],
+        ['P','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:0,fromY:4,toX:1,toY:3}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Viral Pawn advances without capturing; no clone spawns.',
+      modifiers: ['Viral Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:0,fromY:4,toX:0,toY:3}]
+    }
+  ],
+
+  'Phase Rook': [
+    {
+      type: 'good',
+      caption: '😀 Phase Rook phases through an own piece to reach an enemy rook on the back rank.',
+      modifiers: ['Phase Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','r',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','p',''],
+        ['','','','','','','',''],
+        ['','','','','','','R',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:6,fromY:6,toX:6,toY:0}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook moves to an open file when phasing through a blocker was available.',
+      modifiers: ['Phase Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','r',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','p',''],
+        ['','','','','','','',''],
+        ['','','','','','','R',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:6,fromY:6,toX:5,toY:6}]
+    }
+  ],
+
+  'Double Strike Rook': [
+    {
+      type: 'good',
+      caption: '😀 Double Strike Rook captures, then repositions to threaten a second enemy piece.',
+      modifiers: ['Double Strike Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','b',''],
+        ['','','','','','','',''],
+        ['','r','','','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:5},{fromX:1,fromY:5,toX:6,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook captures, then moves back to its starting square — second move gains nothing.',
+      modifiers: ['Double Strike Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','r','','','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:5},{fromX:1,fromY:5,toX:1,toY:7}]
+    }
+  ],
+
+  'Sprinting King': [
+    {
+      type: 'good',
+      caption: '😀 Sprinting King moves 2 squares to safety in one move; escapes an otherwise lost position.',
+      modifiers: ['Sprinting King'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['r','','','','','','','r'],
+        ['','','','K','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:5,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Sprinting King moves only 1 square while still in danger: you get checkmated!',
+      modifiers: ['Sprinting King'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['r','','','','','','','r'],
+        ['','','','K','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:4,toY:7},{fromX:7,fromY:6,toX:7,toY:7}]
+    }
+  ],
+
+  'Decoy Rook': [
+    {
+      type: 'good',
+      caption: '😀 Rook advances, decoy stays behind to lock down the only escape column.',
+      modifiers: ['Decoy Rook'],
+      turn: 'white',
+      board: [
+        ['','','','k','','','',''],
+        ['','','','','','','','R'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:7,fromY:1,toX:7,toY:0}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook retreats one square. The decoy lands right next to real rook, giving no useful misdirection.',
+      modifiers: ['Decoy Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','R','','','','','']
+      ],
+      moves: [{fromX:2,fromY:7,toX:2,toY:6}]
+    }
+  ],
+
+  'Coward Knight': [
+    {
+      type: 'good',
+      caption: '😀 Knight captures an enemy piece, then coward-steps away automatically. Hit and run!',
+      modifiers: ['Coward Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','r','','','','',''],
+        ['','','','','','','',''],
+        ['','','b','','','','',''],
+        ['','','','','','','',''],
+        ['','','','N','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:2,toY:4},{fromX:2,fromY:4,toX:3,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Knight moves to an exposed square where coward retreat lands it in a worse position.',
+      modifiers: ['Coward Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','r','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','N','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:2,toY:4},{fromX:2,fromY:4,toX:1,toY:5}]
+    }
+  ],
+
+  'Boomerang Bishop': [
+    {
+      type: 'good',
+      caption: '😀 Bishop strikes deep, and warps back to its starting square once attacked.',
+      modifiers: ['Boomerang Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','b','','','','',''],
+        ['','','','','','','r',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','B',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:6,fromY:4,toX:2,toY:0},{fromX:6,fromY:1,toX:6,toY:0},{fromX:2,fromY:0,toX:5,toY:7}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bishop strikes deep, but is recaptured before it can warp back.',
+      modifiers: ['Boomerang Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','b','','','','r',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','B',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:6,fromY:4,toX:2,toY:0},{fromX:6,fromY:0,toX:2,toY:0}]
+    }
+  ],
+
+  'Phase Bishop': [
+    {
+      type: 'good',
+      caption: '😀 Phase Bishop passes through own pawn to capture the enemy queen hiding behind it.',
+      modifiers: ['Phase Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','q',''],
+        ['','','','','','','',''],
+        ['','','','','P','','',''],
+        ['','','','','','','',''],
+        ['K','','B','','','','','']
+      ],
+      moves: [{fromX:2,fromY:7,toX:6,toY:3}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 There are more than one pieces blocking the diagonal, meaning the bishop cannot phase through.',
+      modifiers: ['Phase Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','q',''],
+        ['','','','','','N','',''],
+        ['','','','','P','','',''],
+        ['','','','','','','',''],
+        ['K','','B','','','','','']
+      ],
+      moves: []
+    }
+  ],
+
+  'Tornado de Caballos': [
+    {
+      type: 'good',
+      caption: '😀 Tornado placed near enemy cluster — will pull multiple pieces into a tighter knot.',
+      modifiers: ['Tornado de Caballos'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','r','b','q','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: []
+    },
+    {
+      type: 'bad',
+      caption: '😭 Tornado placed on an empty wing — no enemy pieces nearby to affect.',
+      modifiers: ['Tornado de Caballos'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['r','b','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: []
+    }
+  ],
+
+  'Hive Mind Pawns': [
+    {
+      type: 'good',
+      caption: '😀 One pawn push advances the entire pawn front simultaneously. An unstoppable wave!',
+      modifiers: ['Hive Mind Pawns'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn pushed alone into a guarded square. The hive effect is blocked, and the pawn is likely lost.',
+      modifiers: ['Hive Mind Pawns'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','n','','',''],
+        ['','','','','','','',''],
+        ['P','','','','P','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:4,fromY:5,toX:4,toY:4}]
+    }
+  ],
+
+  'Time Bomb': [
+    {
+      type: 'good',
+      caption: '😀 Enemy piece is sitting on the marked bomb square. It will be destroyed in a few turns.',
+      modifiers: ['Time Bomb'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','r','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [],
+      specialOverlay: { type: 'timebomb', x: 3, y: 3, turnsLeft: 3 }
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bomb square is empty! The countdown ticks down with no enemy in sight :(',
+      modifiers: ['Time Bomb'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [],
+      specialOverlay: { type: 'timebomb', x: 4, y: 4, turnsLeft: 3 }
+    }
+  ],
+
+  'Bottomless Pit': [
+    {
+      type: 'good',
+      caption: '😀 Enemy piece walks directly into the pit and is instantly destroyed.',
+      modifiers: ['Bottomless Pit'],
+      turn: 'black',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','p','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:5,toX:3,toY:6}],
+      specialOverlay: { type: 'pit', x: 3, y: 6 }
+    },
+    {
+      type: 'bad',
+      caption: '😭 Your own piece crosses the pit square and falls in. A self-inflicted disaster!',
+      modifiers: ['Bottomless Pit'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','R','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:5}],
+      specialOverlay: { type: 'pit', x: 3, y: 5 }
+    }
+  ],
+
+  'Mind Control Bishop': [
+    {
+      type: 'good',
+      caption: '😀 Bishop captures enemy queen — mind control activates, converting it to your side.',
+      modifiers: ['Mind Control Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','q','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','B','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bishop captures a lone pawn — mind control chance wasted on the cheapest piece.',
+      modifiers: ['Mind Control Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','p','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','B','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+    }
+  ],
+
+  'Magnetic Poles': [
+    {
+      type: 'good',
+      caption: '😀 Enemy pieces are on attract corners — they drift closer to your pieces each turn.',
+      modifiers: ['Magnetic Poles'],
+      turn: 'white',
+      board: [
+        ['r','','','','','','','b'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','k']
+      ],
+      moves: []
+    },
+    {
+      type: 'bad',
+      caption: '😭 Your own pieces sit on the repel corners — they get pushed away from where you need them.',
+      modifiers: ['Magnetic Poles'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['B','','','','','','','K']
+      ],
+      moves: []
+    }
+  ],
+
+  'Royal Guard': [
+    {
+      type: 'good',
+      caption: '😀 King advances, bodyguard is placed to seal the escape route and protect the new position.',
+      modifiers: ['Royal Guard'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','K','','','']
+      ],
+      moves: [{fromX:4,fromY:7,toX:4,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 King walks into an open file — bodyguard placed poorly, king still exposed.',
+      modifiers: ['Royal Guard'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','r','','',''],
+        ['','','','','','','',''],
+        ['','','','','K','','','']
+      ],
+      moves: [{fromX:4,fromY:7,toX:3,toY:6}]
+    }
+  ],
+
+  'Duck of Eternal Blocking': [
+    {
+      type: 'good',
+      caption: '😀 Duck spawns on the only escape square, the enemy king is completely trapped. Checkmate!',
+      modifiers: ['Duck of Eternal Blocking'],
+      turn: 'white',
+      board: [
+        ['','k','','','','','',''],
+        ['','p','p','','','','',''],
+        ['p','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','R','','','']
+      ],
+      moves: [{fromX:4,fromY:7,toX:4,toY:0}],
+      specialOverlay: { type: 'duck', x: 0, y: 1 }
+    },
+    {
+      type: 'bad',
+      caption: '😭 Duck spawns in the middle of your own pawn structure and blocks your own pieces instead.',
+      modifiers: ['Duck of Eternal Blocking'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [],
+      specialOverlay: { type: 'duck', x: 3, y: 3 }
+    }
+  ],
+
+  'Fog of War Bishop': [
+    {
+      type: 'good',
+      caption: '😀 Fog Bishop lurks invisibly on the diagonal — enemy cannot see the threat until too late.',
+      modifiers: ['Fog of War Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','B','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:4,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Fog Bishop moves to a square inside enemy capture vision — immediately revealed and vulnerable.',
+      modifiers: ['Fog of War Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','n',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','B','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:7,toY:1}]
+    }
+  ],
+
+  'Sniper Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Sniper Pawn reaches out two diagonals to take a bishop that thought it was safe.',
+      modifiers: ['Sniper Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','b','','','',''],
+        ['','','','','','','',''],
+        ['','P','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:5,toX:3,toY:3}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn uses standard diagonal capture when sniper range was available to a higher value piece.',
+      modifiers: ['Sniper Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','q','','','',''],
+        ['','','p','','','','',''],
+        ['','P','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:5,toX:2,toY:4}]
+    }
+  ],
+
+  'Trench Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Trench Pawn retreats one square to repair the chain after being overextended.',
+      modifiers: ['Trench Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['','','P','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:3,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn retreats away from a promotion square when it was nearly there.',
+      modifiers: ['Trench Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','P','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:5,fromY:1,toX:5,toY:2}]
+    }
+  ],
+
+  'Bounty Hunter Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Pawn has 3 bounties! It can now advance 4 squares forward in a single move.',
+      modifiers: ['Bounty Hunter Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:3,toY:2}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bounty Hunter Pawn moves just 1 square and ignores all stacked range bonuses.',
+      modifiers: ['Bounty Hunter Pawn'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:3,toY:5}]
+    }
+  ],
+
+  'Storm Rook': [
+    {
+      type: 'good',
+      caption: '😀 Rook moves along a rank packed with enemy pieces. The lightning bolt strikes a random target.',
+      modifiers: ['Storm Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['r','b','','n','','q','r',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook moves to an empty rank. Storm fires, but no targets exist to hit.',
+      modifiers: ['Storm Rook'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','R','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:1,toY:4}]
+    }
+  ],
+
+  'Kamikaze Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Enemy captures our Kamikaze Pawn — bomb arms on the square. Enemy piece is doomed.',
+      modifiers: ['Kamikaze Pawn'],
+      turn: 'black',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','n','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn captured but no enemy piece stays on the armed square — bomb ticks harmlessly.',
+      modifiers: ['Kamikaze Pawn'],
+      turn: 'black',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','n','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+    }
+  ],
+
+  'Phoenix Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Pawn is captured. Phoenix triggers, respawning it on another square to maintain pressure.',
+      modifiers: ['Phoenix Pawn'],
+      turn: 'black',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','b','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn advances into a fork. It is captured for free, and Phoenix then respawns into a poor square.',
+      modifiers: ['Phoenix Pawn'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','n','','','','','',''],
+        ['','','','','','','',''],
+        ['','','P','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:2,toY:4}]
+    }
+  ],
+
+  'Reinforced Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Enemy captures our pawn. The reinforcement activates and the pawn survives the attack.',
+      modifiers: ['Reinforced Pawn'],
+      turn: 'black',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','n','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Reinforced Pawn pushed forward alone. Shield wasted when it gets captured next move.',
+      modifiers: ['Reinforced Pawn'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','b','n','','','','',''],
+        ['','','P','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:2,toY:4}]
+    }
+  ],
+
+  'Pinballing Bishop': [
+    {
+      type: 'good',
+      caption: '😀 Bishop bounces off the edge of the board and captures an otherwise safe piece!',
+      modifiers: ['Pinballing Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','r','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','B','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:5,toY:1}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bishop moves away from the edge; pinball bounce never triggered, standard diagonal only.',
+      modifiers: ['Pinballing Bishop'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','r','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','B','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:4,toY:6}]
+    }
+  ],
+
+  'Copycat Knight': [
+    {
+      type: 'good',
+      caption: '😀 Knight captures a rook — next turn it can glide along ranks like a rook would.',
+      modifiers: ['Copycat Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','r','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:6,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Knight captures a pawn — copycat gets pawn movement for 1 turn. Almost useless.',
+      modifiers: ['Copycat Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','p','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:6,toX:3,toY:4}]
+    }
+  ],
+
+  'Sidestep Knight': [
+    {
+      type: 'good',
+      caption: '😀 Sidestep Knight slides 1 square to capture a bishop adjacent to itself.',
+      modifiers: ['Sidestep Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','b','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:1,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Sidestep used to move 1 square when a full knight jump into a better position was available.',
+      modifiers: ['Sidestep Knight'],
+      turn: 'white',
+      board: [
+        ['k','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:5,toX:3,toY:5}]
+    }
+  ],
+
+  'Pegasus': [
+    {
+      type: 'good',
+      caption: '😀 Pegasus launches two hops toward enemy king, closing the gap instantly.',
+      modifiers: ['Pegasus'],
+      turn: 'white',
+      board: [
+        ['','k','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','N','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:3,toY:2}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Second Pegasus hop moves away from the enemy king, wasting insane range.',
+      modifiers: ['Pegasus'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','N','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:3,fromY:6,toX:1,toY:5}]
+    }
+  ],
+
+  'Cookie': [
+    {
+      type: 'good',
+      caption: '😀 The cookie does nothing. But it is delicious.',
+      modifiers: ['Cookie'],
+      turn: 'white',
+      board: [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+      ],
+      moves: []
+    },
+    {
+      type: 'bad',
+      caption: '😭 Still nothing. You drafted the cookie. Sit with your choices.',
+      modifiers: ['Cookie'],
+      turn: 'white',
+      board: [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+      ],
+      moves: []
+    }
+  ]
+
+};
+
+// Default fallback replays shown when no specific replay is defined
+const CODEX_REPLAY_DEFAULT = {
+  good: {
+    type: 'good',
+    caption: '😀 Use this modifier when the board shape lets its piece create an unusual threat.',
+    board: [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+    ],
+    modifiers: [],
+    turn: 'white',
+    moves: []
+  },
+  bad: {
+    type: 'bad',
+    caption: '😭 Avoid using this modifier reactively — plan when and how its effect fires.',
+    board: [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+    ],
+    modifiers: [],
+    turn: 'white',
+    moves: []
+  }
+};
+
+// ── Replay Engine State ───────────────────────────────────────────────────────
+// One active replay per codex open. All state is self-contained and never
+// touches the real game board, modifiers, turn, or any global game variables.
+
+let _replayActive = null; // { timers: [], modifierName }
+
+function replayStop() {
+  if(!_replayActive) return;
+  _replayActive.timers.forEach(t => clearTimeout(t));
+  _replayActive = null;
+}
+
+// ── Mini board executor ───────────────────────────────────────────────────────
+// Applies a single scripted move to a sandboxed board array using the REAL
+// modifier logic patterns (railgun pierce, viral clone, nuclear explosion, etc).
+// Returns the mutated board array and a result description object.
+
+function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY) {
+  const isW = p => p && p === p.toUpperCase();
+  const piece = rBoard[fromY][fromX];
+  if(!piece) return;
+
+  const captured = rBoard[toY][toX];
+
+  // ── Viral Pawn: leave clone on origin before moving ──
+  let viralClone = null;
+  if(piece.toLowerCase()==='p' && captured &&
+     (rModifiers.includes('Viral Pawn') || rModifiers.includes('Viral Pawn (Evolved)'))) {
+    const key = `${fromX},${fromY}`;
+    const data = rPieceData[key] || {};
+    if(!data.isViralClone) {
+      viralClone = { x: fromX, y: fromY, piece };
+    }
+  }
+
+  // ── Railgun Rook: pierce through consecutive enemies ──
+  if(piece.toLowerCase()==='r' && rModifiers.includes('Railgun Rook') && captured) {
+    // Determine direction
+    let dx = Math.sign(toX - fromX), dy = Math.sign(toY - fromY);
+    let cx = fromX + dx, cy = fromY + dy;
+    // Clear all enemies in path including destination; find landing
+    while(cx >= 0 && cx < 8 && cy >= 0 && cy < 8) {
+      const p = rBoard[cy][cx];
+      if(p && isW(p) !== isW(piece)) {
+        rBoard[cy][cx] = ''; // captured by pierce
+      } else if(p && isW(p) === isW(piece)) {
+        break; // friendly blocks
+      } else if(!p) {
+        // First empty square — land here
+        rBoard[cy][cx] = piece;
+        rBoard[fromY][fromX] = '';
+        return;
+      }
+      cx += dx; cy += dy;
+    }
+    // Landed at edge
+    rBoard[fromY][fromX] = '';
+    return;
+  }
+
+  // ── Nuclear Queen: capture + remove all 8 adjacents (except kings) ──
+  if(piece.toLowerCase()==='q' && captured && rModifiers.includes('Nuclear Queen')) {
+    rBoard[toY][toX] = ''; // queen destroyed
+    rBoard[fromY][fromX] = '';
+    for(let dy2 = -1; dy2 <= 1; dy2++) {
+      for(let dx2 = -1; dx2 <= 1; dx2++) {
+        if(dx2===0 && dy2===0) continue;
+        let nx = toX+dx2, ny = toY+dy2;
+        if(nx>=0&&nx<8&&ny>=0&&ny<8) {
+          let adj = rBoard[ny][nx];
+          if(adj && adj.toLowerCase()!=='k') rBoard[ny][nx]='';
+        }
+      }
+    }
+    return;
+  }
+
+  // ── Magnetic Queen: after capture, pull adjacent enemies 1 sq toward capture sq ──
+  const doMagneticPull = (piece.toLowerCase()==='q' && captured && rModifiers.includes('Magnetic Queen'));
+
+  // ── Tectonic Rook: after capture, push enemies on same row/col ──
+  const doTectonic = (piece.toLowerCase()==='r' && captured && rModifiers.includes('Tectonic Rook'));
+
+  // ── Pawn Bayonet (Evolved): forward capture removes connected chain ──
+  if(piece.toLowerCase()==='p' && rModifiers.includes('Pawn Bayonet (Evolved)') && captured) {
+    const dir = isW(piece) ? -1 : 1;
+    if(toX === fromX) { // forward capture via bayonet
+      let cy2 = toY;
+      while(cy2 >= 0 && cy2 < 8) {
+        const p = rBoard[cy2][toX];
+        if(!p) break;
+        if(p && isW(p) !== isW(piece)) rBoard[cy2][toX] = '';
+        cy2 += dir;
+      }
+      rBoard[fromY][fromX] = '';
+      return;
+    }
+  }
+
+  // ── Hive Mind: move all same-color pawns same direction ──
+  if(piece.toLowerCase()==='p' && rModifiers.includes('Hive Mind Pawns') && !captured) {
+    const dy2 = toY - fromY;
+    for(let r2=0; r2<8; r2++) {
+      for(let c=0; c<8; c++) {
+        const p2 = rBoard[r2][c];
+        if(p2 && p2.toLowerCase()==='p' && isW(p2)===isW(piece)) {
+          const ny2 = r2 + dy2;
+          if(ny2>=0 && ny2<8 && !rBoard[ny2][c]) {
+            rBoard[ny2][c] = p2;
+            rBoard[r2][c] = '';
+          }
+        }
+      }
+    }
+    return;
+  }
+
+  // ── Decoy Rook: leave decoy on previous square ──
+  if(piece.toLowerCase()==='r' && rModifiers.includes('Decoy Rook')) {
+    rBoard[toY][toX] = piece;
+    // Leave decoy
+    const decoyPiece = isW(piece) ? 'R' : 'r';
+    rBoard[fromY][fromX] = decoyPiece;
+    const key = `${fromX},${fromY}`;
+    rPieceData[key] = { decoy: true };
+    return;
+  }
+
+  // Standard move
+  rBoard[toY][toX] = piece;
+  rBoard[fromY][fromX] = '';
+
+  // Apply viral clone after move
+  if(viralClone) {
+    rBoard[viralClone.y][viralClone.x] = viralClone.piece;
+    const key = `${viralClone.x},${viralClone.y}`;
+    rPieceData[key] = { isViralClone: true };
+  }
+
+  // Phantom Knight: mark as phantom after capturing
+  if(piece.toLowerCase()==='n' && captured && rModifiers.includes('Phantom Knight')) {
+    const key = `${toX},${toY}`;
+    rPieceData[key] = { phantom: true };
+  }
+
+  // Jester Knight: place decoy on a legal square
+  if(piece.toLowerCase()==='n' && rModifiers.includes('Jester Knight') && !captured) {
+    // Find an empty adjacent-ish square for decoy
+    const knightMoves = [[-2,-1],[-2,1],[2,-1],[2,1],[-1,-2],[-1,2],[1,-2],[1,2]];
+    const candidates = knightMoves
+      .map(([dx,dy]) => ({ x: toX+dx, y: toY+dy }))
+      .filter(m => m.x>=0&&m.x<8&&m.y>=0&&m.y<8&&!rBoard[m.y][m.x]);
+    if(candidates.length > 0) {
+      const dc = candidates[Math.floor(Math.random() * candidates.length)];
+      rBoard[dc.y][dc.x] = isW(piece) ? 'N' : 'n';
+      const key2 = `${dc.x},${dc.y}`;
+      rPieceData[key2] = { jesterDecoy: true };
+    }
+  }
+
+  // Magnetic pull
+  if(doMagneticPull) {
+    for(let r2=0;r2<8;r2++) {
+      for(let c=0;c<8;c++) {
+        const p2 = rBoard[r2][c];
+        if(!p2 || isW(p2)===isW(piece) || p2.toLowerCase()==='k') continue;
+        if(Math.abs(c-toX)<=2 && Math.abs(r2-toY)<=2) {
+          const mx = Math.sign(toX-c), my = Math.sign(toY-r2);
+          const nx = c+mx, ny = r2+my;
+          if(nx>=0&&nx<8&&ny>=0&&ny<8&&!rBoard[ny][nx]) {
+            rBoard[ny][nx] = p2;
+            rBoard[r2][c] = '';
+          }
+        }
+      }
+    }
+  }
+
+  // Tectonic push
+  if(doTectonic) {
+    const sameAxis = toX===fromX;
+    for(let r2=0;r2<8;r2++) {
+      for(let c=0;c<8;c++) {
+        if(sameAxis ? c!==toX : r2!==toY) continue;
+        if(c===toX && r2===toY) continue;
+        const p2 = rBoard[r2][c];
+        if(!p2 || isW(p2)===isW(piece)) continue;
+        const px = sameAxis ? Math.sign(c-toX) : 0;
+        const py = sameAxis ? 0 : Math.sign(r2-toY);
+        const nx = c+px, ny = r2+py;
+        if(nx>=0&&nx<8&&ny>=0&&ny<8&&!rBoard[ny][nx]) {
+          rBoard[ny][nx] = p2;
+          rBoard[r2][c] = '';
+        }
+      }
+    }
+  }
+}
+
+// ── Mini board renderer ───────────────────────────────────────────────────────
+function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFromX, lastFromY, lastToX, lastToY, specialOverlay) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const boardEl = container.querySelector('.codex-replay-board');
+  if(!boardEl) return;
+  boardEl.innerHTML = '';
+
+  const isW = p => p && p === p.toUpperCase();
+  const modSet = new Set(rModifiers);
+
+  for(let y=0; y<8; y++) {
+    for(let x=0; x<8; x++) {
+      const sq = document.createElement('div');
+      sq.className = 'codex-replay-sq ' + ((x+y)%2===0 ? 'light' : 'dark');
+
+      if(lastFromX===x && lastFromY===y) sq.classList.add('last-from');
+      if(lastToX===x   && lastToY===y)   sq.classList.add('last-to');
+
+      // Special overlays
+      if(specialOverlay) {
+        if(specialOverlay.type==='timebomb' && specialOverlay.x===x && specialOverlay.y===y) {
+          const ov = document.createElement('div'); ov.className='replay-bomb-sq'; sq.appendChild(ov);
+          const em = document.createElement('div'); em.className='replay-overlay-emoji'; em.textContent='💣'; sq.appendChild(em);
+          const nm = document.createElement('div'); nm.className='replay-overlay-num'; nm.textContent=specialOverlay.turnsLeft||'?'; sq.appendChild(nm);
+        }
+        if(specialOverlay.type==='pit' && specialOverlay.x===x && specialOverlay.y===y) {
+          const ov = document.createElement('div'); ov.className='replay-pit-sq'; ov.textContent='🕳️'; sq.appendChild(ov);
+        }
+        if(specialOverlay.type==='duck' && specialOverlay.x===x && specialOverlay.y===y) {
+          // Render duck as a piece
+          const img = document.createElement('img');
+          img.src = pieceImages['D'];
+          sq.appendChild(img);
+          sq.classList.add('glow-mythic');
+        }
+      }
+
+      // Magnetic Poles corner highlights
+      if(modSet.has('Magnetic Poles')) {
+        if((x===0&&y===0)||(x===7&&y===7)) {
+          const ov = document.createElement('div'); ov.className='replay-magnetic-attract'; sq.appendChild(ov);
+        }
+        if((x===0&&y===7)||(x===7&&y===0)) {
+          const ov = document.createElement('div'); ov.className='replay-magnetic-repel'; sq.appendChild(ov);
+        }
+      }
+
+      const piece = rBoard[y][x];
+      if(piece && pieceImages[piece]) {
+        const img = document.createElement('img');
+        img.src = pieceImages[piece];
+        sq.appendChild(img);
+
+        const pd = rPieceData[`${x},${y}`] || {};
+        const pt = piece.toLowerCase();
+
+        if(pd.phantom) sq.classList.add('phantom');
+        else if(pd.decoy || pd.jesterDecoy) sq.classList.add('decoy');
+        else if(pd.isViralClone) sq.classList.add('decoy');
+        else {
+          // Apply glows based on modifiers
+          if((modSet.has('Nuclear Queen')||modSet.has('Nuclear Queen (Evolved)')) && pt==='q') sq.classList.add('glow-mythic');
+          else if((modSet.has('Hive Mind Pawns')) && pt==='p') sq.classList.add('glow-mythic');
+          else if((modSet.has('Pegasus')) && pt==='n') sq.classList.add('glow-mythic');
+          else if((modSet.has('Phantom Knight')||modSet.has('Jester Knight')||modSet.has('Storm Rook')||
+                   modSet.has('Magnetic Poles')||modSet.has('Fog of War Bishop')||modSet.has('Phoenix Pawn')||
+                   modSet.has('Decoy Rook')||modSet.has('Kamikaze Pawn')||modSet.has('Railgun Rook')||
+                   modSet.has('Time Bomb')||modSet.has('Royal Guard')||modSet.has('Tornado de Caballos')||
+                   modSet.has('Sprinting King')) &&
+                  (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='k'||pt==='p')) sq.classList.add('glow-legendary');
+          else if((modSet.has('Magnetic Queen')||modSet.has('Double Strike Rook')||modSet.has('Coward Knight')||
+                   modSet.has('Copycat Knight')||modSet.has('Boomerang Bishop')||modSet.has('Pinballing Bishop')||
+                   modSet.has('Sniper Pawn')||modSet.has('Mind Control Bishop')||modSet.has('Viral Pawn')||
+                   modSet.has('Tectonic Rook')) &&
+                  (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='p')) sq.classList.add('glow-rare');
+        }
+      }
+
+      boardEl.appendChild(sq);
+    }
+  }
+}
+
+// ── Main replay controller ────────────────────────────────────────────────────
+function replayStart(modifierName, containerWrapperId) {
+  replayStop();
+
+  const scenarios = CODEX_REPLAYS[modifierName];
+  const goodScenario = scenarios ? scenarios.find(s=>s.type==='good') : null;
+  const badScenario  = scenarios ? scenarios.find(s=>s.type==='bad')  : null;
+
+  const sequence = [];
+  if(goodScenario) sequence.push(goodScenario);
+  if(badScenario)  sequence.push(badScenario);
+  // If no defined replays, use defaults
+  if(sequence.length === 0) {
+    sequence.push(CODEX_REPLAY_DEFAULT.good);
+    sequence.push(CODEX_REPLAY_DEFAULT.bad);
+  }
+
+  _replayActive = { timers: [], modifierName };
+
+  let scenarioIndex = 0;
+  const timers = _replayActive.timers;
+
+  function scheduleTimeout(fn, delay) {
+    const t = setTimeout(fn, delay);
+    timers.push(t);
+    return t;
+  }
+
+  function runScenario(idx) {
+    if(!_replayActive || _replayActive.modifierName !== modifierName) return;
+
+    const scenario = sequence[idx % sequence.length];
+    const badgeEl = document.getElementById(`${containerWrapperId}-badge`);
+    const captionEl = document.getElementById(`${containerWrapperId}-caption`);
+    const dotsEls = document.querySelectorAll(`#${containerWrapperId}-dots .codex-replay-dot`);
+
+    if(badgeEl) {
+      badgeEl.className = 'codex-replay-badge ' + (scenario.type==='good' ? 'good' : 'bad');
+      badgeEl.textContent = scenario.type==='good' ? '😀 Good Usage' : '😭 Bad Usage';
+    }
+    if(captionEl) {
+      captionEl.classList.remove('animating');
+      void captionEl.offsetWidth;
+      captionEl.classList.add('animating');
+      captionEl.textContent = '';
+    }
+    dotsEls.forEach((d,i) => d.classList.toggle('active', i === (idx % sequence.length)));
+
+    // Clone board + pieceData
+    let rBoard = scenario.board.map(r => r.slice());
+    let rPieceData = {};
+    const rModifiers = (scenario.modifiers || []).slice();
+
+    // Apply pre-placed special entities (duck overlay etc) via specialOverlay field
+    const specialOverlay = scenario.specialOverlay || null;
+
+    // Initial render
+    replayRenderBoard(containerWrapperId, rBoard, rModifiers, rPieceData, -1,-1,-1,-1, specialOverlay);
+
+    // After brief pause, show caption and start moves
+    let t = 600;
+    scheduleTimeout(() => {
+      if(!_replayActive || _replayActive.modifierName !== modifierName) return;
+      if(captionEl) {
+        captionEl.classList.remove('animating');
+        void captionEl.offsetWidth;
+        captionEl.classList.add('animating');
+        captionEl.textContent = scenario.caption;
+      }
+    }, t);
+    t += 400;
+
+    const moves = (scenario.moves || []);
+    let moveIndex = 0;
+
+    function executeNextMove() {
+      if(!_replayActive || _replayActive.modifierName !== modifierName) return;
+      if(moveIndex >= moves.length) {
+        // Done — pause then transition to next scenario
+        scheduleTimeout(() => runScenario(idx+1), 2800);
+        return;
+      }
+      const mv = moves[moveIndex++];
+      replayApplyMove(rBoard, rModifiers, rPieceData, mv.fromX, mv.fromY, mv.toX, mv.toY);
+      replayRenderBoard(containerWrapperId, rBoard, rModifiers, rPieceData, mv.fromX, mv.fromY, mv.toX, mv.toY, specialOverlay);
+      scheduleTimeout(executeNextMove, 900);
+    }
+
+    if(moves.length === 0) {
+      // No moves — show static board then advance
+      scheduleTimeout(() => runScenario(idx+1), 3200);
+    } else {
+      scheduleTimeout(executeNextMove, t);
+    }
+  }
+
+  runScenario(0);
+}
+
+// ── Inject replay panel into codex detail after Archive Tags ──────────────────
+// Called from renderCodexDetail. Builds the container and starts the engine.
+
+function injectReplayPanel(mod, containerEl) {
+  const modName = mod.name;
+  const scenarios = CODEX_REPLAYS[modName];
+  const sequence = scenarios ? scenarios : [CODEX_REPLAY_DEFAULT.good, CODEX_REPLAY_DEFAULT.bad];
+  const wrapperId = 'codex-replay-wrap';
+
+  let dotsHtml = sequence.map((_,i) =>
+    `<div class="codex-replay-dot${i===0?' active':''}"></div>`
+  ).join('');
+
+  const section = document.createElement('div');
+  section.className = 'codex-replay-section';
+  section.innerHTML = `
+    <div class="codex-detail-label">Replay Preview</div>
+    <div class="codex-replay-header">
+      <span class="codex-replay-badge good" id="${wrapperId}-badge">😀 Good Usage</span>
+    </div>
+    <div class="codex-replay-caption animating" id="${wrapperId}-caption">Loading scenario…</div>
+    <div class="codex-replay-board-wrap" id="${wrapperId}">
+      <div class="codex-replay-board"></div>
+    </div>
+    <div class="codex-replay-progress" id="${wrapperId}-dots">
+      ${dotsHtml}
+    </div>
+  `;
+  containerEl.appendChild(section);
+
+  // Kick off replay engine on next tick so the DOM is ready
+  setTimeout(() => replayStart(modName, wrapperId), 50);
+}
+
 function placeRoyalGuard(x, y){
   // Place bodyguard — G = white bodyguard, g = black bodyguard
   let isWhiteKing = (turn === 'white'); // turn hasn't switched yet when this fires
