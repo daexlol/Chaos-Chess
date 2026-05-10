@@ -2784,6 +2784,218 @@ button:active {
 .htp-rarity-badge.mythic { background: rgba(251,191,36,0.3); color: #fde68a; border: 1px solid rgba(251,191,36,0.5); }
 .htp-rarity-badge.evolved { background: rgba(255,60,120,0.15); color: #ff80aa; border: 1px solid rgba(255,60,120,0.35); }
 
+/* Modifier Codex */
+.menu-codex-btn {
+  margin-top: 12px;
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid rgba(34,211,238,0.22);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(10,31,46,0.9), rgba(22,28,58,0.9));
+  color: #f5f7ff;
+  cursor: pointer;
+  box-shadow: 0 16px 42px rgba(0,0,0,0.32);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.menu-codex-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34,211,238,0.48);
+  box-shadow: 0 22px 56px rgba(0,0,0,0.42), 0 0 28px rgba(34,211,238,0.08);
+}
+.menu-codex-icon { font-size: 24px; line-height: 1; }
+.menu-codex-copy { flex: 1; min-width: 0; text-align: left; }
+.menu-codex-title { font-size: 15px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.menu-codex-sub { margin-top: 3px; color: rgba(226,232,240,0.62); font-size: 12px; }
+.menu-codex-arrow {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34,211,238,0.13);
+  border: 1px solid rgba(34,211,238,0.26);
+  color: #67e8f9;
+}
+
+#modifier-codex-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 3600;
+  background: rgba(2,6,23,0.78);
+  backdrop-filter: blur(12px);
+  align-items: center;
+  justify-content: center;
+}
+#modifier-codex-modal.active { display: flex; }
+.codex-panel {
+  width: min(1120px, 96vw);
+  height: min(840px, 88vh);
+  max-height: 88vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  background: linear-gradient(155deg, rgba(12,18,38,0.98), rgba(18,25,53,0.98));
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 36px 96px rgba(0,0,0,0.68);
+}
+.codex-main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.codex-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.codex-kicker {
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.codex-header h2 {
+  margin: 4px 0 0;
+  font-size: 24px;
+  color: #f8fafc;
+}
+.codex-progress {
+  margin-top: 6px;
+  color: rgba(226,232,240,0.62);
+  font-size: 13px;
+}
+.codex-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.72);
+  cursor: pointer;
+  font-size: 18px;
+}
+.codex-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.codex-tab {
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(15,23,42,0.74);
+  color: rgba(226,232,240,0.7);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.codex-tab.active {
+  color: #ecfeff;
+  background: rgba(8,145,178,0.22);
+  border-color: rgba(34,211,238,0.5);
+}
+.codex-grid {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  align-content: start;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.codex-card {
+  min-height: 156px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  border: 1px solid rgba(148,163,184,0.16);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(15,23,42,0.68);
+  color: #f8fafc;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, background 0.18s;
+}
+.codex-card:hover,
+.codex-card.selected {
+  transform: translateY(-2px);
+  border-color: rgba(34,211,238,0.45);
+  background: rgba(15,35,58,0.86);
+}
+.codex-card.locked {
+  color: rgba(148,163,184,0.7);
+  background: repeating-linear-gradient(135deg, rgba(15,23,42,0.92) 0 10px, rgba(2,6,23,0.92) 10px 20px);
+  filter: grayscale(0.85);
+}
+.codex-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.codex-card-icon { font-size: 30px; line-height: 1; }
+.codex-card-name { font-size: 15px; font-weight: 800; line-height: 1.2; }
+.codex-card-desc { font-size: 12px; line-height: 1.45; color: rgba(226,232,240,0.68); }
+.codex-pill {
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.codex-pill.common { background: rgba(148,163,184,0.16); color: #cbd5e1; }
+.codex-pill.rare { background: rgba(96,165,250,0.16); color: #93c5fd; }
+.codex-pill.legendary { background: rgba(251,191,36,0.17); color: #fde68a; }
+.codex-pill.mythic { background: rgba(244,63,94,0.17); color: #fda4af; }
+.codex-pill.evolved { background: rgba(217,70,239,0.16); color: #f0abfc; }
+.codex-detail {
+  min-height: 0;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.1), transparent 42%), rgba(2,6,23,0.38);
+  overflow-y: auto;
+}
+.codex-detail-empty {
+  color: rgba(226,232,240,0.62);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.codex-detail-icon { font-size: 42px; line-height: 1; margin-bottom: 12px; }
+.codex-detail h3 { margin: 0 0 8px; color: #f8fafc; font-size: 22px; }
+.codex-detail p { color: rgba(226,232,240,0.74); font-size: 13px; line-height: 1.6; }
+.codex-detail-section { margin-top: 18px; }
+.codex-detail-label {
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.codex-detail-chiprow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.codex-mini-chip {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: rgba(226,232,240,0.74);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* Mobile adjustments for hub menu */
 @media (max-width: 700px) {
   .menu-topbar { padding: 0 16px; }
@@ -2794,6 +3006,8 @@ button:active {
   .menu-friends-panel { width: 100%; }
   .menu-title-area h1 { font-size: 42px; }
   .menu-topbar-user { display: none; }
+  .codex-panel { grid-template-columns: 1fr; height: 92vh; max-height: 92vh; }
+  .codex-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== PRIVATE GAME HUB — REDESIGNED ===== */
@@ -7967,6 +8181,15 @@ button:active {
         </div>
       </button>
 
+      <button class="menu-codex-btn" onclick="openModifierCodex()">
+        <span class="menu-codex-icon">📚</span>
+        <div class="menu-codex-copy">
+          <div class="menu-codex-title">Modifier Codex</div>
+          <div class="menu-codex-sub">Discover modifiers, evolutions, examples and combo notes</div>
+        </div>
+        <div class="menu-codex-arrow">→</div>
+      </button>
+
     </div>
   </div>
 
@@ -8692,10 +8915,10 @@ button:active {
     </div>
     <div class="htp-body">
       <h3>The Basics</h3>
-      <p>Chaos Chess is standard chess with a twist: after every N moves (default 10), one of the players drafts a <strong>modifier</strong> — a rule-bending power-up that changes how pieces move, interact, or explode.</p>
+      <p>Chaos Chess is standard chess with a twist: every 10 moves, one of the players drafts a <strong>modifier</strong> — a rule-bending power-up that changes how pieces move, interact, or explode.</p>
 
       <h3>Modifiers & Drafting</h3>
-      <p>Every N moves (default 10), a player (alternating each N moves) is presented with 3 random modifiers to choose from. Pick wisely — your choice is permanent for the rest of the game.</p>
+      <p>Every 10 moves, a player is presented with 3 random modifiers to choose from. Drafts alternate between White and Black. Pick wisely — your choice is permanent for the rest of the game.</p>
       <div class="htp-rarity-row">
         <div class="htp-rarity-badge common">⬜ Common</div>
         <div class="htp-rarity-badge rare">💜 Rare</div>
@@ -8728,6 +8951,27 @@ button:active {
       <p>• Click on any modifier badge during a game to read its full description and a sneaky lore snapshot.<br>
       • High-rarity modifiers stack — the more powerful your combo, the more unpredictable the game.<br>
       • Right-click squares on the board to draw arrows and highlight squares for analysis.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODIFIER CODEX MODAL -->
+<div id="modifier-codex-modal">
+  <div class="codex-panel">
+    <div class="codex-main">
+      <div class="codex-header">
+        <div>
+          <div class="codex-kicker">System Archive</div>
+          <h2>Modifier Codex</h2>
+          <div class="codex-progress" id="codex-progress">0 / 0 discovered</div>
+        </div>
+        <button class="codex-close" onclick="closeModifierCodex()">×</button>
+      </div>
+      <div class="codex-tabs" id="codex-tabs"></div>
+      <div class="codex-grid" id="codex-grid"></div>
+    </div>
+    <div class="codex-detail" id="codex-detail">
+      <div class="codex-detail-empty">Select a discovered modifier to inspect examples, combo notes, and evolution details. Locked entries stay hidden until you draft or activate them.</div>
     </div>
   </div>
 </div>
@@ -9112,14 +9356,10 @@ button:active {
         <div class="sbx-panel-title">Modifiers</div>
         <div class="sbx-mod-list" id="sbx-mod-list"></div>
 
-        <!-- Move count + Draft frequency -->
+        <!-- Move count -->
         <div class="sbx-field-row" style="margin-top:12px;">
           <div class="sbx-field-label">Move Count</div>
           <input type="number" class="sbx-number-input" id="sbx-move-count" min="0" max="9999" value="0" onchange="sbxSetMoveCount(this.value)">
-        </div>
-        <div class="sbx-field-row">
-          <div class="sbx-field-label">Draft every N moves</div>
-          <input type="number" class="sbx-number-input" id="sbx-draft-freq" min="1" max="100" value="10" onchange="sbxSetDraftFreq(this.value)">
         </div>
       </div>
 
@@ -9322,22 +9562,6 @@ button:active {
               <input type="checkbox" id="s-sounds" onchange="applySetting('sounds',this.checked)">
               <span class="toggle-slider"></span>
             </label>
-          </div>
-        </div>
-        <div class="settings-section">
-          <div class="settings-section-title">Draft</div>
-          <div class="settings-row">
-            <div>
-              <div class="settings-row-label">Draft Frequency</div>
-              <div class="settings-row-sub">How often a chaos draft occurs</div>
-            </div>
-            <select class="settings-select" id="s-draft-freq" onchange="applySetting('draftFreq',this.value)">
-              <option value="5">Every 5 moves</option>
-              <option value="10" selected>Every 10 moves (default)</option>
-              <option value="15">Every 15 moves</option>
-              <option value="20">Every 20 moves</option>
-              <option value="0">Never</option>
-            </select>
           </div>
         </div>
       </div>
@@ -9658,6 +9882,8 @@ const PIECE_THEMES = [
   { id:'8_bit',    label:'8-Bit',    path:'8_bit' },
 ];
 
+const DRAFT_FREQUENCY = 10;
+
 const DEFAULT_SETTINGS = {
   boardTheme:    'chaos',
   pieceTheme:    'neo',
@@ -9673,7 +9899,7 @@ const DEFAULT_SETTINGS = {
   confirmResign: true,
   autoQueen:     false,
   sounds:        true,
-  draftFreq:     10,
+  draftFreq:     DRAFT_FREQUENCY,
   bannedMods:    [],
 };
 
@@ -9832,6 +10058,7 @@ function loadSettings(){
     let saved = localStorage.getItem('chaosChessSettings');
     if(saved) settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(saved));
   } catch(e){}
+  settings.draftFreq = DRAFT_FREQUENCY;
 }
 
 function saveSettings(){
@@ -9839,7 +10066,9 @@ function saveSettings(){
 }
 
 function applySetting(key, value){
+  if(key === 'draftFreq') value = DRAFT_FREQUENCY;
   settings[key] = value;
+  settings.draftFreq = DRAFT_FREQUENCY;
   saveSettings();
   applyAllSettings();
 }
@@ -10086,7 +10315,7 @@ function syncSettingsUI(){
   set('s-confirm-resign',settings.confirmResign);
   set('s-auto-queen',    settings.autoQueen);
   set('s-sounds',        settings.sounds);
-  setVal('s-draft-freq', settings.draftFreq);
+  settings.draftFreq = DRAFT_FREQUENCY;
   // Map legacy 'quick' value to 'fast', fall back to 'off'
   const animVal = settings.animSpeed === 'quick' ? 'fast' : (settings.animSpeed || 'off');
   setVal('s-anim-speed', animVal);
@@ -10812,6 +11041,7 @@ function applyPuzzlePosition(puzzle){
   pieceData = puzzle.pieceData ? JSON.parse(JSON.stringify(puzzle.pieceData)) : {};
   board = parsePuzzleBoard(puzzle.board);
   modifiers = (puzzle.modifiers || []).slice();
+  markActiveModifiersDiscovered();
   turn = puzzle.turn || 'white';
   moveCount = 0;
   selected = null;
@@ -12959,7 +13189,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     playCheckSound();
   }
 
-  if(settings.draftFreq > 0 && moveCount % settings.draftFreq === 0) chaosDraft();
+  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0) chaosDraft();
   
   // Send game state to opponent in online mode
   if(gameMode === 'online'){
@@ -13274,6 +13504,7 @@ const MODIFIER_LORE = {
 function showModifierInfo(modName){
   let modData = allMods.find(m => m.name === modName) || evolvedMods.find(m => m.name === modName);
   if(!modData) return;
+  markModifierDiscovered(modName);
 
   const lore = MODIFIER_LORE[modName] || null;
   const isEvo = !!modData.isEvolution;
@@ -14017,6 +14248,271 @@ const evolvedMods = [
 function findEvolvedMod(name){ return evolvedMods.find(m => m.name === name) || null; }
 function findModByName(name){ return allMods.find(m => m.name === name) || evolvedMods.find(m => m.name === name) || null; }
 
+// Modifier Codex discovery and browsing. Kept separate from gameplay rules.
+const CODEX_DISCOVERY_KEY = 'chaosChessModifierDiscoveries';
+const CODEX_CATEGORIES = [
+  { id: 'pawn', label: 'Pawns', icon: '♟' },
+  { id: 'knight', label: 'Knights', icon: '♞' },
+  { id: 'bishop', label: 'Bishops', icon: '♗' },
+  { id: 'rook', label: 'Rooks', icon: '♜' },
+  { id: 'queen', label: 'Queens', icon: '♛' },
+  { id: 'king', label: 'Kings', icon: '♚' },
+  { id: 'environmental', label: 'Environmental', icon: '✦' }
+];
+const CODEX_ENVIRONMENTAL_MODS = new Set([
+  'Magnetic Poles',
+  'Duck of Eternal Blocking',
+  'Tornado de Caballos',
+  'Cookie',
+  'Time Bomb',
+  'Bottomless Pit'
+]);
+const CODEX_EXAMPLES = {
+  'Pawn Bayonet': 'A pawn can turn a blocked file into a direct capture threat, especially when an enemy pawn sits immediately ahead.',
+  'Pawn Bayonet (Evolved)': 'A forward pawn capture can clear a connected stack on that same file until the first empty square breaks the chain.',
+  'Reinforced Pawn': 'Use shielded pawns as anchors in cramped positions where the opponent wants a clean capture.',
+  'Fast Pawn': 'Passed pawns become urgent because the two-square push is always available, even after leaving the starting rank.',
+  'Fast Pawn (Evolved)': 'A pawn can suddenly cross three squares to reach a promotion race or tactical square.',
+  'Sniper Pawn': 'A pawn can punish pieces that feel safe two diagonals away.',
+  'Viral Pawn': 'A capture can keep pressure on the original square while the capturing pawn advances.',
+  'Viral Pawn (Evolved)': 'Pawn trades can snowball into a board full of duplicate threats.',
+  'Hive Mind Pawns': 'A single pawn push can move an entire pawn front if the formation has legal space.',
+  'Trench Pawn': 'Backwards pawn movement lets you repair overextended pawn chains.',
+  'Bounty Hunter Pawn': 'A pawn that captures early can become a long-range promotion threat.',
+  'Pegasus': 'A knight can make a two-hop attack that bends toward the enemy king.',
+  'Pegasus (Evolved)': 'The second hop becomes a flexible repositioning tool rather than only a king-hunt tool.',
+  'Copycat Knight': 'Capture a bishop or rook to give a knight one unexpected turn of line-piece movement.',
+  'Copycat Knight (Evolved)': 'The knight can permanently change jobs until it captures something better.',
+  'Phantom Knight': 'A capturing knight can jump into danger and survive the immediate reply.',
+  'Jester Knight': 'A decoy can muddy tactics by forcing the opponent to verify which knight is real.',
+  'Coward Knight': 'A knight can poke and then drift away from danger automatically.',
+  'Phase Bishop': 'A bishop can use one occupied square as cover while still attacking beyond it.',
+  'Mind Control Bishop': 'A bishop capture can flip material instead of merely removing it.',
+  'Boomerang Bishop': 'A bishop can launch from its home square and still keep a return route in reserve.',
+  'Pinballing Bishop': 'Edge bounces let bishops attack from angles normal chess never allows.',
+  'Fog of War Bishop': 'Invisible bishops create hidden diagonal pressure until they enter capture vision.',
+  'Phase Rook': 'A rook can cross one blocker to keep file pressure alive.',
+  'Double Strike Rook': 'A capturing rook can reposition immediately if the second move is quiet.',
+  'Tectonic Rook': 'A rook capture can shove pieces off a defended file or rank.',
+  'Storm Rook': 'A rook move can threaten a random strike along its own line.',
+  'Railgun Rook': 'A rook can punch through a connected line of enemy pieces and land after the chain.',
+  'Decoy Rook': 'A moving rook leaves a false body behind to clutter the enemy calculation.',
+  'Magnetic Queen': 'A queen capture can pull nearby enemies toward the impact square.',
+  'Magnetic Queen (Evolved)': 'A queen capture can push nearby enemies away, breaking clusters instead of forming them.',
+  'Nuclear Queen': 'A queen can trade herself for an area wipe around the captured piece.',
+  'Nuclear Queen (Evolved)': 'The blast leaves delayed danger zones that punish pieces staying nearby.',
+  'Sprinting King': 'A king can escape or centralize by moving two squares when not in check.',
+  'Royal Guard': 'After the king moves, a bodyguard can seal a nearby escape or block a line.',
+  'Royal Guard (Evolved)': 'The bodyguard becomes a mobile escort as long as it remains near the king.',
+  'Magnetic Poles': 'Corner forces reshape the whole board over time, especially near a1, a8, h1, and h8.',
+  'Duck of Eternal Blocking': 'The duck creates a permanent obstacle that can break lines and escape routes.',
+  'Tornado de Caballos': 'A placed tornado can drag enemy pieces into an awkward cluster over three turns.',
+  'Time Bomb': 'The marked square becomes a countdown threat that both players must route around.',
+  'Bottomless Pit': 'A single forbidden square can decide whether a path is safe at all.',
+  'Cookie': 'Sometimes the strongest statement is refusing to help.'
+};
+const CODEX_COMBOS = {
+  pawn: 'Pairs well with board-control effects that create files, blockades, or promotion races.',
+  knight: 'Pairs well with capture triggers and king pressure because knights ignore most board clutter.',
+  bishop: 'Pairs well with open diagonals, hidden threats, and effects that move pieces onto long lines.',
+  rook: 'Pairs well with files, ranks, forced movement, and late-game positions with fewer blockers.',
+  queen: 'Pairs well with tactical positions where one capture can reshape a whole cluster.',
+  king: 'Pairs well with defensive modifier sets that reward surviving pressure and controlling escape squares.',
+  environmental: 'Pairs well with any modifier that manipulates movement, because terrain changes what counts as safe.',
+  'Pawn Bayonet': 'Especially sharp with Fast Pawn, Trench Pawn, and anything that forces enemies onto the same file.',
+  'Fast Pawn': 'Combines naturally with Viral Pawn, Bounty Hunter Pawn, and promotion-focused endgames.',
+  'Viral Pawn': 'Combines with Bayonet-style capture lanes and Hive Mind pawn waves.',
+  'Pegasus': 'Combines with Phantom Knight or Copycat Knight to make every capture threat harder to answer.',
+  'Phase Bishop': 'Combines with Fog of War Bishop and Pinballing Bishop for strange diagonal pressure.',
+  'Tectonic Rook': 'Combines with Storm Rook or Railgun Rook when the opponent stacks pieces on lines.',
+  'Magnetic Queen': 'Combines with Nuclear Queen by clustering pieces before an explosive capture.',
+  'Nuclear Queen': 'Combines with Magnetic Queen or Tornado effects that gather targets together.',
+  'Royal Guard': 'Combines with Sprinting King because the king can move aggressively and still leave protection behind.',
+  'Tornado de Caballos': 'Combines with queen and rook area effects that punish clustered pieces.'
+};
+let codexActiveCategory = 'pawn';
+let codexSelectedModifier = null;
+
+function codexEscape(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function loadDiscoveredModifiers(){
+  try {
+    let saved = JSON.parse(localStorage.getItem(CODEX_DISCOVERY_KEY) || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveDiscoveredModifiers(list){
+  try { localStorage.setItem(CODEX_DISCOVERY_KEY, JSON.stringify([...new Set(list)])); } catch(e) {}
+}
+
+function markModifierDiscovered(name){
+  if(!findModByName(name)) return;
+  let discovered = loadDiscoveredModifiers();
+  let changed = false;
+  const add = modName => {
+    if(modName && !discovered.includes(modName)){
+      discovered.push(modName);
+      changed = true;
+    }
+  };
+  add(name);
+  const mod = findModByName(name);
+  if(mod && mod.isEvolution) add(mod.baseModifier);
+  if(changed) saveDiscoveredModifiers(discovered);
+}
+
+function markActiveModifiersDiscovered(){
+  if(!Array.isArray(modifiers)) return;
+  modifiers.forEach(markModifierDiscovered);
+}
+
+function isModifierDiscovered(name){
+  return loadDiscoveredModifiers().includes(name);
+}
+
+function getCodexCategory(mod){
+  const base = mod.isEvolution ? findModByName(mod.baseModifier) : mod;
+  const name = (base && base.name) || mod.name;
+  const lower = name.toLowerCase();
+  if(CODEX_ENVIRONMENTAL_MODS.has(name)) return 'environmental';
+  if(lower.includes('pawn')) return 'pawn';
+  if(lower.includes('knight') || lower.includes('pegasus')) return 'knight';
+  if(lower.includes('bishop')) return 'bishop';
+  if(lower.includes('rook')) return 'rook';
+  if(lower.includes('queen')) return 'queen';
+  if(lower.includes('king') || lower.includes('royal guard')) return 'king';
+  return 'environmental';
+}
+
+function getCodexMods(){
+  return [...allMods, ...evolvedMods].map(mod => Object.assign({}, mod, {
+    codexCategory: getCodexCategory(mod)
+  }));
+}
+
+function getCodexCombo(mod){
+  return CODEX_COMBOS[mod.name] || CODEX_COMBOS[mod.baseModifier] || CODEX_COMBOS[mod.codexCategory] || CODEX_COMBOS.environmental;
+}
+
+function openModifierCodex(category){
+  markActiveModifiersDiscovered();
+  codexActiveCategory = category || codexActiveCategory || 'pawn';
+  const modal = document.getElementById('modifier-codex-modal');
+  if(modal) modal.classList.add('active');
+  renderModifierCodex();
+}
+
+function closeModifierCodex(){
+  const modal = document.getElementById('modifier-codex-modal');
+  if(modal) modal.classList.remove('active');
+}
+
+function renderModifierCodex(){
+  const tabs = document.getElementById('codex-tabs');
+  const grid = document.getElementById('codex-grid');
+  const progress = document.getElementById('codex-progress');
+  if(!tabs || !grid) return;
+  const mods = getCodexMods();
+  const discovered = loadDiscoveredModifiers();
+  if(progress) progress.textContent = `${discovered.length} / ${mods.length} discovered`;
+
+  tabs.innerHTML = '';
+  CODEX_CATEGORIES.forEach(cat => {
+    const catMods = mods.filter(m => m.codexCategory === cat.id);
+    const found = catMods.filter(m => discovered.includes(m.name)).length;
+    const btn = document.createElement('button');
+    btn.className = 'codex-tab' + (cat.id === codexActiveCategory ? ' active' : '');
+    btn.textContent = `${cat.icon} ${cat.label} ${found}/${catMods.length}`;
+    btn.onclick = () => {
+      codexActiveCategory = cat.id;
+      codexSelectedModifier = null;
+      renderModifierCodex();
+    };
+    tabs.appendChild(btn);
+  });
+
+  const pageMods = mods.filter(m => m.codexCategory === codexActiveCategory);
+  grid.innerHTML = '';
+  pageMods.forEach(mod => {
+    const unlocked = discovered.includes(mod.name);
+    const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
+    const card = document.createElement('button');
+    card.className = 'codex-card' + (unlocked ? '' : ' locked') + (codexSelectedModifier === mod.name ? ' selected' : '');
+    card.innerHTML = `
+      <div class="codex-card-top">
+        <span class="codex-card-icon">${unlocked ? codexEscape(mod.icon) : '?'}</span>
+        <span class="codex-pill ${codexEscape(rarity)}">${unlocked ? codexEscape(rarity) : 'locked'}</span>
+      </div>
+      <div class="codex-card-name">${unlocked ? codexEscape(mod.name) : 'Undiscovered Modifier'}</div>
+      <div class="codex-card-desc">${unlocked ? codexEscape(mod.desc) : 'Draft or activate this modifier to reveal its archive entry.'}</div>
+    `;
+    card.onclick = () => {
+      codexSelectedModifier = mod.name;
+      renderCodexDetail(mod, unlocked);
+      renderModifierCodex();
+    };
+    grid.appendChild(card);
+  });
+
+  if(codexSelectedModifier){
+    const selected = mods.find(m => m.name === codexSelectedModifier);
+    if(selected) renderCodexDetail(selected, discovered.includes(selected.name));
+  } else {
+    renderCodexEmptyDetail();
+  }
+}
+
+function renderCodexEmptyDetail(){
+  const detail = document.getElementById('codex-detail');
+  if(!detail) return;
+  detail.innerHTML = '<div class="codex-detail-empty">Select a discovered modifier to inspect examples, combo notes, and evolution details. Locked entries stay hidden until you draft or activate them.</div>';
+}
+
+function renderCodexDetail(mod, unlocked){
+  const detail = document.getElementById('codex-detail');
+  if(!detail) return;
+  if(!unlocked){
+    detail.innerHTML = `
+      <div class="codex-detail-icon">?</div>
+      <h3>Undiscovered Modifier</h3>
+      <p>This entry is still blacked out. Draft or activate the modifier to reveal its archive notes.</p>
+    `;
+    return;
+  }
+  const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
+  const base = mod.isEvolution ? findModByName(mod.baseModifier) : null;
+  const evolvesTo = !mod.isEvolution && mod.evolvesTo ? findModByName(mod.evolvesTo) : null;
+  detail.innerHTML = `
+    <div class="codex-detail-icon">${codexEscape(mod.icon)}</div>
+    <span class="codex-pill ${codexEscape(rarity)}">${codexEscape(rarity)}</span>
+    <h3>${codexEscape(mod.name)}</h3>
+    <p>${codexEscape(mod.desc)}</p>
+    <div class="codex-detail-section">
+      <div class="codex-detail-label">Example</div>
+      <p>${codexEscape(CODEX_EXAMPLES[mod.name] || 'Use this modifier when the board shape lets its piece type create an unusual threat.')}</p>
+    </div>
+    <div class="codex-detail-section">
+      <div class="codex-detail-label">Combo Notes</div>
+      <p>${codexEscape(getCodexCombo(mod))}</p>
+    </div>
+    <div class="codex-detail-section">
+      <div class="codex-detail-label">Archive Tags</div>
+      <div class="codex-detail-chiprow">
+        <span class="codex-mini-chip">${codexEscape(CODEX_CATEGORIES.find(c => c.id === mod.codexCategory)?.label || 'Environmental')}</span>
+        ${base ? `<span class="codex-mini-chip">Evolves from ${codexEscape(base.name)}</span>` : ''}
+        ${evolvesTo ? `<span class="codex-mini-chip">Can evolve into ${codexEscape(evolvesTo.name)}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
 
 // ── Royal Guard: place bodyguard on chosen square ──────────────────────────
 function placeRoyalGuard(x, y){
@@ -14065,8 +14561,7 @@ function chaosDraft(){
   // In online mode, alternate who gets to draft
   if(gameMode === 'online'){
     // draftNumber counts how many drafts have happened so far
-    let freq = settings.draftFreq > 0 ? settings.draftFreq : 10;
-    let draftNumber = moveCount / freq;
+    let draftNumber = moveCount / DRAFT_FREQUENCY;
     let isWhiteDraft = (draftNumber % 2 === 1); // Odd = white, even = black
     
     if((isWhiteDraft && myColor !== 'white') || (!isWhiteDraft && myColor !== 'black')){
@@ -14241,6 +14736,7 @@ function chaosDraft(){
     } else {
       modifiers.push(mod.name);
     }
+    markModifierDiscovered(mod.name);
 
     syncModifierDisplays();
 
@@ -14493,7 +14989,7 @@ function setupConnection(){
         timeControl: timeControl,
         increment: increment,
         bannedMods: settings.bannedMods,
-        draftFreq: settings.draftFreq,
+        draftFreq: DRAFT_FREQUENCY,
         rated: privateMatchRated
       };
       console.log('[HOST] Sending gameConfig:', config);
@@ -14543,7 +15039,7 @@ function setupConnection(){
       timeControl = data.timeControl;
       increment = data.increment || 0;
       if(data.bannedMods) settings.bannedMods = data.bannedMods;
-      if(data.draftFreq !== undefined) settings.draftFreq = parseInt(data.draftFreq);
+      settings.draftFreq = DRAFT_FREQUENCY;
       if(data.rated !== undefined) privateMatchRated = data.rated;
       else privateMatchRated = true;
 
@@ -14555,7 +15051,6 @@ function setupConnection(){
         : timeControl <= 300 ? `Rapid (${timeControl/60}min${incStr})`
         : timeControl <= 600 ? `Classical (${timeControl/60}min${incStr})`
         : `Deep Chaos (${timeControl/60}min${incStr})`;
-      const freqLabel = settings.draftFreq === 0 ? 'Never' : `Every ${settings.draftFreq} moves`;
       const bannedCount = settings.bannedMods.length;
       const bannedLabel = bannedCount === 0 ? 'All enabled'
         : bannedCount === allMods.length ? 'All disabled'
@@ -14566,7 +15061,7 @@ function setupConnection(){
       const infoHtml = `
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px;font-size:13px;opacity:0.85;">
           <div>⏱ <strong>Time control:</strong> ${timeLabel}</div>
-          <div>🎲 <strong>Draft frequency:</strong> ${freqLabel}</div>
+          <div>🎲 <strong>Draft frequency:</strong> Every ${DRAFT_FREQUENCY} moves</div>
           <div>🚫 <strong>Modifiers:</strong> ${bannedLabel}</div>
           <div>${ratedLabel}</div>
         </div>`;
@@ -14858,7 +15353,7 @@ function handleRemoteData(data){
   }
   
   // Check if we just crossed a draft threshold
-  if(moveCount % 10 === 0 && moveCount !== oldMoveCount){
+  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0 && moveCount !== oldMoveCount){
     chaosDraft();
   }
 }
@@ -17209,6 +17704,7 @@ function updateGameModsList() {
   const container = document.getElementById('game-mods-bar');
   const countEl = document.getElementById('gir-mod-count');
   if (!container) return;
+  markActiveModifiersDiscovered();
 
   if (!modifiers || modifiers.length === 0) {
     container.innerHTML = '<div class="game-mods-empty">No modifiers yet</div>';
@@ -18779,7 +19275,6 @@ let sandboxMode = false;           // true when sandbox is active
 let sandboxTabMode = 'setup';      // 'setup' | 'play'
 let sbxSelectedPiece = null;       // { piece: 'P'|'p'|... } for palette, or 'delete'
 let sbxBoardFlipped = false;       // visual flip flag (does NOT mutate board array)
-let sbxDraftFreq = 10;             // modifier draft frequency override
 
 // All piece codes for palette
 const SBX_PIECES_WHITE = ['P','R','N','B','Q','K'];
@@ -18820,10 +19315,8 @@ function startSandbox() {
   sbxUpdateTopbar();
 
   let mcEl = document.getElementById('sbx-move-count');
-  let dfEl = document.getElementById('sbx-draft-freq');
   if (mcEl) mcEl.value = moveCount;
-  if (dfEl) dfEl.value = sbxDraftFreq;
-  settings.draftFreq = sbxDraftFreq;
+  settings.draftFreq = DRAFT_FREQUENCY;
   sbxSyncCastlingCheckboxes();
   draw();
 }
@@ -19016,13 +19509,6 @@ function sbxSetMoveCount(val) {
   document.getElementById('sbx-move-count').value = moveCount;
 }
 
-function sbxSetDraftFreq(val) {
-  let n = parseInt(val) || 10;
-  sbxDraftFreq = Math.max(1, Math.min(100, n));
-  document.getElementById('sbx-draft-freq').value = sbxDraftFreq;
-  if (sandboxMode) settings.draftFreq = sbxDraftFreq;
-}
-
 function sbxBuildModList() {
   let container = document.getElementById('sbx-mod-list');
   if (!container) return;
@@ -19048,6 +19534,7 @@ function sbxBuildModList() {
 function sbxToggleModifier(name, on) {
   if (on) {
     if (!modifiers.includes(name)) modifiers.push(name);
+    markModifierDiscovered(name);
     if (name === 'Duck of Eternal Blocking') spawnDuck();
   } else {
     modifiers = modifiers.filter(m => m !== name);
@@ -19185,19 +19672,17 @@ function sandboxNewGame() {
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode = false; royalGuardKingX = -1; royalGuardKingY = -1;
   royalGuardPendingCallback = null; positionHistory = [];
-  sbxSelectedPiece = null; sbxBoardFlipped = false; sbxDraftFreq = 10;
+  sbxSelectedPiece = null; sbxBoardFlipped = false;
 
   document.getElementById('board').classList.remove('flipped');
-  settings.draftFreq = 10;
+  settings.draftFreq = DRAFT_FREQUENCY;
 
   sbxBuildPalette(); sbxBuildModList();
   sbxRefreshTurnButtons(); sbxRefreshTurnDisplay();
   sbxSyncCastlingCheckboxes(); sbxUpdateModsBar();
   sbxDeselectAll(); sbxSyncMoveHistory();
   let mcEl = document.getElementById('sbx-move-count');
-  let dfEl = document.getElementById('sbx-draft-freq');
   if (mcEl) mcEl.value = 0;
-  if (dfEl) dfEl.value = 10;
   draw();
 }
 
@@ -19220,8 +19705,7 @@ function sbxCreateSaveEntry(name, existingId) {
     modifiers: modifiers.slice(),
     turn,
     moveCount,
-    castleRights: Object.assign({}, castleRights),
-    draftFreq: sbxDraftFreq
+    castleRights: Object.assign({}, castleRights)
   };
 }
 
@@ -19277,15 +19761,12 @@ function sbxLoad(id) {
   turn = entry.turn || 'white';
   moveCount = entry.moveCount || 0;
   castleRights = Object.assign({ whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true }, entry.castleRights);
-  sbxDraftFreq = entry.draftFreq || 10;
   pieceData = {}; selected = null; legalMoves = []; moveHistory = [];
-  settings.draftFreq = sbxDraftFreq;
+  settings.draftFreq = DRAFT_FREQUENCY;
   sbxBuildModList(); sbxRefreshTurnButtons(); sbxRefreshTurnDisplay();
   sbxSyncCastlingCheckboxes(); syncModifierDisplays(); sbxSyncMoveHistory();
   let mcEl = document.getElementById('sbx-move-count');
-  let dfEl = document.getElementById('sbx-draft-freq');
   if (mcEl) mcEl.value = moveCount;
-  if (dfEl) dfEl.value = sbxDraftFreq;
   draw();
   showToast('\ud83d\udcc2 Loaded: ' + entry.name, 2000);
 }
