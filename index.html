@@ -122,6 +122,8 @@ h1 {
   pointer-events:none; 
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  position: relative;
+  z-index: 10;
 }
 
 .piece-animating {
@@ -149,12 +151,18 @@ h1 {
 
 /* Make sure highlight shows even on special squares */
 .bomb-warning.highlight,
+.bomb-square.highlight,
 .king-in-check.highlight,
 .magnetic-attract.highlight,
 .magnetic-repel.highlight,
 .tornado-square.highlight,
+.pit-square.highlight,
 .nuclear-zone.highlight {
   box-shadow: inset 0 0 0 4px #10b981 !important;
+}
+.bomb-square.right-click-highlight,
+.pit-square.right-click-highlight {
+  box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0.85) !important;
 }
 
 @keyframes pulse-green {
@@ -548,6 +556,23 @@ h1 {
 /* When viral badge present, push phoenix left of it */
 .has-viral-badge .phoenix-pawn-icon {
   right: 29px;
+}
+
+/* Bounty Hunter — 🎯 stacking badge (top-right) */
+.bounty-pawn-icon {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font-size: 20px;
+  line-height: 1.1;
+  z-index: 52;
+  pointer-events: none;
+  max-width: 90px;
+  text-align: right;
+  word-break: break-all;
+  letter-spacing: -2px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9));
+  animation: copycat-icon-pulse 2s ease-in-out infinite;
 }
 
 /* Reinforced Pawn — 🛡️ badge */
@@ -7675,6 +7700,49 @@ button:active {
   background: rgba(255,255,255,0.09);
   color: rgba(255,255,255,0.75);
 }
+
+/* ── Time Bomb ───────────────────────────────────────────────────────────── */
+.bomb-square {
+  background: rgba(239,68,68,0.18) !important;
+  box-shadow: inset 0 0 0 2px rgba(239,68,68,0.6) !important;
+}
+@keyframes bombPulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(239,68,68,0.6) !important; }
+  50%       { box-shadow: inset 0 0 0 3px rgba(239,68,68,1), 0 0 18px rgba(239,68,68,0.5) !important; }
+}
+.bomb-square { animation: bombPulse 1s ease-in-out infinite; }
+.bomb-square.bomb-danger { background: rgba(239,68,68,0.38) !important; }
+.bomb-emoji-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 65px; /* ← BOMB EMOJI SIZE — change this line to resize */
+  line-height: 1;
+  z-index: 5; /* below .square img (z-index: 10) */
+  pointer-events: none;
+  opacity: 0.88;
+}
+
+/* ── Bottomless Pit ──────────────────────────────────────────────────────── */
+/* .pit-square has no outline — glow comes from .pit-emoji via glow-pulse-mythic */
+.pit-square { /* no box-shadow — square looks normal */ }
+.pit-emoji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 72px;
+  line-height: 1;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.92;
+  filter:
+    drop-shadow(0 0 16px #fbbf24)
+    drop-shadow(0 0 28px #f59e0b)
+    drop-shadow(0 0 40px #fbbf24);
+  animation: glow-pulse-mythic 1.5s ease-in-out infinite;
+}
 </style>
 </head>
 <body>
@@ -9359,6 +9427,8 @@ let pieceData={}; // Track metadata: {x,y} -> {phantom:true, reinforced:true, et
 let kamikazeBombs = []; // Track pending explosions: [{x, y, turnsLeft}]
 let nuclearZones = [];  // Nuclear Queen (Evolved) delayed blasts: [{x, y, turnsLeft}]
 let tornadoes = []; // Track tornadoes: [{x, y, turnsLeft}]
+let timeBombs = [];   // Track time bombs: [{x, y, turnsLeft}]
+let pitSquare = null; // Bottomless Pit: {x, y} or null
 let tornadoPlacementMode = false; // When true, next empty square click places tornado
 let royalGuardPlacementMode = false; // When true, next adjacent empty square click places bodyguard
 let royalGuardKingX = -1, royalGuardKingY = -1; // King's new position awaiting guard placement
@@ -10180,6 +10250,30 @@ function draw(){
       }
 
       // Tornado
+      // Bottomless Pit overlay
+      if(pitSquare && pitSquare.x === x && pitSquare.y === y){
+        sq.classList.add('pit-square');
+        let pitEl = document.createElement('div');
+        pitEl.className = 'pit-emoji';
+        pitEl.textContent = '🕳️';
+        sq.appendChild(pitEl);
+      }
+
+      // Time Bomb overlay — number displayed exactly like Kamikaze bomb
+      let timeBombOnSq = timeBombs.find(b => b.x === x && b.y === y);
+      if(timeBombOnSq){
+        sq.classList.add('bomb-square');
+        if(timeBombOnSq.turnsLeft <= 2) sq.classList.add('bomb-danger');
+        let bombIcon = document.createElement('div');
+        bombIcon.className = 'bomb-emoji-icon';
+        bombIcon.innerText = '💣';
+        sq.insertBefore(bombIcon, sq.firstChild); // insert at bottom of stack so pieces render over it
+        let bombNum = document.createElement('div');
+        bombNum.className = 'bomb-countdown'; // reuses kamikaze's large centered style
+        bombNum.innerText = timeBombOnSq.turnsLeft;
+        sq.appendChild(bombNum);
+      }
+
       let tornado = tornadoes.find(t => t.x === x && t.y === y);
       if(tornado) {
         sq.classList.add('tornado-square');
@@ -10280,6 +10374,7 @@ function draw(){
           else if((modifiers.includes('Phantom Knight') && pieceType==='n') ||
 		              (modifiers.includes('Jester Knight') && pieceType==='n') ||
                   (modifiers.includes('Storm Rook') && pieceType==='r') ||
+                  (modifiers.includes('Railgun Rook') && pieceType==='r') ||
                   (modifiers.includes('Decoy Rook') && pieceType==='r') ||
                   (modifiers.includes('Phoenix Pawn') && pieceType==='p') ||
                   (modifiers.includes('Royal Guard') && pieceType==='k') ||
@@ -10298,8 +10393,16 @@ function draw(){
                   (modifiers.includes('Boomerang Bishop') && pieceType==='b') ||
                   (modifiers.includes('Pinballing Bishop') && pieceType==='b') ||
                   (modifiers.includes('Sprinting King') && pieceType==='k') ||
+                  (modifiers.includes('Bounty Hunter Pawn') && pieceType==='p') ||
                   (modifiers.includes('Tectonic Rook') && pieceType==='r')) {
             sq.classList.add('glow-rare');
+          }
+          // Common glows
+          else if((modifiers.includes('Fast Pawn') && pieceType==='p') ||
+                  (modifiers.includes('Trench Pawn') && pieceType==='p') ||
+                  (modifiers.includes('Pawn Bayonet') && pieceType==='p') ||
+                  (modifiers.includes('Reinforced Pawn') && pieceType==='p')) {
+            sq.classList.add('glow-common');
           }
         }
 
@@ -10335,6 +10438,18 @@ function draw(){
           phoenixBadge.className = 'phoenix-pawn-icon';
           phoenixBadge.textContent = '🐦‍🔥';
           sq.appendChild(phoenixBadge);
+        }
+
+        // Bounty Hunter Pawn: show stacking 🎯 badge for each kill that pawn has
+        if(settings.showBadges && modifiers.includes('Bounty Hunter Pawn') && pieceType === 'p'){
+          let kills = data.bountyKills || 0;
+          if(kills > 0){
+            sq.classList.add('has-bounty-badge');
+            let bountyBadge = document.createElement('div');
+            bountyBadge.className = 'bounty-pawn-icon';
+            bountyBadge.textContent = '🎯'.repeat(kills);
+            sq.appendChild(bountyBadge);
+          }
         }
 
         // Reinforced Pawn: show 🛡️ badge only on pawns whose shield hasn't been burned yet
@@ -11549,6 +11664,31 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
           }
         }
       }
+      // Bounty Hunter Pawn: extra forward squares per kill — each square must be clear, stops at blocker
+      // Runs independently of the double-step gate so kills stack on top of base range
+      if(modifiers.includes('Bounty Hunter Pawn') && !board[y+dir]?.[x]){
+        let kills = getPieceData(x,y).bountyKills || 0;
+        // Base range the pawn already has (1 normally, 2 from start row or Fast Pawn)
+        let startRow = isWhite(piece) ? 6 : 1;
+        let baseRange = 1;
+        if((y === startRow) || modifiers.includes('Fast Pawn') || modifiers.includes('Fast Pawn (Evolved)')) baseRange = 2;
+        if(modifiers.includes('Fast Pawn (Evolved)')) baseRange = 3;
+        // Add extra squares beyond base range
+        for(let step = baseRange + 1; step <= baseRange + kills; step++){
+          let yExtra = y + step * dir;
+          if(yExtra < 0 || yExtra > 7) break;
+          if(board[yExtra]?.[x]) break; // blocker — stop
+          moves.push({x, y: yExtra});
+        }
+      }
+      // Trench Pawn: can move 1 square backwards (no capture, can't enter promotion row)
+      if(modifiers.includes('Trench Pawn')){
+        let yBack = y - dir;
+        let backRow = isWhite(piece) ? 0 : 7; // promotion row in reverse direction
+        if(yBack >= 0 && yBack <= 7 && yBack !== backRow && !board[yBack]?.[x]){
+          moves.push({x, y: yBack});
+        }
+      }
       // Diagonal captures - filter out phantom knights, ducks
       [[x-1,y+dir],[x+1,y+dir]].forEach(([nx,ny])=>{
         let target = board[ny]?.[nx];
@@ -11719,7 +11859,40 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
         }
       }
       break;
-    case 'r': addSlides(x,y,piece,moves,[[1,0],[-1,0],[0,1],[0,-1]]); break;
+    case 'r':
+      addSlides(x,y,piece,moves,[[1,0],[-1,0],[0,1],[0,-1]]);
+      // Railgun Rook: pierce through consecutive enemy pieces, land on first empty square after chain
+      if(modifiers.includes('Railgun Rook')){
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+          let nx=x+dx, ny=y+dy;
+          // Skip empty squares (normal moves already cover them)
+          while(board[ny]?.[nx] === '') { nx+=dx; ny+=dy; }
+          // Now nx,ny is either out of bounds, a friendly, or the first enemy in this direction
+          if(board[ny]?.[nx] === undefined) return; // out of bounds, nothing to pierce
+          let firstTarget = board[ny][nx];
+          if(!firstTarget) return;
+          if(isWhite(firstTarget) === isWhite(piece)) return; // friendly block
+          if(firstTarget === 'D') return; // duck blocks
+          if(firstTarget.toLowerCase() === 'k') return; // kings immune
+          // Accumulate consecutive enemies
+          let chainX=nx, chainY=ny;
+          while(true){
+            let target = board[chainY]?.[chainX];
+            if(target === undefined) return; // board edge — no landing square
+            if(target === '') {
+              // Found the empty landing square — this is a valid railgun move
+              moves.push({x:chainX, y:chainY, railgun:true, railgunFrom:{x,y}, railgunDir:{dx,dy}});
+              return;
+            }
+            if(isWhite(target) === isWhite(piece)) return; // friendly — chain broken
+            if(target === 'D') return; // duck breaks chain
+            if(target.toLowerCase() === 'k') return; // king breaks chain
+            // Another enemy in the chain — continue
+            chainX+=dx; chainY+=dy;
+          }
+        });
+      }
+      break;
     case 'q': addSlides(x,y,piece,moves,[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]); break;
 
     case 'g': // Royal Guard (Evolved) bodyguard — moves like a king but must stay adjacent to own king
@@ -12454,6 +12627,31 @@ function move(x1,y1,x2,y2,castleType){
     setPieceData(x2,y2,{copycatPiece: captured.toLowerCase(), copycatEvolved: true});
   }
   
+  // Railgun Rook: capture all consecutive enemies the rook passed through
+  if(piece.toLowerCase()==='r' && modifiers.includes('Railgun Rook')){
+    // Detect if this was a railgun move: rook landed on an empty square past enemies
+    // Walk backwards from landing square (x2,y2) toward origin (x1,y1) along the same axis
+    let rdx = x2===x1 ? 0 : (x2>x1 ? 1 : -1);
+    let rdy = y2===y1 ? 0 : (y2>y1 ? 1 : -1);
+    if(rdx !== 0 || rdy !== 0){
+      // Walk from just before landing square back toward origin, capturing enemies
+      let sx = x2-rdx, sy = y2-rdy;
+      let railgunFired = false;
+      while(!(sx===x1 && sy===y1) && sx>=0 && sx<8 && sy>=0 && sy<8){
+        let target = board[sy][sx];
+        if(target && isWhite(target) !== isWhite(piece) && target !== 'D' && target.toLowerCase() !== 'k'){
+          board[sy][sx] = '';
+          clearPieceData(sx, sy);
+          if(isWhite(target)) blackCaptured.push(target); else whiteCaptured.push(target);
+          showExplosion(sx, sy);
+          incrementEffectsTriggered(1);
+          railgunFired = true;
+        }
+        sx-=rdx; sy-=rdy;
+      }
+    }
+  }
+
   // Storm Rook: lightning strike
   if(piece.toLowerCase()==='r' && modifiers.includes('Storm Rook') && !mindControlled){
     stormRookStrike(x2,y2);
@@ -12522,6 +12720,12 @@ function move(x1,y1,x2,y2,castleType){
     cowardRetreatActive = false;
     cowardKnightX = -1;
     cowardKnightY = -1;
+  }
+
+  // Bounty Hunter Pawn: increment kill counter on the capturing pawn
+  if(piece.toLowerCase() === 'p' && captured && captured !== '' && captured.toLowerCase() !== 'k' && captured !== 'D' && captured !== 'G' && captured !== 'g' && modifiers.includes('Bounty Hunter Pawn')){
+    let pData = getPieceData(x2, y2); // pawn is now at x2,y2 after the move
+    setPieceData(x2, y2, { bountyKills: (pData.bountyKills || 0) + 1 });
   }
 
   // Viral Pawn: when a pawn captures, spawn a duplicate on origin square (once per pawn — duplicates can't duplicate)
@@ -12645,6 +12849,12 @@ function move(x1,y1,x2,y2,castleType){
 function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   // Kamikaze Pawn: countdown and explode bombs (BEFORE turn switch)
   processKamikazeBombs();
+
+  // Time Bomb: countdown and explode (BEFORE turn switch)
+  if(modifiers.includes('Time Bomb')) processTimeBombs();
+
+  // Bottomless Pit: destroy anything on the pit square (AFTER the move has been applied)
+  if(pitSquare) processBottomlessPit();
 
   // Nuclear Queen (Evolved): countdown and explode nuclear zones (BEFORE turn switch)
   processNuclearZones();
@@ -13046,7 +13256,15 @@ const MODIFIER_LORE = {
   'Hive Mind Pawns':    'They don’t act alone. There’s a subtle sense of coordination between them, like they’re all responding to something shared. Individually simple—but together, unsettlingly unified.',
   'Sprinting King':     'It moves faster than expected… and that alone feels unusual. There’s a sense of urgency to it, like it’s trying to keep up with something unseen.',
   'Tornado de Caballos':'It feels like motion without structure. Pieces don’t just move—they’re carried. The board itself feels unstable when it appears, like order is briefly forgotten.',
-  'Cookie':             'It doesn’t move. It doesn’t react. It just… exists. And somehow, that feels deliberate.',
+  'Time Bomb':         'It was always counting down. Nobody noticed until it was too late. The board remembers the square. Everything else just waits.',
+  'Bottomless Pit':    'It does not attack. It does not threaten. It simply exists — a gap in the logic of the board. Pieces that find it do not return. Even things that cannot be taken find that this is different.',
+  'Trench Pawn':       'It learned to retreat. Not out of fear — out of patience. A pawn that can step backward is a pawn that can survive the line. It waits. And then it advances again.',
+  'Bounty Hunter Pawn':     'Every capture changes it. The pawn grows heavier with momentum, each kill adding another step to its stride. It moves farther now. It remembers.',
+  'Railgun Rook':      "It doesn't stop for obstacles — it stops for gaps. The chain matters. As long as things are connected, the rook passes through them like they were never there. Only emptiness can end it.",
+  'Cookie':
+
+
+             'It doesn’t move. It doesn’t react. It just… exists. And somehow, that feels deliberate.',
   'Fast Pawn (Evolved)':   'It stopped counting squares. Three, now. And tomorrow, who knows. Movement like this doesn’t accelerate—it just keeps forgetting where it started.',
   'Pegasus (Evolved)':     'The second leap no longer cares where it lands—only that it lands. Direction lost its meaning somewhere between the first jump and the second. It moves because it can.',
   'Royal Guard (Evolved)': 'It no longer waits to be repositioned. The King moves, and so does it—not commanded, but aware. It follows its own path now, within a radius it seems to have chosen itself.',
@@ -13165,6 +13383,89 @@ function promotePawn(x, y, onComplete){
   });
 }
 
+// ── Time Bomb ──────────────────────────────────────────────────────────────
+function spawnTimeBomb(){
+  if(puzzleModeActive) return;
+  let emptySquares = [];
+  for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+    if(!board[y][x] && !(pitSquare && pitSquare.x===x && pitSquare.y===y)) emptySquares.push({x,y});
+  }
+  if(emptySquares.length === 0){ showToast('No room for the Time Bomb!'); return; }
+  let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
+  timeBombs.push({x:spot.x, y:spot.y, turnsLeft:5});
+  draw();
+}
+
+function processTimeBombs(){
+  let explodedSquares = new Set();
+  for(let i = timeBombs.length-1; i>=0; i--){
+    let b = timeBombs[i];
+    b.turnsLeft--;
+    if(b.turnsLeft <= 0){
+      let key = `${b.x},${b.y}`;
+      if(!explodedSquares.has(key)){
+        explodedSquares.add(key);
+        playExplosionSound();
+        showExplosion(b.x, b.y);
+        let piece = board[b.y][b.x];
+        if(piece && piece !== ''){
+          board[b.y][b.x] = '';
+          clearPieceData(b.x, b.y);
+          if(piece.toLowerCase() === 'k'){
+            // King destroyed by time bomb — game over
+            let winner = isWhite(piece) ? 'Black' : 'White';
+            draw();
+            endGame(`${winner} wins! The king didn't move in time! 💣`, 3500);
+            return;
+          }
+          if(isWhite(piece)) blackCaptured.push(piece); else whiteCaptured.push(piece);
+          incrementEffectsTriggered(1);
+        }
+        // Spawn a new bomb to keep the pressure going
+        if(modifiers.includes('Time Bomb')){
+          setTimeout(()=>{ if(modifiers.includes('Time Bomb')) spawnTimeBomb(); }, 500);
+        }
+      }
+      timeBombs.splice(i, 1);
+    }
+  }
+}
+
+// ── Bottomless Pit ──────────────────────────────────────────────────────────
+function spawnBottomlessPit(){
+  if(puzzleModeActive) return;
+  let emptySquares = [];
+  for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+    if(!board[y][x]) emptySquares.push({x,y});
+  }
+  if(emptySquares.length === 0){ showToast('No room for the pit!'); return; }
+  let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
+  pitSquare = {x:spot.x, y:spot.y};
+  draw();
+}
+
+function processBottomlessPit(){
+  if(!pitSquare) return;
+  let piece = board[pitSquare.y][pitSquare.x];
+  if(piece && piece !== ''){
+    // Destroys EVERYTHING — kings, ducks, guards, uncapturable — no exceptions
+    showExplosion(pitSquare.x, pitSquare.y);
+    if(piece.toLowerCase() === 'k'){
+      // King fell in — game over
+      let winner = isWhite(piece) ? 'Black' : 'White';
+      board[pitSquare.y][pitSquare.x] = '';
+      clearPieceData(pitSquare.x, pitSquare.y);
+      draw();
+      endGame(`${winner} wins! The king fell into the pit! 🕳️`, 3500);
+      return;
+    }
+    if(isWhite(piece)) blackCaptured.push(piece); else whiteCaptured.push(piece);
+    board[pitSquare.y][pitSquare.x] = '';
+    clearPieceData(pitSquare.x, pitSquare.y);
+    incrementEffectsTriggered(1);
+  }
+}
+
 function spawnDuck(){
   if(puzzleModeActive) return;
   // Spawn duck on any random empty square
@@ -13214,7 +13515,6 @@ function autoPromotePassivePawns(){
       if(y === promotionRow){
         board[y][x] = isWhite(piece) ? 'Q' : 'q';
         clearPieceData(x, y);
-        showToast(`Pawn auto-promoted to Queen! ♛`, 2000);
       }
     }
   }
@@ -13635,6 +13935,11 @@ const allMods=[
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns. Your pieces are safe.',icon:'🌪️'},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
+  {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
+  {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
+  {name:'Bounty Hunter Pawn',rarity:'rare',desc:'Each pawn permanently gains +1 square of movement for every piece it captures',icon:'♟'},
+  {name:'Time Bomb',rarity:'legendary',desc:'A random square is marked. In 5 turns it explodes, destroying any piece on it',icon:'💣'},
+  {name:'Bottomless Pit',rarity:'mythic',desc:'Spawns an inescapable pit on a random square. Any piece that lands on it is instantly destroyed',icon:'🕳️'},
   {name:'Royal Guard',rarity:'legendary',desc:'After the King moves, choose an adjacent empty square to place a stationary bodyguard',icon:'♚',evolvesTo:'Royal Guard (Evolved)'}
 ];
 
@@ -13943,6 +14248,12 @@ function chaosDraft(){
     if (mod.name === 'Duck of Eternal Blocking') {
       spawnDuck();
     }
+    if (mod.name === 'Time Bomb') {
+      spawnTimeBomb();
+    }
+    if (mod.name === 'Bottomless Pit') {
+      spawnBottomlessPit();
+    }
 
     // Special handling for Tornado
     if (mod.name === 'Tornado de Caballos') {
@@ -13991,6 +14302,8 @@ function restart(){
   kamikazeBombs=[];
   nuclearZones=[];
   tornadoes=[];
+  timeBombs=[];
+  pitSquare=null;
   tornadoPlacementMode=false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode=false;
@@ -14490,6 +14803,8 @@ function handleRemoteData(data){
   
   modifiers = data.modifiers;
   if(data.castleRights) castleRights = data.castleRights;
+  if(data.timeBombs !== undefined) timeBombs = data.timeBombs;
+  if(data.pitSquare !== undefined) pitSquare = data.pitSquare;
   whiteTime = data.whiteTime || whiteTime;
   blackTime = data.blackTime || blackTime;
   if(data.increment !== undefined) increment = data.increment;
@@ -14559,6 +14874,8 @@ function sendGameState(){
       moveCount: moveCount,
       modifiers: modifiers,
       castleRights: castleRights,
+      timeBombs: timeBombs,
+      pitSquare: pitSquare,
       whiteTime: whiteTime,
       blackTime: blackTime,
       increment: increment,
@@ -18863,7 +19180,7 @@ function sandboxNewGame() {
   modifiers = []; moveCount = 0; turn = 'white';
   selected = null; legalMoves = []; lastMove = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
-  kamikazeBombs = []; nuclearZones = []; tornadoes = [];
+  kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null;
   tornadoPlacementMode = false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode = false; royalGuardKingX = -1; royalGuardKingY = -1;
