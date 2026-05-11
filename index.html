@@ -2945,6 +2945,80 @@ button:active {
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.15) transparent;
 }
+/* Search bar */
+.codex-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.codex-search-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.codex-search-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+.codex-search-input::placeholder { color: rgba(226,232,240,0.38); }
+.codex-search-input:focus {
+  border-color: rgba(34,211,238,0.45);
+  background: rgba(255,255,255,0.09);
+}
+.codex-search-clear {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: rgba(226,232,240,0.6);
+  font-size: 16px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: background 0.2s, color 0.2s;
+}
+.codex-search-clear:hover { background: rgba(239,68,68,0.18); color: #f87171; }
+.codex-search-clear.visible { display: flex; }
+/* All-tab section headers inside the grid */
+.codex-section-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 2px;
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.codex-section-header:not(:first-child) {
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+/* No-results message */
+.codex-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(226,232,240,0.38);
+  font-size: 13px;
+  font-style: italic;
+  padding: 40px 0;
+}
 .codex-card {
   min-height: 156px;
   display: flex;
@@ -9147,6 +9221,11 @@ button:active {
         <button class="codex-close" onclick="closeModifierCodex()">×</button>
       </div>
       <div class="codex-tabs" id="codex-tabs"></div>
+      <div class="codex-search-wrap" id="codex-search-wrap">
+        <span class="codex-search-icon">🔍</span>
+        <input class="codex-search-input" id="codex-search-input" type="text" placeholder="Search modifiers…" autocomplete="off" oninput="onCodexSearch(this.value)" />
+        <button class="codex-search-clear" id="codex-search-clear" onclick="clearCodexSearch()" title="Clear search">×</button>
+      </div>
       <div class="codex-grid" id="codex-grid"></div>
     </div>
     <div class="codex-detail" id="codex-detail">
@@ -14511,7 +14590,7 @@ const CODEX_COMBOS = {
   'Royal Guard': 'Combines with Sprinting King because the king can move aggressively and still leave protection behind.',
   'Tornado de Caballos': 'Combines with queen and rook area effects that punish clustered pieces.'
 };
-let codexActiveCategory = 'pawn';
+let codexActiveCategory = 'all';
 let codexSelectedModifier = null;
 
 function codexEscape(value){
@@ -14622,7 +14701,12 @@ function getCodexCombo(mod){
 
 function openModifierCodex(category){
   markActiveModifiersDiscovered();
-  codexActiveCategory = category || codexActiveCategory || 'pawn';
+  codexActiveCategory = category || codexActiveCategory || 'all';
+  codexSearchQuery = '';
+  const input = document.getElementById('codex-search-input');
+  if(input) input.value = '';
+  const clearBtn = document.getElementById('codex-search-clear');
+  if(clearBtn) clearBtn.classList.remove('visible');
   const modal = document.getElementById('modifier-codex-modal');
   if(modal) modal.classList.add('active');
   renderModifierCodex();
@@ -14632,6 +14716,24 @@ function closeModifierCodex(){
   replayStop();
   const modal = document.getElementById('modifier-codex-modal');
   if(modal) modal.classList.remove('active');
+}
+
+let codexSearchQuery = '';
+
+function onCodexSearch(value) {
+  codexSearchQuery = value.trim().toLowerCase();
+  const clearBtn = document.getElementById('codex-search-clear');
+  if(clearBtn) clearBtn.classList.toggle('visible', codexSearchQuery.length > 0);
+  renderCodexGrid();
+}
+
+function clearCodexSearch() {
+  codexSearchQuery = '';
+  const input = document.getElementById('codex-search-input');
+  if(input) input.value = '';
+  const clearBtn = document.getElementById('codex-search-clear');
+  if(clearBtn) clearBtn.classList.remove('visible');
+  renderCodexGrid();
 }
 
 function renderModifierCodex(){
@@ -14644,6 +14746,21 @@ function renderModifierCodex(){
   if(progress) progress.textContent = `${discovered.length} / ${mods.length} discovered`;
 
   tabs.innerHTML = '';
+
+  // "All" tab first
+  const allFound = mods.filter(m => discovered.includes(m.name)).length;
+  const allBtn = document.createElement('button');
+  allBtn.className = 'codex-tab' + (codexActiveCategory === 'all' ? ' active' : '');
+  allBtn.textContent = `📖 All ${allFound}/${mods.length}`;
+  allBtn.onclick = () => {
+    codexActiveCategory = 'all';
+    codexSelectedModifier = null;
+    clearCodexSearch();
+    renderModifierCodex();
+  };
+  tabs.appendChild(allBtn);
+
+  // Category tabs
   CODEX_CATEGORIES.forEach(cat => {
     const catMods = mods.filter(m => m.codexCategory === cat.id);
     const found = catMods.filter(m => discovered.includes(m.name)).length;
@@ -14653,41 +14770,13 @@ function renderModifierCodex(){
     btn.onclick = () => {
       codexActiveCategory = cat.id;
       codexSelectedModifier = null;
+      clearCodexSearch();
       renderModifierCodex();
     };
     tabs.appendChild(btn);
   });
 
-  const RARITY_ORDER = { common: 0, rare: 1, legendary: 2, mythic: 3, evolved: 4 };
-  const pageMods = mods
-    .filter(m => m.codexCategory === codexActiveCategory)
-    .sort((a, b) => {
-      const ra = RARITY_ORDER[a.isEvolution ? 'evolved' : (a.rarity || 'common')] ?? 99;
-      const rb = RARITY_ORDER[b.isEvolution ? 'evolved' : (b.rarity || 'common')] ?? 99;
-      if(ra !== rb) return ra - rb;
-      return a.name.localeCompare(b.name);
-    });
-  grid.innerHTML = '';
-  pageMods.forEach(mod => {
-    const unlocked = discovered.includes(mod.name);
-    const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
-    const card = document.createElement('button');
-    card.className = 'codex-card' + (unlocked ? '' : ' locked') + (codexSelectedModifier === mod.name ? ' selected' : '');
-    card.innerHTML = `
-      <div class="codex-card-top">
-        <span class="codex-card-icon">${unlocked ? codexEscape(mod.icon) : '?'}</span>
-        <span class="codex-pill ${codexEscape(rarity)}">${unlocked ? codexEscape(rarity) : 'locked'}</span>
-      </div>
-      <div class="codex-card-name">${unlocked ? codexEscape(mod.name) : 'Undiscovered Modifier'}</div>
-      <div class="codex-card-desc">${unlocked ? codexEscape(mod.desc) : 'Draft or activate this modifier to reveal its archive entry.'}</div>
-    `;
-    card.onclick = () => {
-      codexSelectedModifier = mod.name;
-      renderCodexDetail(mod, unlocked);
-      renderModifierCodex();
-    };
-    grid.appendChild(card);
-  });
+  renderCodexGrid();
 
   if(codexSelectedModifier){
     const selected = mods.find(m => m.name === codexSelectedModifier);
@@ -14695,6 +14784,96 @@ function renderModifierCodex(){
   } else {
     renderCodexEmptyDetail();
   }
+}
+
+function renderCodexGrid(){
+  const grid = document.getElementById('codex-grid');
+  if(!grid) return;
+  const mods = getCodexMods();
+  const discovered = loadDiscoveredModifiers();
+
+  const RARITY_ORDER = { common: 0, rare: 1, legendary: 2, mythic: 3, evolved: 4 };
+  const CAT_ORDER = CODEX_CATEGORIES.map(c => c.id);
+
+  // Filter by search query (name, desc, rarity)
+  const q = codexSearchQuery;
+  const matchesSearch = (mod) => {
+    if(!q) return true;
+    const rarity = mod.isEvolution ? 'evolved' : (mod.rarity || 'common');
+    return mod.name.toLowerCase().includes(q) ||
+           mod.desc.toLowerCase().includes(q) ||
+           rarity.includes(q) ||
+           mod.codexCategory.includes(q);
+  };
+
+  grid.innerHTML = '';
+
+  if(codexActiveCategory === 'all') {
+    // Group by category, then sort by rarity+alpha within each group
+    let anyRendered = false;
+    CODEX_CATEGORIES.forEach(cat => {
+      const catMods = mods
+        .filter(m => m.codexCategory === cat.id && matchesSearch(m))
+        .sort((a, b) => {
+          const ra = RARITY_ORDER[a.isEvolution ? 'evolved' : (a.rarity || 'common')] ?? 99;
+          const rb = RARITY_ORDER[b.isEvolution ? 'evolved' : (b.rarity || 'common')] ?? 99;
+          if(ra !== rb) return ra - rb;
+          return a.name.localeCompare(b.name);
+        });
+      if(catMods.length === 0) return;
+      anyRendered = true;
+      const header = document.createElement('div');
+      header.className = 'codex-section-header';
+      header.textContent = `${cat.icon} ${cat.label}`;
+      grid.appendChild(header);
+      catMods.forEach(mod => renderCodexCard(mod, discovered, grid));
+    });
+    if(!anyRendered) {
+      const empty = document.createElement('div');
+      empty.className = 'codex-no-results';
+      empty.textContent = `No modifiers match "${codexSearchQuery}"`;
+      grid.appendChild(empty);
+    }
+  } else {
+    // Single category — sort by rarity+alpha, no section headers
+    const pageMods = mods
+      .filter(m => m.codexCategory === codexActiveCategory && matchesSearch(m))
+      .sort((a, b) => {
+        const ra = RARITY_ORDER[a.isEvolution ? 'evolved' : (a.rarity || 'common')] ?? 99;
+        const rb = RARITY_ORDER[b.isEvolution ? 'evolved' : (b.rarity || 'common')] ?? 99;
+        if(ra !== rb) return ra - rb;
+        return a.name.localeCompare(b.name);
+      });
+    if(pageMods.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'codex-no-results';
+      empty.textContent = q ? `No modifiers match "${codexSearchQuery}"` : 'No modifiers in this category.';
+      grid.appendChild(empty);
+    } else {
+      pageMods.forEach(mod => renderCodexCard(mod, discovered, grid));
+    }
+  }
+}
+
+function renderCodexCard(mod, discovered, grid) {
+  const unlocked = discovered.includes(mod.name);
+  const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
+  const card = document.createElement('button');
+  card.className = 'codex-card' + (unlocked ? '' : ' locked') + (codexSelectedModifier === mod.name ? ' selected' : '');
+  card.innerHTML = `
+    <div class="codex-card-top">
+      <span class="codex-card-icon">${unlocked ? codexEscape(mod.icon) : '?'}</span>
+      <span class="codex-pill ${codexEscape(rarity)}">${unlocked ? codexEscape(rarity) : 'locked'}</span>
+    </div>
+    <div class="codex-card-name">${unlocked ? codexEscape(mod.name) : 'Undiscovered Modifier'}</div>
+    <div class="codex-card-desc">${unlocked ? codexEscape(mod.desc) : 'Draft or activate this modifier to reveal its archive entry.'}</div>
+  `;
+  card.onclick = () => {
+    codexSelectedModifier = mod.name;
+    renderCodexDetail(mod, unlocked);
+    renderCodexGrid();
+  };
+  grid.appendChild(card);
 }
 
 function renderCodexEmptyDetail(){
