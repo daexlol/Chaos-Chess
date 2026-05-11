@@ -2784,7 +2784,7 @@ button:active {
 .htp-rarity-badge.mythic { background: rgba(251,191,36,0.3); color: #fde68a; border: 1px solid rgba(251,191,36,0.5); }
 .htp-rarity-badge.evolved { background: rgba(255,60,120,0.15); color: #ff80aa; border: 1px solid rgba(255,60,120,0.35); }
 
-/* Modifier Codex */
+/* Modifier Library */
 .menu-codex-btn {
   margin-top: 12px;
   width: 100%;
@@ -8324,7 +8324,7 @@ button:active {
       <button class="menu-codex-btn" onclick="openModifierCodex()">
         <span class="menu-codex-icon">📚</span>
         <div class="menu-codex-copy">
-          <div class="menu-codex-title">Modifier Codex</div>
+          <div class="menu-codex-title">Modifier Library</div>
           <div class="menu-codex-sub">Discover modifiers, evolutions, examples and combo notes</div>
         </div>
         <div class="menu-codex-arrow">→</div>
@@ -9095,14 +9095,14 @@ button:active {
   </div>
 </div>
 
-<!-- MODIFIER CODEX MODAL -->
+<!-- MODIFIER LIBRARY MODAL -->
 <div id="modifier-codex-modal">
   <div class="codex-panel">
     <div class="codex-main">
       <div class="codex-header">
         <div>
           <div class="codex-kicker">System Archive</div>
-          <h2>Modifier Codex</h2>
+          <h2>Modifier Library</h2>
           <div class="codex-progress" id="codex-progress">0 / 0 discovered</div>
         </div>
         <button class="codex-close" onclick="closeModifierCodex()">×</button>
@@ -14388,7 +14388,7 @@ const evolvedMods = [
 function findEvolvedMod(name){ return evolvedMods.find(m => m.name === name) || null; }
 function findModByName(name){ return allMods.find(m => m.name === name) || evolvedMods.find(m => m.name === name) || null; }
 
-// Modifier Codex discovery and browsing. Kept separate from gameplay rules.
+// Modifier Library discovery and browsing. Kept separate from gameplay rules.
 const CODEX_DISCOVERY_KEY = 'chaosChessModifierDiscoveries';
 const CODEX_CATEGORIES = [
   { id: 'pawn', label: 'Pawns', icon: '♟' },
@@ -14660,7 +14660,7 @@ function renderCodexDetail(mod, unlocked){
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODIFIER REPLAY PREVIEW SYSTEM
-// Lives exclusively inside the Modifier Codex detail panel.
+// Lives exclusively inside the Modifier Library detail panel.
 // Uses real board/modifier logic cloned into a sandboxed state object.
 // ══════════════════════════════════════════════════════════════════════════════
 
