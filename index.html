@@ -1650,6 +1650,31 @@ button:active {
   transform: none;
 }
 
+/* Codex icon button — same size/style as settings, used in all top bars */
+.topbar-codex-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+  margin: 0;
+  padding: 0;
+  color: #aab0d6;
+  box-shadow: none;
+}
+.topbar-codex-btn:hover {
+  background: rgba(124,92,255,0.15);
+  border-color: rgba(124,92,255,0.35);
+  color: #c4b5fd;
+  transform: none;
+}
+
 /* Hub body */
 .menu-hub {
   flex: 1;
@@ -3831,6 +3856,17 @@ button:active {
   margin: 0; padding: 0; color: #aab0d6; box-shadow: none;
 }
 #game-topbar-settings:hover {
+  background: rgba(124,92,255,0.15); border-color: rgba(124,92,255,0.35);
+  color: #c4b5fd; transform: none;
+}
+#game-topbar-codex {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px; transition: all 0.2s;
+  margin: 0; padding: 0; color: #aab0d6; box-shadow: none;
+}
+#game-topbar-codex:hover {
   background: rgba(124,92,255,0.15); border-color: rgba(124,92,255,0.35);
   color: #c4b5fd; transform: none;
 }
@@ -8216,6 +8252,7 @@ button:active {
           <div class="menu-topbar-rating" id="menu-topbar-rating"></div>
         </div>
       </div>
+      <button class="topbar-codex-btn" onclick="openModifierCodex()" title="Modifier Library">📚</button>
       <button class="menu-topbar-settings" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
@@ -8356,6 +8393,7 @@ button:active {
           </div>
         </div>
         <div class="lobby-topbar-right">
+          <button class="topbar-codex-btn" onclick="openModifierCodex()" title="Modifier Library">📚</button>
           <button class="lobby-logout-btn" onclick="doLogout()" id="lobby-logout-btn">↪ Sign Out</button>
         </div>
       </div>
@@ -8460,6 +8498,7 @@ button:active {
           </div>
         </div>
         <div class="pvt-topbar-right">
+          <button class="topbar-codex-btn" onclick="openModifierCodex()" title="Modifier Library">📚</button>
           <button class="pvt-signout-btn" onclick="doLogout()" id="pvt-signout-btn">↪ Sign Out</button>
         </div>
       </div>
@@ -9179,6 +9218,7 @@ button:active {
         <div id="game-topbar-rating"></div>
       </div>
     </div>
+    <button id="game-topbar-codex" onclick="openModifierCodex()" title="Modifier Library">📚</button>
     <button id="game-topbar-settings" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 </div>
@@ -9394,6 +9434,7 @@ button:active {
           <div class="menu-topbar-rating" id="sandbox-topbar-rating"></div>
         </div>
       </div>
+      <button class="topbar-codex-btn" onclick="openModifierCodex()" title="Modifier Library">📚</button>
       <button class="menu-topbar-settings" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
@@ -14480,6 +14521,7 @@ function codexEscape(value){
 }
 
 function loadDiscoveredModifiers(){
+  // Always read localStorage as the fast/offline cache
   try {
     let saved = JSON.parse(localStorage.getItem(CODEX_DISCOVERY_KEY) || '[]');
     return Array.isArray(saved) ? saved : [];
@@ -14489,7 +14531,44 @@ function loadDiscoveredModifiers(){
 }
 
 function saveDiscoveredModifiers(list){
-  try { localStorage.setItem(CODEX_DISCOVERY_KEY, JSON.stringify([...new Set(list)])); } catch(e) {}
+  const deduped = [...new Set(list)];
+  // Always write to localStorage for instant access / offline / guest
+  try { localStorage.setItem(CODEX_DISCOVERY_KEY, JSON.stringify(deduped)); } catch(e) {}
+  // Also persist to Firestore if we have a logged-in profile
+  _syncDiscoveredModifiersToFirestore(deduped);
+}
+
+// Sync discovered modifiers up to the user's Firestore doc (fire-and-forget)
+function _syncDiscoveredModifiersToFirestore(list){
+  if(!currentProfile || !fbDb) return;
+  try {
+    fbDb.collection('users').doc(currentProfile.id).update({
+      discoveredModifiers: list
+    }).catch(() => {}); // silent — offline or permission errors are non-fatal
+  } catch(e) {}
+}
+
+// Called once on login: pull the server list and merge with local cache
+async function loadDiscoveredModifiersFromFirestore(){
+  if(!currentProfile || !fbDb) return;
+  try {
+    const snap = await fbDb.collection('users').doc(currentProfile.id).get();
+    if(!snap.exists) return;
+    const remote = snap.data().discoveredModifiers;
+    if(!Array.isArray(remote) || remote.length === 0) {
+      // Nothing on server — push what we have locally so first device wins
+      const local = loadDiscoveredModifiers();
+      if(local.length > 0) _syncDiscoveredModifiersToFirestore(local);
+      return;
+    }
+    // Merge: union of remote + local so no discoveries are lost on any device
+    const local = loadDiscoveredModifiers();
+    const merged = [...new Set([...remote, ...local])];
+    // Write merged back to localStorage so it's immediately available
+    try { localStorage.setItem(CODEX_DISCOVERY_KEY, JSON.stringify(merged)); } catch(e) {}
+    // Push merged back to Firestore if it grew
+    if(merged.length > remote.length) _syncDiscoveredModifiersToFirestore(merged);
+  } catch(e) {}
 }
 
 function markModifierDiscovered(name){
@@ -14579,7 +14658,15 @@ function renderModifierCodex(){
     tabs.appendChild(btn);
   });
 
-  const pageMods = mods.filter(m => m.codexCategory === codexActiveCategory);
+  const RARITY_ORDER = { common: 0, rare: 1, legendary: 2, mythic: 3, evolved: 4 };
+  const pageMods = mods
+    .filter(m => m.codexCategory === codexActiveCategory)
+    .sort((a, b) => {
+      const ra = RARITY_ORDER[a.isEvolution ? 'evolved' : (a.rarity || 'common')] ?? 99;
+      const rb = RARITY_ORDER[b.isEvolution ? 'evolved' : (b.rarity || 'common')] ?? 99;
+      if(ra !== rb) return ra - rb;
+      return a.name.localeCompare(b.name);
+    });
   grid.innerHTML = '';
   pageMods.forEach(mod => {
     const unlocked = discovered.includes(mod.name);
@@ -17730,6 +17817,9 @@ async function doLogout(){
   currentUser = null;
   currentProfile = null;
   isGuest = false;
+  // Clear the local discovery cache so a different account logging in
+  // gets a fresh pull from Firestore rather than inheriting this session's data
+  try { localStorage.removeItem(CODEX_DISCOVERY_KEY); } catch(e) {}
   showMainMenu();
   showAuthScreen();
 }
@@ -17741,6 +17831,8 @@ async function loadProfile(){
   if(!snap.empty){
     currentProfile = { id: snap.docs[0].id, ...snap.docs[0].data() };
     updateLobbyUI();
+    // Sync discovered modifiers from server → merge with local cache
+    await loadDiscoveredModifiersFromFirestore();
   }
 }
 
