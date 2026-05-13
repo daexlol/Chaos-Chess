@@ -2818,7 +2818,7 @@ button:active {
   align-items: center;
   gap: 14px;
   padding: 16px 20px;
-  border: 1px solid rgba(34,211,238,0.22);
+  border: 1px solid rgba(196,181,253,0.22);
   border-radius: 18px;
   background: linear-gradient(135deg, rgba(10,31,46,0.9), rgba(22,28,58,0.9));
   color: #f5f7ff;
@@ -2828,8 +2828,8 @@ button:active {
 }
 .menu-codex-btn:hover {
   transform: translateY(-2px);
-  border-color: rgba(34,211,238,0.48);
-  box-shadow: 0 22px 56px rgba(0,0,0,0.42), 0 0 28px rgba(34,211,238,0.08);
+  border-color: rgba(196,181,253,0.48);
+  box-shadow: 0 22px 56px rgba(0,0,0,0.42), 0 0 28px rgba(196,181,253,0.08);
 }
 .menu-codex-icon { font-size: 24px; line-height: 1; }
 .menu-codex-copy { flex: 1; min-width: 0; text-align: left; }
@@ -2842,9 +2842,9 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(34,211,238,0.13);
-  border: 1px solid rgba(34,211,238,0.26);
-  color: #67e8f9;
+  background: rgba(196,181,253,0.13);
+  border: 1px solid rgba(196,181,253,0.26);
+  color: #c4b5fd;
 }
 
 #modifier-codex-modal {
@@ -2885,7 +2885,7 @@ button:active {
   border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .codex-kicker {
-  color: #67e8f9;
+  color: #c4b5fd;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -2930,8 +2930,8 @@ button:active {
 }
 .codex-tab.active {
   color: #ecfeff;
-  background: rgba(8,145,178,0.22);
-  border-color: rgba(34,211,238,0.5);
+  background: rgba(196,181,253,0.22);
+  border-color: rgba(124,92,255,0.5);
 }
 .codex-grid {
   min-height: 0;
@@ -2972,7 +2972,7 @@ button:active {
 }
 .codex-search-input::placeholder { color: rgba(226,232,240,0.38); }
 .codex-search-input:focus {
-  border-color: rgba(34,211,238,0.45);
+  border-color: rgba(196,181,253,0.45);
   background: rgba(255,255,255,0.09);
 }
 .codex-search-clear {
@@ -2999,7 +2999,7 @@ button:active {
   align-items: center;
   gap: 10px;
   padding: 6px 0 2px;
-  color: #67e8f9;
+  color: #c4b5fd;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -3036,7 +3036,7 @@ button:active {
 .codex-card:hover,
 .codex-card.selected {
   transform: translateY(-2px);
-  border-color: rgba(34,211,238,0.45);
+  border-color: rgba(196,181,253,0.45);
   background: rgba(15,35,58,0.86);
 }
 .codex-card.locked {
@@ -3065,7 +3065,7 @@ button:active {
 .codex-detail {
   min-height: 0;
   padding: 24px;
-  background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.1), transparent 42%), rgba(2,6,23,0.38);
+  background: radial-gradient(circle at 50% 0%, rgba(196,181,253,0.1), transparent 42%), rgba(2,6,23,0.38);
   overflow-y: auto;
 }
 .codex-detail-empty {
@@ -3078,7 +3078,7 @@ button:active {
 .codex-detail p { color: rgba(226,232,240,0.74); font-size: 13px; line-height: 1.6; }
 .codex-detail-section { margin-top: 18px; }
 .codex-detail-label {
-  color: #67e8f9;
+  color: #c4b5fd;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -3170,6 +3170,7 @@ button:active {
   z-index: 2;
   transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
 }
+/* Kamikaze bomb: shrink the piece so the bomb emoji is clearly visible on top */
 /* Piece glows inside replay board */
 .codex-replay-sq.glow-legendary img { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b); }
 .codex-replay-sq.glow-mythic img    { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #f59e0b); }
@@ -3217,7 +3218,7 @@ button:active {
   transition: background 0.3s ease;
 }
 .codex-replay-dot.active {
-  background: #67e8f9;
+  background: #c4b5fd;
 }
 .codex-replay-no-data {
   margin-top: 16px;
@@ -15535,24 +15536,25 @@ const CODEX_REPLAYS = {
   'Tornado de Caballos': [
     {
       type: 'good',
-      caption: '😀 Tornado placed near enemy cluster — will pull multiple pieces into a tighter knot.',
+      caption: '😀 Tornado placed near an enemy cluster — pieces are pulled in from all sides.',
       modifiers: ['Tornado de Caballos'],
       turn: 'white',
       board: [
         ['k','','','','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','r','b','q','','',''],
+        ['','','r','','q','','',''],
         ['','','','','','','',''],
-        ['','','','','','','',''],
+        ['','','','b','','','',''],
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
+      tornadoes: [{ x: 3, y: 4 }],
       moves: []
     },
     {
       type: 'bad',
-      caption: '😭 Tornado placed on an empty wing — no enemy pieces nearby to affect.',
+      caption: '😭 Tornado placed on an empty wing — no enemy pieces nearby to pull in.',
       modifiers: ['Tornado de Caballos'],
       turn: 'white',
       board: [
@@ -15565,6 +15567,7 @@ const CODEX_REPLAYS = {
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
+      tornadoes: [{ x: 7, y: 2 }],
       moves: []
     }
   ],
@@ -15687,7 +15690,7 @@ const CODEX_REPLAYS = {
   'Mind Control Bishop': [
     {
       type: 'good',
-      caption: '😀 Bishop captures enemy queen — mind control activates, converting it to your side.',
+      caption: '😀 Bishop captures the enemy queen — mind control converts her to your side instantly!',
       modifiers: ['Mind Control Bishop'],
       turn: 'white',
       board: [
@@ -15698,13 +15701,13 @@ const CODEX_REPLAYS = {
         ['','','','q','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['K','','','B','','','','']
+        ['K','','','','','','B','']
       ],
-      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+      moves: [{fromX:6,fromY:7,toX:3,toY:4}]
     },
     {
       type: 'bad',
-      caption: '😭 Bishop captures a lone pawn — mind control chance wasted on the cheapest piece.',
+      caption: '😭 Bishop captures a lone pawn — mind control proc wasted on the cheapest possible piece.',
       modifiers: ['Mind Control Bishop'],
       turn: 'white',
       board: [
@@ -15712,12 +15715,12 @@ const CODEX_REPLAYS = {
         ['','','','','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','','p','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['K','','','B','','','','']
+        ['','p','','','','','',''],
+        ['K','','B','','','','','']
       ],
-      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+      moves: [{fromX:2,fromY:7,toX:1,toY:6}]
     }
   ],
 
@@ -15761,7 +15764,7 @@ const CODEX_REPLAYS = {
   'Royal Guard': [
     {
       type: 'good',
-      caption: '😀 King advances, bodyguard is placed to seal the escape route and protect the new position.',
+      caption: '😀 King advances — a Royal Guard 💂 spawns on an adjacent square to protect the new position.',
       modifiers: ['Royal Guard'],
       turn: 'white',
       board: [
@@ -15778,20 +15781,20 @@ const CODEX_REPLAYS = {
     },
     {
       type: 'bad',
-      caption: '😭 King walks into an open file — bodyguard placed poorly, king still exposed.',
+      caption: '😭 King advances toward enemy rooks — Guard spawns but king is already in a dangerous file.',
       modifiers: ['Royal Guard'],
       turn: 'white',
       board: [
         ['k','','','','','','',''],
         ['','','','','','','',''],
+        ['r','','','','','','','r'],
         ['','','','','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','','','r','','',''],
         ['','','','','','','',''],
         ['','','','','K','','','']
       ],
-      moves: [{fromX:4,fromY:7,toX:3,toY:6}]
+      moves: [{fromX:4,fromY:7,toX:0,toY:5}]
     }
   ],
 
@@ -16390,34 +16393,48 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
     }
   }
 
-  // ── Railgun Rook: pierce through consecutive enemies ──
-  if(piece.toLowerCase()==='r' && rModifiers.includes('Railgun Rook') && captured) {
-    // Determine direction
-    let dx = Math.sign(toX - fromX), dy = Math.sign(toY - fromY);
+  // ── Railgun Rook — pierce all enemies from destination onward; land on first empty after chain ──
+  if(piece.toLowerCase()==='r' && rModifiers.includes('Railgun Rook')) {
+    const dx = Math.sign(toX - fromX), dy = Math.sign(toY - fromY);
+    // Walk the full ray
     let cx = fromX + dx, cy = fromY + dy;
-    // Clear all enemies in path including destination; find landing
+    let hitTarget = false; // have we reached toX,toY yet?
+    let landX = -1, landY = -1;
     while(cx >= 0 && cx < 8 && cy >= 0 && cy < 8) {
+      // Mark when we reach the intended destination
+      if(cx === toX && cy === toY) hitTarget = true;
       const p = rBoard[cy][cx];
-      if(p && isW(p) !== isW(piece)) {
-        rBoard[cy][cx] = ''; // captured by pierce
-      } else if(p && isW(p) === isW(piece)) {
-        break; // friendly blocks
-      } else if(!p) {
-        // First empty square — land here
-        rBoard[cy][cx] = piece;
-        rBoard[fromY][fromX] = '';
-        return;
+      if(hitTarget) {
+        // Past the destination: clear enemies (pierce), stop on friendlies, land on first empty
+        if(p && isW(p) !== isW(piece)) {
+          rBoard[cy][cx] = ''; // enemy captured by pierce
+        } else if(p && isW(p) === isW(piece)) {
+          break; // friendly blocks
+        } else if(!p) {
+          landX = cx; landY = cy;
+          break; // land here
+        }
       }
+      // Before destination: skip empty/enemy squares (rook glides through freely)
       cx += dx; cy += dy;
     }
-    // Landed at edge
     rBoard[fromY][fromX] = '';
+    if(landX !== -1) {
+      rBoard[landY][landX] = piece;
+    } else {
+      // Entire ray from destination to edge was enemies — land just past the last one
+      // cx/cy now points just off-board or at a friendly; back up one step
+      const lx = cx - dx, ly = cy - dy;
+      if(lx >= 0 && lx < 8 && ly >= 0 && ly < 8 && (lx !== fromX || ly !== fromY)) {
+        if(!rBoard[ly][lx]) rBoard[ly][lx] = piece;
+      }
+    }
     return;
   }
 
   // ── Nuclear Queen: capture + remove all 8 adjacents (except kings) ──
   if(piece.toLowerCase()==='q' && captured && rModifiers.includes('Nuclear Queen')) {
-    rBoard[toY][toX] = ''; // queen destroyed
+    rBoard[toY][toX] = '';
     rBoard[fromY][fromX] = '';
     for(let dy2 = -1; dy2 <= 1; dy2++) {
       for(let dx2 = -1; dx2 <= 1; dx2++) {
@@ -16441,7 +16458,7 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
   // ── Pawn Bayonet (Evolved): forward capture removes connected chain ──
   if(piece.toLowerCase()==='p' && rModifiers.includes('Pawn Bayonet (Evolved)') && captured) {
     const dir = isW(piece) ? -1 : 1;
-    if(toX === fromX) { // forward capture via bayonet
+    if(toX === fromX) {
       let cy2 = toY;
       while(cy2 >= 0 && cy2 < 8) {
         const p = rBoard[cy2][toX];
@@ -16475,11 +16492,41 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
   // ── Decoy Rook: leave decoy on previous square ──
   if(piece.toLowerCase()==='r' && rModifiers.includes('Decoy Rook')) {
     rBoard[toY][toX] = piece;
-    // Leave decoy
-    const decoyPiece = isW(piece) ? 'R' : 'r';
-    rBoard[fromY][fromX] = decoyPiece;
-    const key = `${fromX},${fromY}`;
-    rPieceData[key] = { decoy: true };
+    rBoard[fromY][fromX] = isW(piece) ? 'R' : 'r';
+    rPieceData[`${fromX},${fromY}`] = { decoy: true };
+    return;
+  }
+
+  // ── Reinforced Pawn (100% for replay) — attacker is stopped, stays on its square, pawn survives ──
+  if(captured && captured.toLowerCase()==='p' && rModifiers.includes('Reinforced Pawn')) {
+    const capKey = `${toX},${toY}`;
+    const pd = rPieceData[capKey] || {};
+    if(!pd.shieldBurned) {
+      // Shield blocks: attacker stays where it was, pawn stays alive
+      rPieceData[capKey] = { shieldBurned: true };
+      // Neither piece moves — attacker remains at fromX,fromY, pawn remains at toX,toY
+      return;
+    }
+    // Shield already burned — fall through to normal capture
+  }
+
+  // ── FIX 6: Kamikaze Pawn — when a pawn is captured, arm a bomb on the capture square ──
+  if(captured && captured.toLowerCase()==='p' && rModifiers.includes('Kamikaze Pawn')) {
+    rBoard[toY][toX] = piece;
+    rBoard[fromY][fromX] = '';
+    // Store bomb marker in rPieceData — renderer will draw it
+    rPieceData[`${toX},${toY}`] = Object.assign(rPieceData[`${toX},${toY}`] || {}, { kamikazeBomb: true, bombTurns: 1 });
+    return;
+  }
+
+  // ── Mind Control Bishop — 100% for replay: bishop stays, converted piece placed on destination ──
+  if(captured && piece.toLowerCase()==='b' && rModifiers.includes('Mind Control Bishop')) {
+    // Convert enemy piece to same colour as bishop
+    const converted = isW(piece) ? captured.toUpperCase() : captured.toLowerCase();
+    // Bishop stays on fromX,fromY — do NOT clear it
+    // Converted piece lands on toX,toY
+    rBoard[toY][toX] = converted;
+    rPieceData[`${toX},${toY}`] = { mindControlled: true };
     return;
   }
 
@@ -16487,31 +16534,50 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
   rBoard[toY][toX] = piece;
   rBoard[fromY][fromX] = '';
 
+  // ── FIX 7: Bottomless Pit — any piece landing on pit square is destroyed ──
+  if(rPieceData['_pit']) {
+    const pit = rPieceData['_pit'];
+    if(toX === pit.x && toY === pit.y) {
+      rBoard[toY][toX] = '';
+    }
+  }
+
   // Apply viral clone after move
   if(viralClone) {
     rBoard[viralClone.y][viralClone.x] = viralClone.piece;
-    const key = `${viralClone.x},${viralClone.y}`;
-    rPieceData[key] = { isViralClone: true };
+    rPieceData[`${viralClone.x},${viralClone.y}`] = { isViralClone: true };
   }
 
   // Phantom Knight: mark as phantom after capturing
   if(piece.toLowerCase()==='n' && captured && rModifiers.includes('Phantom Knight')) {
-    const key = `${toX},${toY}`;
-    rPieceData[key] = { phantom: true };
+    rPieceData[`${toX},${toY}`] = { phantom: true };
   }
 
-  // Jester Knight: place decoy on a legal square
-  if(piece.toLowerCase()==='n' && rModifiers.includes('Jester Knight') && !captured) {
-    // Find an empty adjacent-ish square for decoy
-    const knightMoves = [[-2,-1],[-2,1],[2,-1],[2,1],[-1,-2],[-1,2],[1,-2],[1,2]];
-    const candidates = knightMoves
-      .map(([dx,dy]) => ({ x: toX+dx, y: toY+dy }))
+  // ── FIX 2+3: Jester Knight — decoy looks like a normal knight, spawns from ORIGINAL position ──
+  if(piece.toLowerCase()==='n' && rModifiers.includes('Jester Knight')) {
+    const knightOffsets = [[-2,-1],[-2,1],[2,-1],[2,1],[-1,-2],[-1,2],[1,-2],[1,2]];
+    // Candidates are knight-jump squares from the ORIGINAL position (fromX, fromY)
+    const candidates = knightOffsets
+      .map(([dx,dy]) => ({ x: fromX+dx, y: fromY+dy }))
       .filter(m => m.x>=0&&m.x<8&&m.y>=0&&m.y<8&&!rBoard[m.y][m.x]);
     if(candidates.length > 0) {
       const dc = candidates[Math.floor(Math.random() * candidates.length)];
+      // Decoy looks identical to a real knight — no special pieceData flag
       rBoard[dc.y][dc.x] = isW(piece) ? 'N' : 'n';
-      const key2 = `${dc.x},${dc.y}`;
-      rPieceData[key2] = { jesterDecoy: true };
+      rPieceData[`${dc.x},${dc.y}`] = { jesterDecoy: true };
+    }
+  }
+
+  // ── FIX 9: Royal Guard — after king moves, spawn a guard (G/g) on a random adjacent square ──
+  if(piece.toLowerCase()==='k' && rModifiers.includes('Royal Guard')) {
+    const adjOffsets = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    const candidates = adjOffsets
+      .map(([dx,dy]) => ({ x: toX+dx, y: toY+dy }))
+      .filter(m => m.x>=0&&m.x<8&&m.y>=0&&m.y<8&&!rBoard[m.y][m.x]);
+    if(candidates.length > 0) {
+      const gc = candidates[Math.floor(Math.random() * candidates.length)];
+      rBoard[gc.y][gc.x] = isW(piece) ? 'G' : 'g';
+      rPieceData[`${gc.x},${gc.y}`] = { royalGuard: true };
     }
   }
 
@@ -16565,6 +16631,14 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
   const isW = p => p && p === p.toUpperCase();
   const modSet = new Set(rModifiers);
 
+  // Resolve pit position — either from specialOverlay or stored in rPieceData['_pit']
+  const pitPos = (specialOverlay && specialOverlay.type==='pit')
+    ? { x: specialOverlay.x, y: specialOverlay.y }
+    : (rPieceData['_pit'] || null);
+
+  // Resolve tornado positions from rPieceData['_tornadoes']
+  const tornadoList = rPieceData['_tornadoes'] || [];
+
   for(let y=0; y<8; y++) {
     for(let x=0; x<8; x++) {
       const sq = document.createElement('div');
@@ -16573,23 +16647,38 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
       if(lastFromX===x && lastFromY===y) sq.classList.add('last-from');
       if(lastToX===x   && lastToY===y)   sq.classList.add('last-to');
 
-      // Special overlays
-      if(specialOverlay) {
-        if(specialOverlay.type==='timebomb' && specialOverlay.x===x && specialOverlay.y===y) {
-          const ov = document.createElement('div'); ov.className='replay-bomb-sq'; sq.appendChild(ov);
-          const em = document.createElement('div'); em.className='replay-overlay-emoji'; em.textContent='💣'; sq.appendChild(em);
-          const nm = document.createElement('div'); nm.className='replay-overlay-num'; nm.textContent=specialOverlay.turnsLeft||'?'; sq.appendChild(nm);
-        }
-        if(specialOverlay.type==='pit' && specialOverlay.x===x && specialOverlay.y===y) {
-          const ov = document.createElement('div'); ov.className='replay-pit-sq'; ov.textContent='🕳️'; sq.appendChild(ov);
-        }
-        if(specialOverlay.type==='duck' && specialOverlay.x===x && specialOverlay.y===y) {
-          // Render duck as a piece
-          const img = document.createElement('img');
-          img.src = pieceImages['D'];
-          sq.appendChild(img);
-          sq.classList.add('glow-mythic');
-        }
+      // ── FIX 4: Tornado overlay ──
+      const isTornado = tornadoList.some(t => t.x===x && t.y===y);
+      if(isTornado) {
+        const ov = document.createElement('div'); ov.className='replay-tornado-sq'; sq.appendChild(ov);
+        const em = document.createElement('div'); em.className='replay-overlay-emoji'; em.textContent='🌪️'; sq.appendChild(em);
+      }
+
+      // ── FIX 5: Time Bomb overlay — renders UNDER piece so piece shows on top ──
+      if(specialOverlay && specialOverlay.type==='timebomb' && specialOverlay.x===x && specialOverlay.y===y) {
+        const ov = document.createElement('div'); ov.className='replay-bomb-sq'; sq.appendChild(ov);
+        const em = document.createElement('div'); em.className='replay-overlay-emoji'; em.textContent='💣'; sq.appendChild(em);
+        const nm = document.createElement('div'); nm.className='replay-overlay-num'; nm.textContent=specialOverlay.turnsLeft||'?'; sq.appendChild(nm);
+      }
+
+      // ── Kamikaze bomb overlay: red square + timer, no emoji ──
+      const sqData = rPieceData[`${x},${y}`] || {};
+      if(sqData.kamikazeBomb) {
+        const ov = document.createElement('div'); ov.className='replay-bomb-sq'; sq.appendChild(ov);
+        const nm = document.createElement('div'); nm.className='replay-overlay-num'; nm.textContent='1'; sq.appendChild(nm);
+      }
+
+      // ── FIX 7: Bottomless Pit overlay ──
+      if(pitPos && pitPos.x===x && pitPos.y===y) {
+        const ov = document.createElement('div'); ov.className='replay-pit-sq'; ov.textContent='🕳️'; sq.appendChild(ov);
+      }
+
+      // ── Duck of Eternal Blocking special overlay (not a pit, not a bomb) ──
+      if(specialOverlay && specialOverlay.type==='duck' && specialOverlay.x===x && specialOverlay.y===y) {
+        const img = document.createElement('img');
+        img.src = pieceImages['D'];
+        sq.appendChild(img);
+        sq.classList.add('glow-mythic');
       }
 
       // Magnetic Poles corner highlights
@@ -16611,20 +16700,30 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
         const pd = rPieceData[`${x},${y}`] || {};
         const pt = piece.toLowerCase();
 
-        if(pd.phantom) sq.classList.add('phantom');
-        else if(pd.decoy || pd.jesterDecoy) sq.classList.add('decoy');
-        else if(pd.isViralClone) sq.classList.add('decoy');
-        else {
-          // Apply glows based on modifiers
+        if(pd.phantom) {
+          sq.classList.add('phantom');
+        } else if(pd.decoy || pd.isViralClone) {
+          // decoy rook / viral clone — semi-transparent
+          sq.classList.add('decoy');
+        }
+        // ── FIX 2: Jester decoy renders identically to real knight — no special class ──
+        // (jesterDecoy flag intentionally not styled differently)
+        else if(pd.mindControlled) {
+          // FIX 8: converted piece gets a subtle glow to show it flipped
+          sq.classList.add('glow-rare');
+        } else if(pd.royalGuard) {
+          sq.classList.add('glow-legendary');
+        } else {
+          // Apply modifier-based glows
           if((modSet.has('Nuclear Queen')||modSet.has('Nuclear Queen (Evolved)')) && pt==='q') sq.classList.add('glow-mythic');
-          else if((modSet.has('Hive Mind Pawns')) && pt==='p') sq.classList.add('glow-mythic');
-          else if((modSet.has('Pegasus')) && pt==='n') sq.classList.add('glow-mythic');
+          else if(modSet.has('Hive Mind Pawns') && pt==='p') sq.classList.add('glow-mythic');
+          else if(modSet.has('Pegasus') && pt==='n') sq.classList.add('glow-mythic');
           else if((modSet.has('Phantom Knight')||modSet.has('Jester Knight')||modSet.has('Storm Rook')||
                    modSet.has('Magnetic Poles')||modSet.has('Fog of War Bishop')||modSet.has('Phoenix Pawn')||
                    modSet.has('Decoy Rook')||modSet.has('Kamikaze Pawn')||modSet.has('Railgun Rook')||
                    modSet.has('Time Bomb')||modSet.has('Royal Guard')||modSet.has('Tornado de Caballos')||
                    modSet.has('Sprinting King')) &&
-                  (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='k'||pt==='p')) sq.classList.add('glow-legendary');
+                  (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='k'||pt==='p'||pt==='g')) sq.classList.add('glow-legendary');
           else if((modSet.has('Magnetic Queen')||modSet.has('Double Strike Rook')||modSet.has('Coward Knight')||
                    modSet.has('Copycat Knight')||modSet.has('Boomerang Bishop')||modSet.has('Pinballing Bishop')||
                    modSet.has('Sniper Pawn')||modSet.has('Mind Control Bishop')||modSet.has('Viral Pawn')||
@@ -16691,8 +16790,18 @@ function replayStart(modifierName, containerWrapperId) {
     let rPieceData = {};
     const rModifiers = (scenario.modifiers || []).slice();
 
-    // Apply pre-placed special entities (duck overlay etc) via specialOverlay field
+    // Apply pre-placed special entities via specialOverlay field
     const specialOverlay = scenario.specialOverlay || null;
+
+    // ── FIX 7: Store pit position in rPieceData so replayApplyMove can destroy pieces landing on it ──
+    if(specialOverlay && specialOverlay.type==='pit') {
+      rPieceData['_pit'] = { x: specialOverlay.x, y: specialOverlay.y };
+    }
+
+    // ── FIX 4: Seed tornado positions from scenario data ──
+    if(scenario.tornadoes && scenario.tornadoes.length > 0) {
+      rPieceData['_tornadoes'] = scenario.tornadoes.map(t => ({ x: t.x, y: t.y }));
+    }
 
     // Initial render
     replayRenderBoard(containerWrapperId, rBoard, rModifiers, rPieceData, -1,-1,-1,-1, specialOverlay);
