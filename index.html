@@ -6663,6 +6663,8 @@ button:active {
 .friend-action-btn.invite:hover { background: rgba(251,191,36,0.28); }
 .friend-action-btn.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171; }
 .friend-action-btn.danger:hover { background: rgba(239,68,68,0.28); }
+.friend-action-btn.profile { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); color: #3b82f6; }
+.friend-action-btn.profile:hover { background: rgba(59,130,246,0.28); }
 .friends-empty { font-size: 13px; color: rgba(255,255,255,0.35); text-align: center; padding: 16px 0; }
 
 /* Right-click square highlight (red) */
@@ -8465,6 +8467,13 @@ button:active {
             <div class="lobby-username" id="lobby-username-display">Guest</div>
             <div class="lobby-rating-badge">⚡ <span id="lobby-rating-display">—</span></div>
             <div class="lobby-stats" id="lobby-stats-display"></div>
+            <div id="lobby-privacy-container" style="margin-top:4px;">
+              <select id="lobby-privacy-select" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:1px 3px; border-radius:2px; font-size:10px;">
+                <option value="Public">Public</option>
+                <option value="Friends Only">Friends Only</option>
+                <option value="Private">Private</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="lobby-topbar-right">
@@ -8980,6 +8989,14 @@ button:active {
               Peak <span id="profile-peak-rating-val" style="color:rgba(251,191,36,0.75);">—</span>
             </div>
             <div class="profile-games-played" id="profile-games-played">0 games played</div>
+            <div id="profile-privacy-container" style="margin-top:8px; display:none;">
+              <label style="font-size:11px; color:rgba(255,255,255,0.6); margin-right:6px;">Privacy:</label>
+              <select id="profile-privacy-select" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:2px 4px; border-radius:3px; font-size:11px;">
+                <option value="Public">Public</option>
+                <option value="Friends Only">Friends Only</option>
+                <option value="Private">Private</option>
+              </select>
+            </div>
           </div>
           <div class="prof-identity-winrate-pill">
             <div class="prof-identity-winrate-val" id="prof-winrate-display">—</div>
@@ -9174,10 +9191,10 @@ button:active {
       <h3>Modifiers & Drafting</h3>
       <p>Every 10 moves, a player is presented with 3 random modifiers to choose from. Drafts alternate between White and Black. Pick wisely — your choice is permanent for the rest of the game.</p>
       <div class="htp-rarity-row">
-        <div class="htp-rarity-badge common">⬜ Common</div>
-        <div class="htp-rarity-badge rare">💜 Rare</div>
-        <div class="htp-rarity-badge legendary">🟡 Legendary</div>
-        <div class="htp-rarity-badge mythic">✨ Mythic</div>
+        <div class="htp-rarity-badge common">Common</div>
+        <div class="htp-rarity-badge rare">Rare</div>
+        <div class="htp-rarity-badge legendary">Legendary</div>
+        <div class="htp-rarity-badge mythic">Mythic</div>
       </div>
       <p>Higher rarity modifiers are rarer but more powerful. Mythic modifiers can completely reshape the game.</p>
 
@@ -17969,6 +17986,7 @@ const FIREBASE_CONFIG = {
 let fbApp, fbAuth, fbDb;
 let currentUser = null;       // Firebase Auth user
 let currentProfile = null;    // Firestore user document data
+let viewedProfile = null;     // Profile data for viewing others
 let isGuest = false;
 
 function initFirebase(){
@@ -18118,10 +18136,20 @@ async function loadProfile(){
   const snap = await fbDb.collection('users').where('uid','==',currentUser.uid).limit(1).get();
   if(!snap.empty){
     currentProfile = { id: snap.docs[0].id, ...snap.docs[0].data() };
+    if(!currentProfile.privacy) currentProfile.privacy = 'Public';
     updateLobbyUI();
     // Sync discovered modifiers from server → merge with local cache
     await loadDiscoveredModifiersFromFirestore();
   }
+}
+
+async function loadUserProfileByUsername(username){
+  if(!fbDb) return null;
+  const doc = await fbDb.collection('users').doc(username).get();
+  if(doc.exists){
+    return { id: doc.id, ...doc.data() };
+  }
+  return null;
 }
 
 function updateLobbyUI(){
@@ -18149,6 +18177,19 @@ function updateLobbyUI(){
   }
   if(snapWins) snapWins.textContent = wins ?? '—';
   if(snapGames) snapGames.textContent = p.gamesPlayed ?? '—';
+
+  // Privacy settings
+  const lobbyPrivacySelect = document.getElementById('lobby-privacy-select');
+  if(lobbyPrivacySelect){
+    lobbyPrivacySelect.value = p.privacy || 'Public';
+    lobbyPrivacySelect.onchange = async () => {
+      const newPrivacy = lobbyPrivacySelect.value;
+      p.privacy = newPrivacy;
+      // Save to Firestore
+      await fbDb.collection('users').doc(p.id).update({ privacy: newPrivacy });
+      showToast('Privacy updated!', 1500);
+    };
+  }
 
   // Friends panel — inline preview
   const reqCount = (p.friendRequests || []).length;
@@ -19137,6 +19178,7 @@ async function refreshFriendsList(){
     const doc = await fbDb.collection('users').doc(username).get();
     const rating = doc.exists ? doc.data().rating : '—';
     const row = makeFriendRow(username, rating, [
+      { label:'View Profile', cls:'profile', action: () => showProfile(username) },
       { label:'Invite', cls:'invite', action: () => inviteFriend(username) },
       { label:'Remove', cls:'danger', action: () => removeFriend(username) }
     ]);
@@ -19500,15 +19542,35 @@ function winTypeFromMessage(msg){
 //  TASK 4: PROFILE DISPLAY
 // ============================================================
 
-function showProfile(){
+async function showProfile(username = null){
   if(!requireLogin({
     icon: '📊',
-    title: 'Your Profile',
-    sub: 'Sign in to track your Chaos Rating, match history, and win rate.'
+    title: username ? `${username}'s Profile` : 'Your Profile',
+    sub: username ? `View ${username}'s stats and rating.` : 'Sign in to track your Chaos Rating, match history, and win rate.'
   })) return;
-  if(!currentProfile){
+  if(!currentProfile && !username){
     showToast('Sign in to view your profile!', 2500);
     return;
+  }
+  if(username){
+    viewedProfile = await loadUserProfileByUsername(username);
+    if(!viewedProfile){
+      showToast('User not found!', 2500);
+      return;
+    }
+    // Check privacy
+    if(viewedProfile.privacy === 'Private'){
+      showToast('This profile is private.', 2500);
+      return;
+    }
+    if(viewedProfile.privacy === 'Friends Only'){
+      if(!currentProfile || !currentProfile.friends || !currentProfile.friends.includes(username)){
+        showToast('This profile is friends-only.', 2500);
+        return;
+      }
+    }
+  } else {
+    viewedProfile = currentProfile;
   }
   hideAll();
   showSubView();
@@ -19517,8 +19579,8 @@ function showProfile(){
 }
 
 function renderProfile(){
-  if(!currentProfile) return;
-  const p = currentProfile;
+  if(!viewedProfile) return;
+  const p = viewedProfile;
   const s = p.stats || {};
 
   document.getElementById('profile-avatar-letter').textContent = p.username[0].toUpperCase();
@@ -19527,6 +19589,23 @@ function renderProfile(){
   const peakEl = document.getElementById('profile-peak-rating-val');
   if(peakEl) peakEl.textContent = p.peakRating || p.rating || 1000;
   document.getElementById('profile-games-played').textContent = `${p.gamesPlayed || 0} games played`;
+
+  // Privacy settings
+  const privacyContainer = document.getElementById('profile-privacy-container');
+  const privacySelect = document.getElementById('profile-privacy-select');
+  if(p === currentProfile){
+    privacyContainer.style.display = 'block';
+    privacySelect.value = p.privacy || 'Public';
+    privacySelect.onchange = async () => {
+      const newPrivacy = privacySelect.value;
+      p.privacy = newPrivacy;
+      // Save to Firestore
+      await fbDb.collection('users').doc(p.id).update({ privacy: newPrivacy });
+      showToast('Privacy updated!', 1500);
+    };
+  } else {
+    privacyContainer.style.display = 'none';
+  }
 
   const wins   = s.wins   || p.wins   || 0;
   const losses = s.losses || p.losses || 0;
