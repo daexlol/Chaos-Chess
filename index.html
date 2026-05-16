@@ -732,98 +732,489 @@ h1 {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.5) 0%, rgba(245, 158, 11, 0.4) 100%);
 }
 
-#draft { 
-  display:none; 
+/* ═══════════════════════════════════════════════════════════════
+   CINEMATIC CHAOS DRAFT — full-screen overlay with card reveal
+   ═══════════════════════════════════════════════════════════════ */
+
+#draft {
+  display: none;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.9);
-  padding:40px; 
-  border-radius:20px; 
-  background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.75) 100%);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-  border: 2px solid rgba(255,255,255,0.15);
-  min-width:500px;
+  inset: 0;
   z-index: 9999;
   opacity: 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  /* No background — backdrop handles dimming */
 }
 
 #draft.active {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
 }
 
-/* Draft ::before removed — replaced by #draft-backdrop div for RGB flicker support */
+/* ── Inner layout container ── */
+#draft-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
 
-#draft h3 {
-  margin: 0 0 20px 0;
-  font-size: 28px;
-  font-weight: 900;
+/* ── Cinematic spotlight focused on the cards ── */
+#draft-spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 52%, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.88) 100%);
+  pointer-events: none;
+  z-index: 0;
+  animation: draftSpotlightPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes draftSpotlightPulse {
+  0%, 100% { background: radial-gradient(ellipse 70% 55% at 50% 52%, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.88) 100%); }
+  50%       { background: radial-gradient(ellipse 65% 50% at 50% 52%, transparent 0%, rgba(0,0,0,0.60) 58%, rgba(0,0,0,0.90) 100%); }
+}
+
+/* ── Ambient floating particles canvas ── */
+#draft-particles-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1s ease 0.5s;
+}
+#draft.active #draft-particles-canvas { opacity: 1; }
+
+/* ── CHAOS DRAFT title ── */
+#draft-title-wrap {
+  position: relative;
+  z-index: 10;
   text-align: center;
-  letter-spacing: 2px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+#draft-title-wrap.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#draft-title {
+  font-size: clamp(22px, 3.5vw, 42px);
+  font-weight: 900;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #e8d5ff 0%, #c084fc 40%, #9333ea 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(168,85,247,0.7)) drop-shadow(0 0 40px rgba(168,85,247,0.4));
+  animation: draftTitleFlicker 4s ease-in-out infinite;
 }
 
+@keyframes draftTitleFlicker {
+  0%, 89%, 91%, 93%, 100% { opacity: 1; filter: drop-shadow(0 0 20px rgba(168,85,247,0.7)) drop-shadow(0 0 40px rgba(168,85,247,0.4)); }
+  90% { opacity: 0.85; filter: drop-shadow(0 0 30px rgba(168,85,247,1)) drop-shadow(0 0 60px rgba(168,85,247,0.6)); }
+  92% { opacity: 0.9; }
+}
+
+#draft-subtitle {
+  font-size: clamp(10px, 1.2vw, 13px);
+  letter-spacing: 4px;
+  color: rgba(196,155,255,0.6);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Timer ── */
 #draft-timer {
+  position: relative;
+  z-index: 10;
   text-align: center;
-  font-size: 18px;
+  font-size: clamp(13px, 1.6vw, 17px);
   font-weight: 700;
-  margin-bottom: 15px;
-  color: #10b981;
+  letter-spacing: 2px;
+  color: rgba(167,139,250,0.8);
+  margin-bottom: 8px;
+  opacity: 0;
+  transition: opacity 0.5s ease 1.5s;
+}
+#draft-timer.visible { opacity: 1; }
+#draft-timer.warning { color: #fbbf24; animation: pulse-warning 1s ease-in-out infinite; }
+#draft-timer.danger  { color: #ef4444; animation: pulse-danger 0.5s ease-in-out infinite; }
+
+/* ── Card row ── */
+#draft-card-row {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 2.5vw, 36px);
+  padding: 20px 30px;
 }
 
-#draft-timer.warning {
-  color: #f59e0b;
-  animation: pulse-warning 1s ease-in-out infinite;
+/* ── View Board button ── */
+#draft-view-board-btn {
+  position: relative;
+  z-index: 10;
+  margin-top: 14px;
+  padding: 9px 28px;
+  background: rgba(15,5,30,0.7);
+  border: 1px solid rgba(168,85,247,0.35);
+  border-radius: 30px;
+  color: rgba(196,155,255,0.75);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.5s ease 2s, background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+#draft-view-board-btn.visible { opacity: 1; }
+#draft-view-board-btn:hover {
+  background: rgba(168,85,247,0.2);
+  border-color: rgba(168,85,247,0.7);
+  color: #e9d5ff;
+  transform: translateY(-2px);
 }
 
-#draft-timer.danger {
-  color: #ef4444;
-  animation: pulse-danger 0.5s ease-in-out infinite;
+/* Board peek state: slide cards up and fade them */
+#draft.board-peek #draft-card-row  { transform: translateY(-140%); opacity: 0; pointer-events: none; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease; }
+#draft.board-peek #draft-title-wrap{ opacity: 0; transform: translateY(-30px); transition: opacity 0.3s ease, transform 0.3s ease; }
+#draft.board-peek #draft-timer     { opacity: 0; transition: opacity 0.3s ease; }
+#draft.board-peek #draft-spotlight  { opacity: 0; transition: opacity 0.45s ease; }
+#draft.board-peek #draft-particles-canvas { opacity: 0; transition: opacity 0.4s ease; }
+#draft:not(.board-peek) #draft-card-row { transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease; }
+
+/* Backdrop dim fades out during board peek */
+#draft-backdrop.peek-mode #draft-backdrop-dim  { background: rgba(0,0,0,0) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+#draft-backdrop.peek-mode #draft-backdrop-r,
+#draft-backdrop.peek-mode #draft-backdrop-b,
+#draft-backdrop.peek-mode #draft-backdrop-g    { opacity: 0 !important; animation: none !important; }
+#draft-backdrop.peek-mode #draft-backdrop-vignette { opacity: 0 !important; animation: none !important; }
+#draft-backdrop.peek-mode #draft-backdrop-scanline { opacity: 0 !important; animation: none !important; }
+
+#draft-view-board-btn.peeking {
+  background: rgba(168,85,247,0.25);
+  border-color: rgba(168,85,247,0.8);
+  color: #f3e8ff;
+  letter-spacing: 3px;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   CINEMATIC DRAFT CARD — relic / artifact style
+   Each card lives inside a .draft-card-wrap (perspective shell)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Perspective wrapper — handles the 3-D flip */
+.draft-card-wrap {
+  perspective: 900px;
+  width: clamp(160px, 18vw, 220px);
+  height: clamp(240px, 30vw, 330px);
+  flex-shrink: 0;
+  /* Angular lean inward — outer cards tip toward center */
+}
+.draft-card-wrap:first-child  { transform: rotate(-5deg) translateY(8px); }
+.draft-card-wrap:last-child   { transform: rotate( 5deg) translateY(8px); }
+.draft-card-wrap:nth-child(2) { transform: rotate( 0deg) translateY(0px); z-index: 2; }
+
+/* Dim siblings on hover of any card */
+#draft-card-row:has(.draft-card-wrap:hover) .draft-card-wrap:not(:hover) {
+  filter: brightness(0.55);
+  transition: filter 0.35s ease;
+}
+#draft-card-row .draft-card-wrap { transition: filter 0.35s ease; }
+
+/* Flipper — pure positioning shell, NO animation here (JS drives everything) */
+.draft-card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* Float animation lives on a separate wrapper so it never fights the flip */
+.draft-card-float {
+  width: 100%;
+  height: 100%;
+  animation: cardFloat 3.8s ease-in-out infinite;
+}
+.draft-card-wrap:nth-child(1) .draft-card-float { animation-delay: -0.9s; }
+.draft-card-wrap:nth-child(2) .draft-card-float { animation-delay: -2.1s; }
+.draft-card-wrap:nth-child(3) .draft-card-float { animation-delay: -3.4s; }
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* Hover lift — applied via JS class .lift-hover on the float wrapper */
+.draft-card-float.lift-hover {
+  animation: cardFloatHover 3.8s ease-in-out infinite;
+  filter: brightness(1.12);
+}
+.draft-card-wrap:nth-child(1) .draft-card-float.lift-hover { animation-delay: -0.9s; }
+.draft-card-wrap:nth-child(2) .draft-card-float.lift-hover { animation-delay: -2.1s; }
+.draft-card-wrap:nth-child(3) .draft-card-float.lift-hover { animation-delay: -3.4s; }
+
+@keyframes cardFloatHover {
+  0%, 100% { transform: translateY(-16px) scale(1.05); }
+  50%       { transform: translateY(-24px) scale(1.05); }
+}
+
+/* ── Card faces (shared) ── */
+.draft-card-back,
+.card {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD BACK  — dark navy/purple with chaos energy
+   ═══════════════════════════════════════════════════════════ */
+.draft-card-back {
+  background: linear-gradient(150deg, #0d0820 0%, #110d2e 40%, #0f1535 70%, #0a0618 100%);
+  border: 3px solid rgba(120,60,200,0.55);
+  box-shadow:
+    0 0 0 1px rgba(80,20,150,0.35),
+    0 0 18px rgba(100,40,200,0.4),
+    0 0 50px rgba(80,20,160,0.25),
+    0 20px 50px rgba(0,0,0,0.7);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: cardBackGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes cardBackGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(80,20,150,0.35), 0 0 18px rgba(100,40,200,0.4), 0 0 50px rgba(80,20,160,0.25), 0 20px 50px rgba(0,0,0,0.7); border-color: rgba(120,60,200,0.55); }
+  50%       { box-shadow: 0 0 0 1px rgba(120,60,220,0.5), 0 0 28px rgba(130,60,240,0.65), 0 0 70px rgba(100,40,200,0.4), 0 20px 50px rgba(0,0,0,0.7); border-color: rgba(160,90,255,0.75); }
+}
+
+/* Ornamental corner pieces on card back */
+.draft-card-back::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(140,80,255,0.2);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Corner rune marks */
+.draft-card-back::after {
+  content: '✦';
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 11px;
+  color: rgba(168,85,247,0.4);
+  animation: runeRotate 8s linear infinite;
+}
+
+@keyframes runeRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.card-back-inner {
+  position: relative;
+  width: 70%;
+  height: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Central sigil on the back */
+.card-back-sigil {
+  font-size: 52px;
+  opacity: 0.18;
+  color: #c084fc;
+  text-shadow: 0 0 20px rgba(168,85,247,0.6);
+  animation: sigilPulse 3s ease-in-out infinite;
+  user-select: none;
+}
+
+@keyframes sigilPulse {
+  0%, 100% { opacity: 0.18; transform: scale(1) rotate(0deg); text-shadow: 0 0 20px rgba(168,85,247,0.5); }
+  50%       { opacity: 0.30; transform: scale(1.06) rotate(3deg); text-shadow: 0 0 35px rgba(168,85,247,0.9), 0 0 60px rgba(168,85,247,0.5); }
+}
+
+/* Drifting chaos rune particles inside back */
+.back-rune {
+  position: absolute;
+  color: rgba(168,85,247,0.35);
+  font-size: 9px;
+  animation: backRuneDrift linear infinite;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes backRuneDrift {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-80px) rotate(360deg); opacity: 0; }
+}
+
+/* Glowing crack lines on the back */
+.back-crack {
+  position: absolute;
+  background: linear-gradient(to bottom, transparent, rgba(168,85,247,0.5) 50%, transparent);
+  width: 1px;
+  animation: crackFlicker 2.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+@keyframes crackFlicker {
+  0%, 100% { opacity: 0.3; box-shadow: 0 0 3px rgba(168,85,247,0.4); }
+  50%       { opacity: 0.8; box-shadow: 0 0 8px rgba(168,85,247,0.9), 0 0 16px rgba(168,85,247,0.5); }
+}
+
+/* Pre-reveal edge glow — leaks out just before the flip */
+.draft-card-wrap.pre-reveal .draft-card-back {
+  animation: cardBackGlow 2.8s ease-in-out infinite, preRevealLeakGlow 0.8s ease-in-out 3;
+  border-color: rgba(200,120,255,0.9) !important;
+}
+
+@keyframes preRevealLeakGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(80,20,150,0.35), 0 0 18px rgba(100,40,200,0.4), 0 0 50px rgba(80,20,160,0.25), 0 20px 50px rgba(0,0,0,0.7); }
+  50%       { box-shadow: 0 0 0 3px rgba(200,100,255,0.7), 0 0 40px rgba(180,80,255,0.9), 0 0 90px rgba(150,60,255,0.6), 0 20px 50px rgba(0,0,0,0.7); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD FRONT  — relic/artifact style
+   ═══════════════════════════════════════════════════════════ */
 .card { 
-  padding:20px; 
-  margin:10px; 
-  border-radius:16px; 
-  cursor:pointer; 
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-align:center; 
-  position:relative;
-  overflow:hidden;
+  padding: 18px 16px 16px;
+  border-radius: 16px; 
+  cursor: pointer; 
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center; 
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* JS flip: starts hidden (back face showing), JS toggles visibility via rotateY on flipper */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  outline: 1px solid rgba(255,255,255,0.06);
+  outline-offset: -7px;
+  pointer-events: none; /* JS enables this after reveal */
 }
 
+/* JS adds .card-active after flip to enable clicks */
+.card.card-active {
+  pointer-events: all;
+}
+
+/* Inner shimmer overlay */
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
-.card:hover::before {
-  opacity: 1;
-}
-
-.card:hover { 
-  transform: scale(1.08) translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+/* Ornamental corner glints */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.4);
+  pointer-events: none;
 }
 
 .card strong {
   display: block;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  margin-bottom: 4px;
-  opacity: 0.8;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+/* ── Rarity front styles — cinematic upgrade ── */
+
+.common {
+  background: linear-gradient(155deg, #1c2438 0%, #232e44 45%, #1a2235 100%);
+  border: 3px solid rgba(148,163,184,0.55);
+  box-shadow:
+    inset 0 0 40px rgba(148,163,184,0.08),
+    0 0 0 1px rgba(100,116,139,0.3),
+    0 0 18px rgba(148,163,184,0.3),
+    0 0 45px rgba(100,116,139,0.18),
+    0 16px 48px rgba(0,0,0,0.65);
+  animation: commonGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes commonGlow {
+  0%, 100% { box-shadow: inset 0 0 40px rgba(148,163,184,0.08), 0 0 0 1px rgba(100,116,139,0.3), 0 0 18px rgba(148,163,184,0.3), 0 0 45px rgba(100,116,139,0.18), 0 16px 48px rgba(0,0,0,0.65); }
+  50%       { box-shadow: inset 0 0 55px rgba(148,163,184,0.14), 0 0 0 1px rgba(148,163,184,0.45), 0 0 28px rgba(148,163,184,0.5), 0 0 65px rgba(100,116,139,0.3), 0 16px 48px rgba(0,0,0,0.65); }
+}
+
+.rare {
+  background: linear-gradient(155deg, #160d2e 0%, #1e1040 45%, #12082a 100%);
+  border: 3px solid rgba(139,92,246,0.7);
+  box-shadow:
+    inset 0 0 50px rgba(139,92,246,0.12),
+    0 0 0 1px rgba(120,60,220,0.4),
+    0 0 22px rgba(139,92,246,0.5),
+    0 0 60px rgba(100,40,200,0.3),
+    0 16px 48px rgba(0,0,0,0.7);
+  animation: rareGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes rareGlow {
+  0%, 100% { box-shadow: inset 0 0 50px rgba(139,92,246,0.12), 0 0 0 1px rgba(120,60,220,0.4), 0 0 22px rgba(139,92,246,0.5), 0 0 60px rgba(100,40,200,0.3), 0 16px 48px rgba(0,0,0,0.7); }
+  50%       { box-shadow: inset 0 0 70px rgba(167,139,250,0.18), 0 0 0 1px rgba(167,139,250,0.6), 0 0 35px rgba(167,139,250,0.7), 0 0 90px rgba(139,92,246,0.45), 0 16px 48px rgba(0,0,0,0.7); }
+}
+
+.legendary {
+  background: linear-gradient(155deg, #1a0f00 0%, #261400 45%, #1a0e00 100%);
+  border: 3px solid rgba(251,191,36,0.75);
+  box-shadow:
+    inset 0 0 50px rgba(251,191,36,0.1),
+    0 0 0 1px rgba(245,158,11,0.45),
+    0 0 24px rgba(251,191,36,0.55),
+    0 0 70px rgba(245,158,11,0.35),
+    0 16px 48px rgba(0,0,0,0.7);
+  animation: legendaryGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes legendaryGlow {
+  0%, 100% { box-shadow: inset 0 0 50px rgba(251,191,36,0.1), 0 0 0 1px rgba(245,158,11,0.45), 0 0 24px rgba(251,191,36,0.55), 0 0 70px rgba(245,158,11,0.35), 0 16px 48px rgba(0,0,0,0.7); }
+  50%       { box-shadow: inset 0 0 70px rgba(253,224,71,0.18), 0 0 0 1px rgba(253,224,71,0.65), 0 0 38px rgba(253,224,71,0.75), 0 0 100px rgba(245,158,11,0.5), 0 16px 48px rgba(0,0,0,0.7); }
+}
+
+.mythic {
+  background: linear-gradient(135deg, #1a0a00 0%, #220d00 50%, #1a0a00 100%);
+  border: 4px solid rgba(253,224,71,0.9);
+  box-shadow:
+    inset 0 0 80px rgba(253,224,71,0.15),
+    0 0 0 1px rgba(253,224,71,0.5),
+    0 0 30px rgba(253,224,71,0.8),
+    0 0 100px rgba(245,158,11,0.55),
+    0 20px 60px rgba(0,0,0,0.7);
+  animation: mythic-pulse 2s ease-in-out infinite;
 }
 
 /* Evolution hint shown on base modifier cards */
@@ -833,6 +1224,8 @@ h1 {
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
 }
 .card .evo-hint-available {
   color: rgba(255,255,255,0.55);
@@ -846,53 +1239,83 @@ h1 {
 .card small {
   display: block;
   margin-top: 8px;
-  opacity: 0.9;
-  font-size: 13px;
-  line-height: 1.4;
+  opacity: 0.88;
+  font-size: clamp(11px, 1.1vw, 13px);
+  line-height: 1.45;
+  position: relative;
+  z-index: 1;
 }
 
-.mythic {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
-  border:4px solid #fcd34d;
-  box-shadow: 
-    0 12px 48px rgba(251, 191, 36, 0.6), 
-    0 0 80px rgba(251, 191, 36, 0.4),
-    inset 0 0 80px rgba(255,255,255,0.2);
-  animation: mythic-pulse 2s ease-in-out infinite;
+/* Card rarity particle emitters */
+.card-rarity-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: cardParticleDrift linear infinite;
 }
+
+@keyframes cardParticleDrift {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-70px) translateX(var(--drift-x, 0px)) scale(0.4); opacity: 0; }
+}
+
+/* Icon and name z-index */
+.evolution-icon { position: relative; z-index: 1; }
+.evolution-name { position: relative; z-index: 1; }
+
+/* ── Card CTA label at bottom ── */
+.card-cta {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  z-index: 2;
+  transition: color 0.25s ease, opacity 0.25s ease;
+  pointer-events: none;
+  user-select: none;
+}
+.card-cta .cta-default { display: inline; }
+.card-cta .cta-hover   { display: none; }
+
+/* On wrap hover (only when revealed), swap text and brighten */
+.draft-card-wrap:hover .card-cta {
+  color: rgba(255,255,255,0.75);
+}
+.draft-card-wrap:hover .card-cta .cta-default { display: none; }
+.draft-card-wrap:hover .card-cta .cta-hover   { display: inline; }
+
+/* .mythic-OLD-REMOVED { */
 
 @keyframes mythic-pulse {
   0%, 100% {
-    box-shadow: 
-      0 12px 48px rgba(251, 191, 36, 0.6), 
-      0 0 80px rgba(251, 191, 36, 0.4),
-      inset 0 0 80px rgba(255,255,255,0.2);
+    box-shadow:
+      inset 0 0 80px rgba(253,224,71,0.15),
+      0 0 0 1px rgba(253,224,71,0.5),
+      0 0 30px rgba(253,224,71,0.8),
+      0 0 100px rgba(245,158,11,0.55),
+      0 20px 60px rgba(0,0,0,0.7);
   }
   50% {
-    box-shadow: 
-      0 16px 60px rgba(251, 191, 36, 0.8), 
-      0 0 100px rgba(251, 191, 36, 0.6),
-      inset 0 0 100px rgba(255,255,255,0.3);
+    box-shadow:
+      inset 0 0 110px rgba(253,224,71,0.25),
+      0 0 0 2px rgba(253,224,71,0.7),
+      0 0 50px rgba(253,224,71,1),
+      0 0 140px rgba(245,158,11,0.7),
+      0 20px 60px rgba(0,0,0,0.7);
   }
 }
 
-.legendary { 
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border:3px solid #fcd34d;
-  box-shadow: 0 8px 32px rgba(251, 191, 36, 0.4), inset 0 0 60px rgba(255,255,255,0.1);
-}
-
-.rare { 
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-  border:3px solid #c4b5fd;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), inset 0 0 60px rgba(255,255,255,0.1);
-}
-
-.common { 
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-  border:3px solid #cbd5e1;
-  box-shadow: 0 8px 32px rgba(100, 116, 139, 0.4), inset 0 0 60px rgba(255,255,255,0.1);
-}
+/* Old rarity styles removed — new ones above in cinematic section */
+/* .legendary-REMOVED { */
 
 #effects { position:fixed; pointer-events:none; top:0; left:0; width:100%; height:100%; }
 
@@ -4600,9 +5023,12 @@ button:active {
     font-size: 11px;
   }
   
-  #draft .card {
-    width: 80%;
-    max-width: 300px;
+  #draft-card-row {
+    gap: 10px;
+  }
+  .draft-card-wrap {
+    width: clamp(120px, 27vw, 165px);
+    height: clamp(190px, 40vw, 250px);
   }
   
   .notation {
@@ -5225,26 +5651,9 @@ button:active {
   48%  { opacity: 0.45; }
 }
 
-/* ── 8. DRAFT SCREEN — pulsing rgb border glow ── */
+/* ── 8. DRAFT SCREEN — cinematic full-screen (no border glow needed) ── */
 #draft.active {
-  animation: chaos-draft-glow 2.8s ease-in-out infinite;
-}
-@keyframes chaos-draft-glow {
-  0%, 100% {
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
-      0 0 0 2px rgba(251,191,36,0.35),
-      0 0 30px rgba(251,191,36,0.12);
-  }
-  33% {
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
-      0 0 0 2px rgba(255,20,80,0.4),
-      0 0 40px rgba(255,20,80,0.1);
-  }
-  66% {
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7),
-      0 0 0 2px rgba(124,92,255,0.5),
-      0 0 40px rgba(0,200,255,0.08);
-  }
+  /* Full-screen overlay — no box-shadow on the element itself */
 }
 
 /* ── 9. POSTGAME — win result flicker + rating box tear ── */
@@ -7807,27 +8216,38 @@ button:active {
 }
 
 .evolution-card {
-  position: relative;
+  position: absolute !important;
+  inset: 0 !important;
   overflow: hidden;
-  background: transparent !important;
-  animation: evoRainbowBorder 8s linear infinite, evoGlitchCard 5s ease-in-out infinite !important;
-  border-width: 2px !important;
-  border-style: solid !important;
+  background: linear-gradient(155deg, #1a0825 0%, #220d35 45%, #180620 100%) !important;
+  border: 3px solid rgba(255,60,120,0.8) !important;
+  box-shadow:
+    inset 0 0 60px rgba(255,60,120,0.1),
+    0 0 0 1px rgba(255,60,120,0.4),
+    0 0 24px rgba(255,60,120,0.7),
+    0 0 80px rgba(140,60,255,0.4),
+    0 16px 48px rgba(0,0,0,0.7) !important;
+  animation: evoRainbowGlow 8s linear infinite !important;
+}
+
+@keyframes evoRainbowGlow {
+  0%   { border-color: rgba(255,60,120,0.85);  box-shadow: inset 0 0 60px rgba(255,60,120,0.10), 0 0 0 1px rgba(255,60,120,0.4),  0 0 28px rgba(255,60,120,0.80), 0 0 90px rgba(255,60,120,0.40),  0 16px 48px rgba(0,0,0,0.7); }
+  14%  { border-color: rgba(255,150,40,0.85);  box-shadow: inset 0 0 60px rgba(255,150,40,0.10), 0 0 0 1px rgba(255,150,40,0.4), 0 0 28px rgba(255,150,40,0.80), 0 0 90px rgba(255,150,40,0.40), 0 16px 48px rgba(0,0,0,0.7); }
+  28%  { border-color: rgba(220,220,40,0.85);  box-shadow: inset 0 0 60px rgba(220,220,40,0.10), 0 0 0 1px rgba(220,220,40,0.4), 0 0 28px rgba(220,220,40,0.80), 0 0 90px rgba(220,220,40,0.40), 0 16px 48px rgba(0,0,0,0.7); }
+  42%  { border-color: rgba(40,220,110,0.85);  box-shadow: inset 0 0 60px rgba(40,220,110,0.10), 0 0 0 1px rgba(40,220,110,0.4), 0 0 28px rgba(40,220,110,0.80), 0 0 90px rgba(40,220,110,0.40), 0 16px 48px rgba(0,0,0,0.7); }
+  57%  { border-color: rgba(40,170,255,0.85);  box-shadow: inset 0 0 60px rgba(40,170,255,0.10), 0 0 0 1px rgba(40,170,255,0.4), 0 0 28px rgba(40,170,255,0.80), 0 0 90px rgba(40,170,255,0.40), 0 16px 48px rgba(0,0,0,0.7); }
+  71%  { border-color: rgba(140,60,255,0.85);  box-shadow: inset 0 0 60px rgba(140,60,255,0.10), 0 0 0 1px rgba(140,60,255,0.4),  0 0 28px rgba(140,60,255,0.80), 0 0 90px rgba(140,60,255,0.40),  0 16px 48px rgba(0,0,0,0.7); }
+  85%  { border-color: rgba(255,60,200,0.85);  box-shadow: inset 0 0 60px rgba(255,60,200,0.10), 0 0 0 1px rgba(255,60,200,0.4),  0 0 28px rgba(255,60,200,0.80), 0 0 90px rgba(255,60,200,0.40),  0 16px 48px rgba(0,0,0,0.7); }
+  100% { border-color: rgba(255,60,120,0.85);  box-shadow: inset 0 0 60px rgba(255,60,120,0.10), 0 0 0 1px rgba(255,60,120,0.4),  0 0 28px rgba(255,60,120,0.80), 0 0 90px rgba(255,60,120,0.40),  0 16px 48px rgba(0,0,0,0.7); }
+}
+
+/* Remove the ::after bg override that was covering card content */
+.evolution-card::after {
+  display: none !important;
 }
 
 .evolution-card:hover {
-  transform: scale(1.08) translateY(-8px) !important;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
-}
-
-.evolution-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: rgb(88, 28, 50); /* start colour — animation takes over immediately */
-  animation: evoRainbowBg 8s linear infinite;
-  pointer-events: none;
-  z-index: 0;
+  /* hover handled by JS lift system — no transform override here */
 }
 
 /* Rarity label — shows "EVOLVED" in rainbow */
@@ -7851,7 +8271,6 @@ button:active {
 .evolution-name {
   position: relative;
   z-index: 1;
-  animation: evoNameGlitch 6s ease-in-out infinite;
   font-weight: 600;
 }
 
@@ -16942,47 +17361,91 @@ function chaosDraft(){
   
   // In online mode, alternate who gets to draft
   if(gameMode === 'online'){
-    // draftNumber counts how many drafts have happened so far
     let draftNumber = moveCount / DRAFT_FREQUENCY;
-    let isWhiteDraft = (draftNumber % 2 === 1); // Odd = white, even = black
-    
+    let isWhiteDraft = (draftNumber % 2 === 1);
     if((isWhiteDraft && myColor !== 'white') || (!isWhiteDraft && myColor !== 'black')){
       showToast(`Opponent is drafting a modifier...`, 3000);
       return;
     }
   }
   
-  let draft=document.getElementById('draft');
-  draft.innerHTML=''; // Clear first
-  
-  let header = document.createElement('h3');
-  header.textContent = 'CHAOS DRAFT';
-  draft.appendChild(header);
-  
-  let timerDiv = document.createElement('div');
+  let draft = document.getElementById('draft');
+  draft.innerHTML = '';
+
+  // ── Build cinematic DOM ──────────────────────────────────────────────
+  draft.style.display = 'block';
+
+  // Spotlight
+  const spotlight = document.createElement('div');
+  spotlight.id = 'draft-spotlight';
+  draft.appendChild(spotlight);
+
+  // Particle canvas
+  const particleCanvas = document.createElement('canvas');
+  particleCanvas.id = 'draft-particles-canvas';
+  draft.appendChild(particleCanvas);
+
+  // Inner layout
+  const inner = document.createElement('div');
+  inner.id = 'draft-inner';
+  draft.appendChild(inner);
+
+  // Title
+  const titleWrap = document.createElement('div');
+  titleWrap.id = 'draft-title-wrap';
+  titleWrap.innerHTML = `
+    <div id="draft-title">CHAOS DRAFT</div>
+    <div id="draft-subtitle">REALITY IS REWRITING ITSELF — CHOOSE YOUR FATE</div>
+  `;
+  inner.appendChild(titleWrap);
+
+  // Timer
+  const timerDiv = document.createElement('div');
   timerDiv.id = 'draft-timer';
   timerDiv.textContent = '15';
-  draft.appendChild(timerDiv);
-  
-  draft.style.display='block';
-  
-  // Start draft timer
-  draftTimeRemaining = 15;
-  startDraftTimer();
-  
-  // Start chaos glitch text fragment effect
+  inner.appendChild(timerDiv);
+
+  // Card row
+  const cardRow = document.createElement('div');
+  cardRow.id = 'draft-card-row';
+  inner.appendChild(cardRow);
+
+  // View Board button
+  const viewBoardBtn = document.createElement('button');
+  viewBoardBtn.id = 'draft-view-board-btn';
+  viewBoardBtn.textContent = 'VIEW BOARD';
+  let peeking = false;
+  const _backdropRef = document.getElementById('draft-backdrop');
+  viewBoardBtn.onclick = () => {
+    peeking = !peeking;
+    if (peeking) {
+      draft.classList.add('board-peek');
+      viewBoardBtn.textContent = 'BACK TO DRAFT';
+      viewBoardBtn.classList.add('peeking');
+      // Undim the board — fade out backdrop effects
+      if (_backdropRef) _backdropRef.classList.add('peek-mode');
+      stopDraftGlitch();
+    } else {
+      draft.classList.remove('board-peek');
+      viewBoardBtn.textContent = 'VIEW BOARD';
+      viewBoardBtn.classList.remove('peeking');
+      // Restore backdrop dimming and glitch
+      if (_backdropRef) _backdropRef.classList.remove('peek-mode');
+      startDraftGlitch();
+    }
+  };
+  inner.appendChild(viewBoardBtn);
+
+  // Start chaos glitch + backdrop
   startDraftGlitch();
-  // Trigger animation
-  setTimeout(()=>draft.classList.add('active'), 10);
-  // Show and activate the dimmed RGB backdrop
+  setTimeout(() => draft.classList.add('active'), 10);
   const _backdrop = document.getElementById('draft-backdrop');
   if (_backdrop) {
     _backdrop.style.display = 'block';
     setTimeout(() => _backdrop.classList.add('active'), 10);
   }
 
-  // Filter out modifiers already owned AND banned mods
-  // Also exclude base modifiers that have already been evolved (e.g. if you have "Fast Pawn (Evolved)", exclude "Fast Pawn")
+  // ── Filter modifiers ────────────────────────────────────────────────
   let evolvedBaseNames = evolvedMods
     .filter(ev => modifiers.includes(ev.name))
     .map(ev => ev.baseModifier);
@@ -16992,27 +17455,27 @@ function chaosDraft(){
     !evolvedBaseNames.includes(m.name)
   );
 
-  // Build evolution pool: evolutions of modifiers the player currently owns,
-  // excluding ones they already have, and excluding if the base modifier is banned.
   let evolutionPool = evolvedMods.filter(ev => {
-    if(modifiers.includes(ev.name)) return false;           // already evolved
-    if(!modifiers.includes(ev.baseModifier)) return false;  // doesn't own base
+    if(modifiers.includes(ev.name)) return false;
+    if(!modifiers.includes(ev.baseModifier)) return false;
     return true;
   });
 
-  // If less than 3 available (and no evolutions either), just show what's left
   if(available.length === 0 && evolutionPool.length === 0) {
-    draft.innerHTML='<h3>CHAOS DRAFT</h3><p>No more modifiers available!</p>';
-    setTimeout(()=>{
+    draft.innerHTML = '';
+    const el = document.createElement('div');
+    el.style.cssText = 'color:#fff;text-align:center;padding:40px;font-size:18px;';
+    el.textContent = 'No more modifiers available!';
+    draft.appendChild(el);
+    setTimeout(() => {
       stopDraftGlitch();
       hideDraftBackdrop();
       draft.classList.remove('active');
-      setTimeout(()=>draft.style.display='none', 400);
+      setTimeout(() => draft.style.display = 'none', 400);
     }, 2000);
     return;
   }
 
-  // Weighted rarity selection
   function pickWeightedModifier(availableMods) {
     let roll = Math.random() * 100;
     let targetRarity;
@@ -17021,38 +17484,19 @@ function chaosDraft(){
     else if(roll < 70) targetRarity = 'rare';
     else targetRarity = 'common';
     let candidates = availableMods.filter(m => m.rarity === targetRarity);
-    if(candidates.length > 0) {
-      return candidates[Math.floor(Math.random() * candidates.length)];
-    }
+    if(candidates.length > 0) return candidates[Math.floor(Math.random() * candidates.length)];
     return availableMods[Math.floor(Math.random() * availableMods.length)];
   }
 
-  // ── EVOLUTION CHANCE ──────────────────────────────────────────────────────
-  // Controls how likely each draft slot is to become an evolution offer,
-  // assuming the player owns the base modifier for at least one evolution.
-  //
-  // Each of the 3 draft slots rolls this independently, so with 3 slots the
-  // rough chance of seeing AT LEAST ONE evolution in a draft is:
-  //   1 - (1 - EVOLUTION_CHANCE)^3
-  //
-  //   0.10 → ~27% chance of seeing an evo in a draft  (current — rare)
-  //   0.15 → ~39% chance
-  //   0.20 → ~49% chance
-  //   0.25 → ~58% chance  (old value)
-  //   0.33 → ~70% chance  (frequent)
-  //
-  // Keep it between 0.05 (very rare) and 0.40 (very common).
   const EVOLUTION_CHANCE = 0.15;
-
   let picks = [];
   let pickCount = Math.min(3, available.length + evolutionPool.length);
-  let usedEvolutions = []; // track which evolutions have been selected already
+  let usedEvolutions = [];
   let attempts = 0;
 
   while(picks.length < pickCount && attempts < 100){
     attempts++;
     let candidate;
-    // Try to roll an evolution for this slot
     if(evolutionPool.length > 0 && Math.random() < EVOLUTION_CHANCE){
       let unusedEvos = evolutionPool.filter(ev => !usedEvolutions.includes(ev) && !picks.includes(ev));
       if(unusedEvos.length > 0){
@@ -17060,7 +17504,6 @@ function chaosDraft(){
         usedEvolutions.push(candidate);
       }
     }
-    // If no evolution was picked (or pool empty), pick normal modifier
     if(!candidate){
       if(available.length === 0) continue;
       candidate = pickWeightedModifier(available);
@@ -17068,96 +17511,309 @@ function chaosDraft(){
     if(!picks.includes(candidate)) picks.push(candidate);
   }
 
-  picks.forEach(mod=>{
-  let div = document.createElement('div');
-  let isEvo = mod.isEvolution === true;
-  div.className = `card ${mod.rarity}${isEvo ? ' evolution-card' : ''}`;
+  // ── Build card wrappers (start face-down) ───────────────────────────
+  const cardElements = []; // store refs to .card elements for timer auto-pick
 
-  // Display name strips " (Evolved)" suffix for the title, shows badge instead
-  let displayName = isEvo ? mod.name.replace(' (Evolved)', '') : mod.name;
+  picks.forEach((mod, idx) => {
+    const isEvo = mod.isEvolution === true;
+    const displayName = isEvo ? mod.name.replace(' (Evolved)', '') : mod.name;
 
-  // Evolution hint for base modifiers that can evolve
-  let evoHintHtml = '';
-  if(!isEvo && mod.evolvesTo) {
-    if(modifiers.includes(mod.evolvesTo)) {
-      // Already evolved — show a muted done state
-      evoHintHtml = `<span class="evo-hint evo-hint-done">✦ EVOLVED</span>`;
-    } else {
-      // Evolution available but not yet taken
-      evoHintHtml = `<span class="evo-hint evo-hint-available">✧ CAN EVOLVE</span>`;
-    }
-  }
-
-  div.innerHTML = `
-    <strong>${isEvo ? '✦ EVOLVED' : mod.rarity.toUpperCase()}</strong>
-    ${evoHintHtml}
-    <div class="evolution-icon" style="font-size:40px;margin:4px 0 8px 0;">${mod.icon}</div>
-    <div class="evolution-name" style="font-weight:600;margin-bottom:4px;">${displayName}</div>
-    <small>${mod.desc}</small>
-  `;
-
-  let alreadyClicked = false;
-
-  div.onclick = () => {
-    if (alreadyClicked) return;
-    alreadyClicked = true;
-
-    document.querySelectorAll('#draft .card').forEach(card => {
-      card.style.pointerEvents = 'none';
-      card.style.opacity = '0.5';
-    });
-
-    stopDraftTimer();
-
-    if(isEvo){
-      // Remove the base modifier and add the evolved version
-      let baseIdx = modifiers.indexOf(mod.baseModifier);
-      if(baseIdx !== -1) modifiers.splice(baseIdx, 1);
-      modifiers.push(mod.name);
-      // (no toast for evolution — the card effect speaks for itself)
-    } else {
-      modifiers.push(mod.name);
-    }
-    markModifierDiscovered(mod.name);
-
-    syncModifierDisplays();
-
-    // Special handling for Duck
-    if (mod.name === 'Duck of Eternal Blocking') {
-      spawnDuck();
-    }
-    if (mod.name === 'Time Bomb') {
-      spawnTimeBomb();
-    }
-    if (mod.name === 'Bottomless Pit') {
-      spawnBottomlessPit();
+    let evoHintHtml = '';
+    if(!isEvo && mod.evolvesTo) {
+      if(modifiers.includes(mod.evolvesTo)) {
+        evoHintHtml = `<span class="evo-hint evo-hint-done">✦ EVOLVED</span>`;
+      } else {
+        evoHintHtml = `<span class="evo-hint evo-hint-available">✧ CAN EVOLVE</span>`;
+      }
     }
 
-    // Special handling for Tornado
-    if (mod.name === 'Tornado de Caballos') {
-      draft.classList.remove('active');
-      setTimeout(() => draft.style.display = 'none', 400);
-      tornadoPlacementMode = true;
+    // Rarity-specific particle colour
+    const rarityColors = {
+      common: 'rgba(148,163,184,',
+      rare: 'rgba(139,92,246,',
+      legendary: 'rgba(251,191,36,',
+      mythic: 'rgba(253,224,71,'
+    };
+    const pColor = rarityColors[mod.rarity] || 'rgba(168,85,247,';
+
+    // Card wrap (perspective shell)
+    const wrap = document.createElement('div');
+    wrap.className = 'draft-card-wrap';
+
+    // Float wrapper — float animation lives here, isolated from flip
+    const floatWrap = document.createElement('div');
+    floatWrap.className = 'draft-card-float';
+    floatWrap.style.perspective = '900px';
+
+    // Flipper — JS-driven rotateY, no CSS animation
+    const flipper = document.createElement('div');
+    flipper.className = 'draft-card-flipper';
+    flipper.style.transformStyle = 'preserve-3d';
+    flipper.style.transform = 'rotateY(0deg)';
+    flipper.style.width = '100%';
+    flipper.style.height = '100%';
+    flipper.style.position = 'relative';
+
+    // ── Back face ──
+    const back = document.createElement('div');
+    back.className = 'draft-card-back';
+    back.style.backfaceVisibility = 'hidden';
+
+    // Sigil
+    const backInner = document.createElement('div');
+    backInner.className = 'card-back-inner';
+    const sigil = document.createElement('div');
+    sigil.className = 'card-back-sigil';
+    sigil.textContent = '⚡';
+    backInner.appendChild(sigil);
+    back.appendChild(backInner);
+
+    // Drifting runes
+    const runeChars = ['ᚱ','ᚦ','ᚷ','ᚹ','ᛁ','ᛇ','ᛟ','✦','◈','⟁','⌬','⬡'];
+    for(let r = 0; r < 8; r++) {
+      const rune = document.createElement('span');
+      rune.className = 'back-rune';
+      rune.textContent = runeChars[Math.floor(Math.random() * runeChars.length)];
+      rune.style.cssText = `left:${10+Math.random()*80}%;top:${60+Math.random()*30}%;animation-duration:${2.5+Math.random()*3}s;animation-delay:${-Math.random()*4}s;font-size:${7+Math.random()*6}px;`;
+      back.appendChild(rune);
+    }
+
+    // Glowing cracks
+    for(let c = 0; c < 3; c++) {
+      const crack = document.createElement('div');
+      crack.className = 'back-crack';
+      crack.style.cssText = `left:${20+Math.random()*60}%;top:${15+Math.random()*50}%;height:${20+Math.random()*35}px;animation-delay:${-Math.random()*3}s;animation-duration:${2+Math.random()*2}s;transform:rotate(${-20+Math.random()*40}deg);`;
+      back.appendChild(crack);
+    }
+
+    // ── Front face ──
+    const front = document.createElement('div');
+    front.className = `card ${mod.rarity}${isEvo ? ' evolution-card' : ''}`;
+    // Start rotated 180° (face-down), JS flip reveals it
+    front.style.transform = 'rotateY(180deg)';
+    front.style.backfaceVisibility = 'hidden';
+    front.style.webkitBackfaceVisibility = 'hidden';
+    back.style.webkitBackfaceVisibility = 'hidden';
+
+    // Rarity particles on the front
+    for(let p = 0; p < 6; p++) {
+      const particle = document.createElement('div');
+      particle.className = 'card-rarity-particle';
+      const size = 2 + Math.random() * 3;
+      const driftX = (-15 + Math.random()*30).toFixed(1);
+      const animDur = (2 + Math.random()*3).toFixed(2);
+      const animDel = (-Math.random()*4).toFixed(2);
+      const pLeft = (10 + Math.random()*80).toFixed(1);
+      const pTop  = (40 + Math.random()*50).toFixed(1);
+      particle.style.cssText = [
+        `width:${size}px`, `height:${size}px`,
+        `background:${pColor}0.8)`,
+        `box-shadow:0 0 ${size*2}px ${pColor}0.6)`,
+        `left:${pLeft}%`, `top:${pTop}%`,
+        `--drift-x:${driftX}px`,
+        `animation-duration:${animDur}s`,
+        `animation-delay:${animDel}s`
+      ].join(';');
+      front.appendChild(particle);
+    }
+
+    front.innerHTML += `
+      <strong style="position:relative;z-index:1;">${isEvo ? '✦ EVOLVED' : mod.rarity.toUpperCase()}</strong>
+      ${evoHintHtml}
+      <div class="evolution-icon" style="font-size:44px;margin:6px 0 10px 0;filter:drop-shadow(0 0 12px currentColor);position:relative;z-index:1;">${mod.icon}</div>
+      <div class="evolution-name" style="font-weight:700;font-size:clamp(13px,1.3vw,16px);margin-bottom:6px;letter-spacing:0.5px;position:relative;z-index:1;">${displayName}</div>
+      <small style="position:relative;z-index:1;">${mod.desc}</small>
+      <div class="card-cta"><span class="cta-default">CLICK CARD TO DRAFT</span><span class="cta-hover">DRAFT THIS!</span></div>
+    `;
+
+    // ── Click handler on the wrap (avoids 3D backface pointer-event issues) ──
+    let alreadyClicked = false;
+    wrap.addEventListener('click', () => {
+      // Only fire if this card has been revealed (front is showing)
+      if(!wrap.dataset.revealed) return;
+      if(alreadyClicked) return;
+      alreadyClicked = true;
+
+      // Dim all other cards
+      document.querySelectorAll('#draft-card-row .draft-card-wrap').forEach(w => {
+        w.style.opacity = '0.35';
+        w.style.pointerEvents = 'none';
+      });
+      wrap.style.opacity = '1';
+
+      stopDraftTimer();
+
+      if(isEvo){
+        let baseIdx = modifiers.indexOf(mod.baseModifier);
+        if(baseIdx !== -1) modifiers.splice(baseIdx, 1);
+        modifiers.push(mod.name);
+      } else {
+        modifiers.push(mod.name);
+      }
+      markModifierDiscovered(mod.name);
+      syncModifierDisplays();
+
+      if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
+      if(mod.name === 'Time Bomb') spawnTimeBomb();
+      if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
+
+      if(mod.name === 'Tornado de Caballos') {
+        draft.classList.remove('active');
+        setTimeout(() => draft.style.display = 'none', 400);
+        tornadoPlacementMode = true;
+        stopDraftGlitch();
+        hideDraftBackdrop();
+        if(gameMode === 'online') sendGameState();
+        draw();
+        return;
+      }
+
       stopDraftGlitch();
       hideDraftBackdrop();
-      if (gameMode === 'online') sendGameState();
-      draw();
-      return;
+      draft.classList.remove('active');
+      setTimeout(() => {
+        draft.style.display = 'none';
+        if(gameMode === 'online') sendGameState();
+        draw();
+      }, 400);
+    });
+
+    // Hover lift — toggle class on float wrapper
+    wrap.addEventListener('mouseenter', () => {
+      if(wrap.dataset.revealed) floatWrap.classList.add('lift-hover');
+    });
+    wrap.addEventListener('mouseleave', () => {
+      floatWrap.classList.remove('lift-hover');
+    });
+
+    cardElements.push(front);
+
+    flipper.appendChild(back);
+    flipper.appendChild(front);
+    floatWrap.appendChild(flipper);
+    wrap.appendChild(floatWrap);
+    cardRow.appendChild(wrap);
+  });
+
+  // ── JS flip function — smooth animated, no CSS transition conflicts ──
+  function flipCard(wrap) {
+    const flipper = wrap.querySelector('.draft-card-flipper');
+    const floatWrap = wrap.querySelector('.draft-card-float');
+    if(!flipper) return;
+
+    const duration = 700; // ms
+    const start = performance.now();
+
+    // Pause float during flip for cleanliness
+    floatWrap.style.animationPlayState = 'paused';
+
+    function step(now) {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease: cubic bezier approximation (ease-in-out)
+      const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+      const angle = ease * 180;
+      flipper.style.transform = `rotateY(${angle}deg)`;
+
+      if(t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        // Flip complete — mark as revealed and re-enable float + click
+        flipper.style.transform = 'rotateY(180deg)';
+        wrap.dataset.revealed = '1';
+        wrap.style.cursor = 'pointer';
+        floatWrap.style.animationPlayState = 'running';
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ── Cinematic reveal sequence ────────────────────────────────────────
+  // 1. Title fades in
+  setTimeout(() => { titleWrap.classList.add('visible'); }, 80);
+
+  // 2. Reveal cards one-by-one with pre-glow + JS-driven flip
+  const wrapEls = cardRow.querySelectorAll('.draft-card-wrap');
+  const revealDelay = 650;
+  const preGlowDuration = 600;
+
+  wrapEls.forEach((wrap, i) => {
+    const totalDelay = 500 + i * (preGlowDuration + revealDelay);
+
+    // Pre-reveal edge leak glow
+    setTimeout(() => {
+      wrap.classList.add('pre-reveal');
+    }, totalDelay);
+
+    // JS-driven flip
+    setTimeout(() => {
+      wrap.classList.remove('pre-reveal');
+      flipCard(wrap);
+    }, totalDelay + preGlowDuration + 100);
+  });
+
+  // 3. Show timer + view board after all cards revealed
+  const allRevealed = 500 + wrapEls.length * (preGlowDuration + revealDelay) + 400;
+  setTimeout(() => {
+    timerDiv.classList.add('visible');
+    viewBoardBtn.classList.add('visible');
+    // Start timer only after cards are revealed
+    draftTimeRemaining = 15;
+    startDraftTimer();
+  }, allRevealed);
+
+  // ── Ambient particle system ──────────────────────────────────────────
+  setTimeout(() => {
+    const canvas = document.getElementById('draft-particles-canvas');
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const count = 55;
+
+    for(let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -0.3 - Math.random() * 0.5,
+        size: 0.8 + Math.random() * 2,
+        life: Math.random(),
+        maxLife: 0.6 + Math.random() * 0.4,
+        color: Math.random() < 0.6 ? [168, 85, 247] : Math.random() < 0.5 ? [100, 149, 237] : [220, 180, 255]
+      });
     }
 
-    // Normal close
-    stopDraftGlitch();
-    hideDraftBackdrop();
-    draft.classList.remove('active');
-    setTimeout(() => {
-      draft.style.display = 'none';
-      if (gameMode === 'online') sendGameState();
-      draw();
-    }, 400);
-  };
+    let running = true;
+    function animParticles() {
+      if (!running || !document.getElementById('draft-particles-canvas')) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.life += 0.004;
+        if(p.life > p.maxLife) {
+          p.x = Math.random() * canvas.width;
+          p.y = canvas.height + 10;
+          p.life = 0;
+        }
+        const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.55;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${alpha})`;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},0.8)`;
+        ctx.fill();
+      });
+      requestAnimationFrame(animParticles);
+    }
+    animParticles();
 
-  draft.appendChild(div);
-});
+    // Cleanup when draft closes
+    const observer = new MutationObserver(() => {
+      if(!draft.classList.contains('active')) { running = false; observer.disconnect(); }
+    });
+    observer.observe(draft, { attributes: true, attributeFilter: ['class'] });
+  }, 200);
 }
 
 function restart(){
@@ -17251,6 +17907,8 @@ function resetDraftUIState(opts = {}) {
   }
   if (backdrop) {
     backdrop.classList.remove('active');
+    backdrop.classList.remove('peek-mode');
+    if (draft) draft.classList.remove('board-peek');
     if (instant) {
       backdrop.style.display = 'none';
     } else {
@@ -17879,12 +18537,21 @@ function startDraftTimer(){
     
     if(draftTimeRemaining <= 0){
       stopDraftTimer();
-      // Auto-pick random modifier
+      // Auto-pick random modifier — exit peek mode first so pointer-events work
       let draft = document.getElementById('draft');
-      let cards = draft.querySelectorAll('.card');
-      if(cards.length > 0){
-        let randomCard = cards[Math.floor(Math.random() * cards.length)];
-        randomCard.click();
+      let backdrop = document.getElementById('draft-backdrop');
+      // If currently peeking, undo peek so the card row is clickable
+      if(draft.classList.contains('board-peek')) {
+        draft.classList.remove('board-peek');
+        if(backdrop) backdrop.classList.remove('peek-mode');
+      }
+      let wraps = Array.from(draft.querySelectorAll('.draft-card-wrap')).filter(w => w.dataset.revealed);
+      if(wraps.length > 0){
+        let randomWrap = wraps[Math.floor(Math.random() * wraps.length)];
+        // Force pointer-events on the row in case transition hasn't finished
+        let row = draft.querySelector('#draft-card-row');
+        if(row) row.style.pointerEvents = 'all';
+        randomWrap.click();
         // If tornado was auto-picked, place it randomly
         if(tornadoPlacementMode){
           let emptySquares = [];
@@ -20316,6 +20983,7 @@ function hideDraftBackdrop() {
   const bd = document.getElementById('draft-backdrop');
   if (!bd) return;
   bd.classList.remove('active');
+  bd.classList.remove('peek-mode');
   // Wait for the dim transition to finish before hiding
   setTimeout(() => { bd.style.display = 'none'; }, 380);
 }
