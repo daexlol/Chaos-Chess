@@ -78,6 +78,7 @@ h1 {
   overflow:hidden; 
   box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
   position:relative;
+  user-select: none;
 }
 
 .square { 
@@ -205,6 +206,49 @@ h1 {
 .highlight { 
   box-shadow: inset 0 0 0 4px #10b981 !important;
   animation: pulse-green 1.5s ease-in-out infinite;
+}
+
+.highlight:hover {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  box-shadow: inset 0 0 0 4px #10b981, inset 0 0 20px rgba(16,185,129,0.2) !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* ── Dot-style legal move indicators ───────────────────────────────── */
+.legal-dot {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: none;
+}
+
+/* Capture square: hollow ring instead of filled dot */
+.legal-dot.legal-dot-capture {
+  width: 90px;
+  height: 90px;
+  background: transparent;
+  border: 6px solid rgba(0, 0, 0, 0.18);
+  box-sizing: border-box;
+}
+
+/* Hover states for dot-style */
+.highlight-dot:hover .legal-dot {
+  background: rgba(16, 185, 129, 0.45);
+}
+.highlight-dot:hover .legal-dot.legal-dot-capture {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.6);
+}
+.highlight-dot:hover {
+  transform: none !important;
 }
 
 .puzzle-hint-square {
@@ -1509,6 +1553,7 @@ h1 {
 }
 #opp-draft-reveal.active {
   opacity: 1;
+  pointer-events: all;
 }
 
 #opp-draft-dim {
@@ -5030,7 +5075,7 @@ button:active {
 }
 #game-mods-bar .game-mods-empty {
   font-size: 15px; color: rgba(255,255,255,0.25); font-style: italic;
-  padding: 2px 0;
+  padding: 2px 0; user-select: none;
 }
 
 /* Actions bar below the board */
@@ -5122,7 +5167,7 @@ button:active {
 }
 .game-mods-empty {
   font-size: 12px; color: rgba(255,255,255,0.3); text-align: center;
-  padding: 10px 0; font-style: italic;
+  padding: 10px 0; font-style: italic; user-select: none;
 }
 
 /* Move history in right panel */
@@ -10724,6 +10769,16 @@ button:active {
               <span class="toggle-slider"></span>
             </label>
           </div>
+          <div class="settings-row" id="s-legal-style-row">
+            <div>
+              <div class="settings-row-label">Legal Move Style</div>
+              <div class="settings-row-sub">How valid squares are highlighted</div>
+            </div>
+            <select id="s-legal-style" onchange="settings.legalStyle=this.value; saveSettings(); draw();" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px;font-family:inherit;cursor:pointer;">
+              <option value="dots">Dots</option>
+              <option value="ring">Ring</option>
+            </select>
+          </div>
           <div class="settings-row">
             <div>
               <div class="settings-row-label">Show Last Move</div>
@@ -11108,6 +11163,7 @@ const DEFAULT_SETTINGS = {
   animations:    false,
   animSpeed:     'off',
   showLegal:     true,
+  legalStyle:    'dots',
   showLastMove:  true,
   showBadges:    true,
   flipBoard:     true,
@@ -11524,6 +11580,7 @@ function syncSettingsUI(){
   set('s-show-captured', settings.showCaptured);
   set('s-show-history',  settings.showHistory);
   set('s-show-legal',    settings.showLegal);
+  setVal('s-legal-style', settings.legalStyle || 'dots');
   set('s-show-last-move',settings.showLastMove);
   set('s-show-badges',   settings.showBadges);
   set('s-flip-board',    settings.flipBoard);
@@ -11659,7 +11716,16 @@ function draw(){
 
       // Highlight legal moves FIRST (goes over right-click highlight)
       if(settings.showLegal && legalMoves.some(m => m.x === x && m.y === y)) {
-        sq.classList.add('highlight');
+        const legalStyle = settings.legalStyle || 'dots';
+        if(legalStyle === 'dots') {
+          sq.classList.add('highlight-dot');
+          const dot = document.createElement('div');
+          // Use a ring-style dot for capture squares, filled dot for empty
+          dot.className = board[y][x] ? 'legal-dot legal-dot-capture' : 'legal-dot';
+          sq.appendChild(dot);
+        } else {
+          sq.classList.add('highlight');
+        }
       }
 
       if(puzzleModeActive && puzzleHintSquares.some(h => h.x === x && h.y === y)) {
@@ -13898,10 +13964,66 @@ function move(x1,y1,x2,y2,castleType){
   if(_selectedMoveMeta.railgun && piece.toLowerCase()==='r') {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Railgun Rook — piercing shot at ${sqNotation(x2,y2)}!`);
   }
+  // Log Phase Bishop / Phase Rook — detect if a piece was between origin and destination
+  if((piece.toLowerCase()==='b' && modifiers.includes('Phase Bishop')) ||
+     (piece.toLowerCase()==='r' && modifiers.includes('Phase Rook'))) {
+    const _pDx = x2===x1 ? 0 : (x2>x1 ? 1 : -1);
+    const _pDy = y2===y1 ? 0 : (y2>y1 ? 1 : -1);
+    let _pX = x1+_pDx, _pY = y1+_pDy;
+    let _phased = false;
+    while((_pX!==x2 || _pY!==y2) && _pX>=0 && _pX<8 && _pY>=0 && _pY<8) {
+      if(board[_pY][_pX]) { _phased = true; break; }
+      _pX+=_pDx; _pY+=_pDy;
+    }
+    if(_phased) {
+      const _pieceName = piece.toLowerCase()==='b' ? 'Bishop' : 'Rook';
+      const _phMod = piece.toLowerCase()==='b' ? 'Phase Bishop' : 'Phase Rook';
+      logChaos(_moverWho, 'ability', (_moverWho==='you'?'Your':'Opponent\'s') + ` ${_pieceName} phased through a piece!`);
+    }
+  }
+
+  // Log Fast Pawn — detect 2-square or 3-square forward move (non-first-move)
+  if(piece.toLowerCase()==='p' && modifiers.includes('Fast Pawn')) {
+    const _fpDist = Math.abs(y2-y1);
+    if(_fpDist === 2) {
+      logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ' used Fast Pawn — blasted 2 squares forward!');
+    }
+  }
+  if(piece.toLowerCase()==='p' && (modifiers.includes('Fast Pawn (Evolved)') || modifiers.includes('Fast Pawn'))) {
+    const _fpDist = Math.abs(y2-y1);
+    if(_fpDist === 3) {
+      logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ' used Fast Pawn (Evolved) — blasted THREE squares forward!');
+    }
+  }
+
+  // Log Pegasus (Evolved) second jump — same trigger as Pegasus
+  if(_selectedMoveMeta.pegasus && piece.toLowerCase()==='n' && modifiers.includes('Pegasus (Evolved)')) {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pegasus (Evolved) — double jump to ${sqNotation(x2,y2)}!`);
+  }
+
   // Log Pawn Bayonet forward capture
   if(piece.toLowerCase()==='p' && captured && x1===x2 && modifiers.includes('Pawn Bayonet')) {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pawn Bayonet — pierced forward at ${sqNotation(x2,y2)}!`);
   }
+
+  // Log Fog of War Bishop appearance/disappearance — only say it happened, never where
+  if(piece.toLowerCase()==='b' && modifiers.includes('Fog of War Bishop')) {
+    if(_moverWho === 'you') {
+      logChaos('you', 'ability', 'Your Fog of War Bishop moved!');
+    } else {
+      logChaos('opponent', 'ability', "Opponent's bishop disappeared into the fog!");
+    }
+  }
+
+  // Log Trench Pawn backward move
+  if(piece.toLowerCase()==='p' && modifiers.includes('Trench Pawn') && !captured) {
+    const _movingBackward = (isWhite(piece) && y2 > y1) || (!isWhite(piece) && y2 < y1);
+    if(_movingBackward) {
+      logChaos(_moverWho, 'ability', (_moverWho==='you'?'Your':"Opponent's") + ' Trench Pawn moved backwards!');
+    }
+  }
+
+
   // Log Sprinting King 2-square move
   if(piece.toLowerCase()==='k' && modifiers.includes('Sprinting King') && !castleType && (Math.abs(x2-x1) === 2 || Math.abs(y2-y1) === 2)) {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Sprinting King — dashed to ${sqNotation(x2,y2)}!`);
@@ -14234,7 +14356,6 @@ function move(x1,y1,x2,y2,castleType){
       const _ncPiece = _ncIsWhiteKnight ? captured.toUpperCase() : captured.toLowerCase();
       board[_ncSpot.y][_ncSpot.x] = _ncPiece;
       clearPieceData(_ncSpot.x, _ncSpot.y);
-      showExplosion(_ncSpot.x, _ncSpot.y);
       const _ncWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
       const _ncPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen'}[captured.toLowerCase()] || captured.toLowerCase();
       logChaos(_ncWho, 'ability', (_ncWho==='you'?'Your':'Opponent\'s') + ` Necromancer Knight resurrected a ${_ncPieceName} at ${sqNotation(_ncSpot.x,_ncSpot.y)}! 💀`);
@@ -14839,6 +14960,23 @@ function applyMagneticDrift(){
     board[drift.toY][drift.toX] = drift.piece;
     board[drift.fromY][drift.fromX] = '';
     movePieceData(drift.fromX, drift.fromY, drift.toX, drift.toY);
+    // Determine which pole is responsible and log it
+    const _poleNames = { '0,0':'a1', '7,7':'h8', '0,7':'a8', '7,0':'h1' };
+    const _attractPoles = [{x:0,y:0,sq:'a1'},{x:7,y:7,sq:'h8'}];
+    const _repelPoles  = [{x:0,y:7,sq:'a8'},{x:7,y:0,sq:'h1'}];
+    const _isAttract = _attractPoles.some(p => {
+      const _oldD = Math.abs(drift.fromX-p.x)+Math.abs(drift.fromY-p.y);
+      const _newD = Math.abs(drift.toX-p.x)+Math.abs(drift.toY-p.y);
+      return _newD < _oldD;
+    });
+    const _poleMatch = _isAttract
+      ? _attractPoles.find(p => { const _od=Math.abs(drift.fromX-p.x)+Math.abs(drift.fromY-p.y); const _nd=Math.abs(drift.toX-p.x)+Math.abs(drift.toY-p.y); return _nd<_od; })
+      : _repelPoles.find(p  => { const _od=Math.abs(drift.fromX-p.x)+Math.abs(drift.fromY-p.y); const _nd=Math.abs(drift.toX-p.x)+Math.abs(drift.toY-p.y); return _nd<_od; });
+    const _poleLabel = _poleMatch ? _poleMatch.sq : '?';
+    const _action = _isAttract ? 'attracted' : 'repelled';
+    const _driftOwner = (gameMode==='online') ? (isWhite(drift.piece)===(myColor==='white') ? 'your' : "opponent's") : (isWhite(drift.piece) ? 'your' : "opponent's");
+    const _pieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[drift.piece.toLowerCase()] || 'piece';
+    logChaos('sys', 'ability', `${_poleLabel} ${_action} ${_driftOwner} ${_pieceName} to ${sqNotation(drift.toX, drift.toY)}!`);
   }
   if(piecesToDrift.length > 0) incrementEffectsTriggered(piecesToDrift.length);
   autoPromotePassivePawns();
@@ -15044,6 +15182,7 @@ function spawnTimeBomb(){
   if(emptySquares.length === 0){ showToast('No room for the Time Bomb!'); return; }
   let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
   timeBombs.push({x:spot.x, y:spot.y, turnsLeft:5});
+  logChaos('sys', 'ability', `Time Bomb spawned on ${sqNotation(spot.x, spot.y)}! Exploding in 5 turns. 💣`);
   draw();
 }
 
@@ -15078,11 +15217,11 @@ function processTimeBombs(){
         }
       }
       timeBombs.splice(i, 1);
+      logChaos('sys', 'ability', `Time Bomb exploded on ${sqNotation(b.x, b.y)}! 💥`);
     }
   }
 }
 
-// ── Bottomless Pit ──────────────────────────────────────────────────────────
 function spawnBottomlessPit(){
   if(puzzleModeActive) return;
   let emptySquares = [];
@@ -15101,6 +15240,9 @@ function processBottomlessPit(){
   if(piece && piece !== ''){
     // Destroys EVERYTHING — kings, ducks, guards, uncapturable — no exceptions
     showExplosion(pitSquare.x, pitSquare.y);
+    const _pitOwner = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'your' : "opponent's") : (isWhite(piece) ? 'your' : "opponent's");
+    const _pitPiece = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king',d:'duck',g:'bodyguard'}[piece.toLowerCase()] || 'piece';
+    logChaos('sys', 'ability', `${_pitOwner.charAt(0).toUpperCase()+_pitOwner.slice(1)} ${_pitPiece} fell into the pit! 😂😂😂`);
     if(piece.toLowerCase() === 'k'){
       // King fell in — game over
       let winner = isWhite(piece) ? 'Black' : 'White';
@@ -15131,7 +15273,7 @@ function spawnDuck(){
     let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
     board[spot.y][spot.x] = 'D'; // D for duck
     setPieceData(spot.x, spot.y, {duck:true});
-    showToast('A duck of eternal blocking appeared! 🦆');
+    logChaos('sys', 'ability', `🦆 Duck of Eternal Blocking appeared on ${sqNotation(spot.x, spot.y)}!`);
   } else {
     showToast('No room for duck! Board is full!');
   }
@@ -21466,6 +21608,264 @@ clickSquare = function(x, y) {
   }
   _origClickSquare(x, y);
 };
+
+// ============================================================
+//  DRAG-AND-DROP PIECE MOVEMENT
+// ============================================================
+(function() {
+  const DRAG_THRESHOLD = 5; // px before we commit to a drag
+
+  let dragState = null;
+  // dragState = {
+  //   fromX, fromY,         — origin square (board coords)
+  //   piece,                — piece char
+  //   imgSrc,               — image src
+  //   ghost,                — the floating img element
+  //   srcImg,               — the original img in its square (hidden during drag)
+  //   startClientX,         — where mousedown happened
+  //   startClientY,
+  //   dragging,             — true once threshold crossed
+  //   castleType,           — set on mouseup
+  // }
+
+  let dragHoverSquare = null; // {x,y} of the square currently under cursor during drag
+
+  function getDragLegalMoves(x, y) {
+    // Reuse the game's getLegalMoves but we need the piece to belong to the current player
+    const piece = board[y][x];
+    if (!piece) return [];
+    if (isWhite(piece) !== (turn === 'white')) return [];
+    return getLegalMoves(x, y);
+  }
+
+  function removeDragHoverClass() {
+    if (dragHoverSquare) {
+      const sq = document.querySelector(`[data-x="${dragHoverSquare.x}"][data-y="${dragHoverSquare.y}"]`);
+      if (sq) { sq.classList.remove('drag-hover-ring'); sq.classList.remove('drag-hover-dots'); }
+      dragHoverSquare = null;
+    }
+  }
+
+  function cancelDrag() {
+    if (!dragState) return;
+    // Restore hidden source image
+    if (dragState.srcImg) dragState.srcImg.style.visibility = '';
+    // Remove ghost
+    if (dragState.ghost) dragState.ghost.remove();
+    removeDragHoverClass();
+    dragState = null;
+  }
+
+  // Board-level mousedown — initiate a potential drag
+  document.addEventListener('DOMContentLoaded', () => {
+    const boardEl = document.getElementById('board');
+
+    boardEl.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      // Only start drag if we can identify a valid piece square
+      const sq = e.target.closest('.square');
+      if (!sq) return;
+      const x = parseInt(sq.dataset.x, 10);
+      const y = parseInt(sq.dataset.y, 10);
+      const piece = board[y][x];
+      if (!piece) return;
+      if (isWhite(piece) !== (turn === 'white')) return;
+
+      // Guard: same conditions as clickSquare
+      if (document.getElementById('draft').style.display === 'block') return;
+      if (royalGuardPlacementMode) return;
+      if (tornadoPlacementMode) return;
+      if (gameMode === 'online' && ((turn === 'white' && myColor !== 'white') || (turn === 'black' && myColor !== 'black'))) return;
+      if (puzzleModeActive && (puzzleInputLocked || puzzleAutoPlaying)) return;
+      if (puzzleModeActive && (!activePuzzle || turn !== activePuzzle.playerColor)) return;
+
+      // Check piece-specific guards (decoy, jester decoy)
+      const data = getPieceData(x, y);
+      if (data.decoy) return;
+      if (data.jesterDecoy) return;
+
+      // During special modes, only allow the designated piece
+      if (doubleStrikeActive && !(x === doubleStrikeRookX && y === doubleStrikeRookY)) return;
+      if (cowardRetreatActive && !(x === cowardKnightX && y === cowardKnightY)) return;
+
+      const srcImg = sq.querySelector('img');
+      const imgSrc = srcImg ? srcImg.src : pieceImages[piece];
+      if (!imgSrc) return;
+
+      dragState = {
+        fromX: x, fromY: y,
+        piece,
+        imgSrc,
+        srcImg,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        dragging: false,
+        ghost: null,
+        legalMoves: null,
+      };
+      // Prevent text selection and native browser image-drag while moving pieces
+      e.preventDefault();
+    });
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragState) return;
+
+    const dx = e.clientX - dragState.startClientX;
+    const dy = e.clientY - dragState.startClientY;
+
+    if (!dragState.dragging) {
+      if (Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
+
+      // Crossed threshold — commit to drag
+      dragState.dragging = true;
+
+      // Compute legal moves now
+      dragState.legalMoves = getDragLegalMoves(dragState.fromX, dragState.fromY);
+
+      // If no legal moves (pinned), abort drag immediately
+      if (dragState.legalMoves.length === 0) {
+        dragState = null;
+        return;
+      }
+
+      // Hide source piece
+      if (dragState.srcImg) dragState.srcImg.style.visibility = 'hidden';
+
+      // Select the piece in game state so legal move dots appear
+      selected = { x: dragState.fromX, y: dragState.fromY };
+      legalMoves = dragState.legalMoves;
+      draw();
+      // Re-hide source img after draw (draw() recreates the DOM)
+      const freshSq = document.querySelector(`[data-x="${dragState.fromX}"][data-y="${dragState.fromY}"]`);
+      dragState.srcImg = freshSq ? freshSq.querySelector('img') : null;
+      if (dragState.srcImg) dragState.srcImg.style.visibility = 'hidden';
+
+      // Create ghost
+      const ghost = document.createElement('img');
+      ghost.src = dragState.imgSrc;
+      ghost.style.cssText = `
+        position: fixed;
+        width: 75px;
+        height: 75px;
+        pointer-events: none;
+        z-index: 2000;
+        opacity: 0.9;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+        transform: translate(-50%, -50%);
+        transition: none;
+      `;
+      document.body.appendChild(ghost);
+      dragState.ghost = ghost;
+    }
+
+    // Move ghost to cursor
+    if (dragState.ghost) {
+      dragState.ghost.style.left = e.clientX + 'px';
+      dragState.ghost.style.top  = e.clientY + 'px';
+    }
+
+    // Update hover highlight on destination square
+    const boardDom = document.getElementById('board');
+    const rect = boardDom.getBoundingClientRect();
+    const sqSize = rect.width / 8;
+    let gx = Math.floor((e.clientX - rect.left)  / sqSize);
+    let gy = Math.floor((e.clientY - rect.top)    / sqSize);
+    if (boardDom.classList.contains('flipped')) { gx = 7 - gx; gy = 7 - gy; }
+
+    const overValidDest = gx >= 0 && gx <= 7 && gy >= 0 && gy <= 7 &&
+      dragState.legalMoves && dragState.legalMoves.some(m => m.x === gx && m.y === gy);
+
+    if (dragHoverSquare && (dragHoverSquare.x !== gx || dragHoverSquare.y !== gy)) {
+      removeDragHoverClass();
+    }
+    if (overValidDest && !(dragHoverSquare && dragHoverSquare.x === gx && dragHoverSquare.y === gy)) {
+      const targetSq = document.querySelector(`[data-x="${gx}"][data-y="${gy}"]`);
+      if (targetSq) { const hoverCls = (settings.legalStyle || 'dots') === 'dots' ? 'drag-hover-dots' : 'drag-hover-ring'; targetSq.classList.add(hoverCls); dragHoverSquare = { x: gx, y: gy }; }
+    }
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (!dragState) return;
+    if (e.button !== 0) return;
+
+    if (!dragState.dragging) {
+      // Never crossed threshold — treat as a normal click, let clickSquare handle it
+      dragState = null;
+      return;
+    }
+
+    // We were dragging — figure out destination
+    const boardDom = document.getElementById('board');
+    const rect = boardDom.getBoundingClientRect();
+    const sqSize = rect.width / 8;
+    let toX = Math.floor((e.clientX - rect.left) / sqSize);
+    let toY = Math.floor((e.clientY - rect.top)  / sqSize);
+    if (boardDom.classList.contains('flipped')) { toX = 7 - toX; toY = 7 - toY; }
+
+    const fromX = dragState.fromX, fromY = dragState.fromY;
+    const lm = dragState.legalMoves || [];
+    const isValidDest = toX >= 0 && toX <= 7 && toY >= 0 && toY <= 7 &&
+      lm.some(m => m.x === toX && m.y === toY);
+
+    // Clean up ghost + hover
+    if (dragState.ghost) dragState.ghost.remove();
+    removeDragHoverClass();
+    dragState = null;
+
+    if (!isValidDest) {
+      // Cancelled — restore state and redraw
+      selected = null;
+      legalMoves = [];
+      clearedHighlightsOnClick = false;
+      draw();
+      return;
+    }
+
+    // Valid drop — execute move immediately with no animation
+    const castleType = (lm.find(m => m.x === toX && m.y === toY && m.castle) || {}).castle || null;
+    clearArrows();
+    rightClickHighlight = [];
+    selected = null;
+    legalMoves = [];
+    lastMove = { fromX, fromY, toX, toY };
+    // Suppress the wrapper mouseup's extra draw() since move() will call draw()
+    clearedHighlightsOnClick = false;
+    // Execute the move instantly (bypassing animatePieceMove entirely)
+    move(fromX, fromY, toX, toY, castleType);
+  });
+
+  // If mouse leaves window during drag, cancel
+  document.addEventListener('mouseleave', () => {
+    if (dragState && dragState.dragging) cancelDrag();
+  });
+})();
+
+// Add drag-hover CSS
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .drag-hover-ring {
+      box-shadow: inset 0 0 0 4px #10b981, inset 0 0 20px rgba(16,185,129,0.2) !important;
+      background-color: rgba(16, 185, 129, 0.25) !important;
+      animation: none !important;
+    }
+    .drag-hover-dots {
+      animation: none !important;
+    }
+    .drag-hover-dots .legal-dot {
+      background: rgba(16, 185, 129, 0.45) !important;
+    }
+    .drag-hover-dots .legal-dot.legal-dot-capture {
+      background: rgba(16, 185, 129, 0.2) !important;
+      border-color: rgba(16, 185, 129, 0.6) !important;
+    }
+    #board .square img[style*="visibility: hidden"] {
+      visibility: hidden !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
 
 // ============================================================
 //  NEW IN-GAME UI WIRING
