@@ -212,7 +212,6 @@ h1 {
   background-color: rgba(16, 185, 129, 0.25) !important;
   box-shadow: inset 0 0 0 4px #10b981, inset 0 0 20px rgba(16,185,129,0.2) !important;
   animation: none !important;
-  transform: none !important;
 }
 
 /* ── Dot-style legal move indicators ───────────────────────────────── */
@@ -248,7 +247,7 @@ h1 {
   border-color: rgba(16, 185, 129, 0.6);
 }
 .highlight-dot:hover {
-  transform: none !important;
+  transform: revert;
 }
 
 .puzzle-hint-square {
@@ -5290,6 +5289,15 @@ button:active {
 
 #board.flipped .square {
   transform: rotate(180deg);
+}
+
+#board.flipped .square:hover {
+  transform: rotate(180deg) scale(1.05);
+}
+
+#board.flipped .highlight:hover,
+#board.flipped .highlight-dot:hover {
+  transform: rotate(180deg) !important;
 }
 
 #captured-pieces.flipped {
@@ -21613,7 +21621,7 @@ clickSquare = function(x, y) {
 //  DRAG-AND-DROP PIECE MOVEMENT
 // ============================================================
 (function() {
-  const DRAG_THRESHOLD = 5; // px before we commit to a drag
+  const DRAG_THRESHOLD = 10; // px before we commit to a drag
 
   let dragState = null;
   // dragState = {
@@ -22338,10 +22346,17 @@ function showOpponentDraftReveal(mod) {
 
   const autoTimer = setTimeout(dismiss, 5000);
 
-  overlay.addEventListener('click', () => {
-    clearTimeout(autoTimer);
-    dismiss();
-  });
+  // Use a document-level listener with a small delay so it doesn't
+  // catch the same click that triggered the reveal, and isn't blocked
+  // by any other click handlers on the board/wrapper
+  setTimeout(() => {
+    function onAnyClick() {
+      clearTimeout(autoTimer);
+      dismiss();
+      document.removeEventListener('click', onAnyClick, true);
+    }
+    document.addEventListener('click', onAnyClick, true);
+  }, 300);
 }
 
 function hideDraftBackdrop() {
