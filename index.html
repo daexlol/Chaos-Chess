@@ -135,6 +135,69 @@ h1 {
   transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
+/* ── Rarity movement trails ─────────────────────────────────────────────
+   Afterimage orbs left behind as a piece travels across the board.
+   Each rarity tier has its own colour identity and fade duration. */
+.piece-trail {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999;
+  animation: trail-fade var(--trail-dur, 0.5s) ease-out forwards;
+}
+
+@keyframes trail-fade {
+  0%   { opacity: var(--trail-opacity-start, 0.7); transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.2); }
+}
+
+/* Rare — soft purple wisps */
+.piece-trail.trail-rare {
+  --trail-dur: 0.5s;
+  --trail-opacity-start: 0.55;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, rgba(196,181,253,0.9) 0%, rgba(139,92,246,0.5) 50%, transparent 100%);
+  box-shadow: 0 0 8px rgba(167,139,250,0.6);
+}
+
+/* Legendary — amber ember sparks */
+.piece-trail.trail-legendary {
+  --trail-dur: 0.65s;
+  --trail-opacity-start: 0.75;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle, rgba(255,235,120,1) 0%, rgba(251,191,36,0.7) 40%, rgba(220,80,0,0.3) 75%, transparent 100%);
+  box-shadow: 0 0 12px rgba(251,191,36,0.7), 0 0 24px rgba(245,158,11,0.35);
+}
+
+/* Mythic — intense explosive sparks with lingering heat */
+.piece-trail.trail-mythic {
+  --trail-dur: 0.85s;
+  --trail-opacity-start: 0.90;
+  width: 26px;
+  height: 26px;
+  background: radial-gradient(circle, rgba(255,255,220,1) 0%, rgba(255,220,80,0.9) 25%, rgba(245,158,11,0.6) 55%, rgba(180,50,0,0.25) 80%, transparent 100%);
+  box-shadow: 0 0 16px rgba(251,191,36,0.85), 0 0 36px rgba(245,158,11,0.50), 0 0 60px rgba(180,50,0,0.25);
+}
+
+/* Evolved — soft prismatic aurora wisps */
+.piece-trail.trail-evolved {
+  --trail-dur: 0.75s;
+  --trail-opacity-start: 0.70;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(220,200,255,0.95) 0%, rgba(180,130,255,0.65) 40%, rgba(100,180,255,0.35) 70%, transparent 100%);
+  box-shadow: 0 0 10px rgba(180,130,255,0.60), 0 0 24px rgba(140,80,255,0.30);
+  animation: trail-fade-evolved var(--trail-dur) ease-out forwards;
+}
+
+@keyframes trail-fade-evolved {
+  0%   { opacity: 0.70; transform: scale(1);   filter: hue-rotate(0deg); }
+  60%  { opacity: 0.35; transform: scale(0.6); filter: hue-rotate(60deg); }
+  100% { opacity: 0;    transform: scale(0.1); filter: hue-rotate(120deg); }
+}
+
 .square:hover img {
   transform: scale(1.1) translateY(-2px);
 }
@@ -175,48 +238,185 @@ h1 {
   50% { box-shadow: inset 0 0 0 4px rgba(103,232,249,0.55), 0 0 22px rgba(34,211,238,0.35); }
 }
 
-.glow-legendary img { 
-  filter: drop-shadow(0 0 12px #fbbf24) drop-shadow(0 0 24px #f59e0b);
-  animation: glow-pulse-gold 2s ease-in-out infinite;
+/* ═══════════════════════════════════════════════════════
+   LEGENDARY — powerful, dangerous, game-changing
+   Warm golden aura with drifting ember energy
+   ═══════════════════════════════════════════════════════ */
+.glow-legendary {
+  /* Amber haze bleeding onto the tile itself */
+  box-shadow:
+    inset 0 0 28px rgba(251,191,36,0.12),
+    0 0 18px rgba(251,191,36,0.18);
+}
+
+.glow-legendary img {
+  filter:
+    drop-shadow(0 0  6px rgba(255,220,100,0.95))
+    drop-shadow(0 0 14px rgba(251,191,36,0.85))
+    drop-shadow(0 0 28px rgba(245,158,11,0.55))
+    drop-shadow(0 0 48px rgba(220,100,10,0.25));
+  animation: glow-pulse-gold 2.4s ease-in-out infinite;
 }
 
 @keyframes glow-pulse-gold {
-  0%, 100% { filter: drop-shadow(0 0 12px #fbbf24) drop-shadow(0 0 24px #f59e0b); }
-  50% { filter: drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 32px #f59e0b); }
+  0%, 100% {
+    filter:
+      drop-shadow(0 0  6px rgba(255,220,100,0.95))
+      drop-shadow(0 0 14px rgba(251,191,36,0.85))
+      drop-shadow(0 0 28px rgba(245,158,11,0.55))
+      drop-shadow(0 0 48px rgba(220,100,10,0.25));
+  }
+  40% {
+    filter:
+      drop-shadow(0 0  8px rgba(255,235,120,1))
+      drop-shadow(0 0 18px rgba(251,191,36,0.95))
+      drop-shadow(0 0 38px rgba(245,158,11,0.70))
+      drop-shadow(0 0 62px rgba(220,100,10,0.35));
+  }
+  70% {
+    filter:
+      drop-shadow(0 0  5px rgba(255,200, 80,0.90))
+      drop-shadow(0 0 12px rgba(245,158,11,0.80))
+      drop-shadow(0 0 24px rgba(220,100,10,0.50))
+      drop-shadow(0 0 42px rgba(180, 60, 0,0.20));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MYTHIC — overloaded, unstable, reality-breaking
+   Legendary pushed past its limits — whiter-hot core,
+   dominant atmospheric presence, occasional flicker
+   ═══════════════════════════════════════════════════════ */
+.glow-mythic {
+  /* Intense amber wash flooding the tile */
+  box-shadow:
+    inset 0 0 50px rgba(251,191,36,0.22),
+    0 0 40px rgba(251,191,36,0.30),
+    0 0 80px rgba(245,158,11,0.15);
+  animation: mythic-tile-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes mythic-tile-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 50px rgba(251,191,36,0.22),
+      0 0 40px rgba(251,191,36,0.30),
+      0 0 80px rgba(245,158,11,0.15);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 70px rgba(255,210,80,0.30),
+      0 0 60px rgba(251,191,36,0.40),
+      0 0 110px rgba(245,158,11,0.22);
+  }
 }
 
 .glow-mythic img {
-  filter: 
-    drop-shadow(0 0 16px #fbbf24) 
-    drop-shadow(0 0 28px #f59e0b) 
-    drop-shadow(0 0 40px #fbbf24);
-  animation: glow-pulse-mythic 1.5s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0  4px rgba(255,255,220,0.95))
+    drop-shadow(0 0 10px rgba(255,230,100,1.00))
+    drop-shadow(0 0 22px rgba(251,191,36,0.95))
+    drop-shadow(0 0 44px rgba(245,158,11,0.70))
+    drop-shadow(0 0 72px rgba(220, 90,10,0.40))
+    drop-shadow(0 0 100px rgba(180, 50, 0,0.20));
+  animation: glow-pulse-mythic 1.8s ease-in-out infinite;
 }
 
 @keyframes glow-pulse-mythic {
-  0%, 100% { 
-    filter: 
-      drop-shadow(0 0 16px #fbbf24) 
-      drop-shadow(0 0 28px #f59e0b) 
-      drop-shadow(0 0 40px #fbbf24);
+  0%, 100% {
+    filter:
+      drop-shadow(0 0  4px rgba(255,255,220,0.95))
+      drop-shadow(0 0 10px rgba(255,230,100,1.00))
+      drop-shadow(0 0 22px rgba(251,191,36,0.95))
+      drop-shadow(0 0 44px rgba(245,158,11,0.70))
+      drop-shadow(0 0 72px rgba(220, 90,10,0.40))
+      drop-shadow(0 0 100px rgba(180, 50, 0,0.20));
   }
-  50% { 
-    filter: 
-      drop-shadow(0 0 24px #fbbf24) 
-      drop-shadow(0 0 40px #f59e0b) 
-      drop-shadow(0 0 56px #fbbf24);
+  /* Overloaded flare burst */
+  30% {
+    filter:
+      drop-shadow(0 0  6px rgba(255,255,240,1.00))
+      drop-shadow(0 0 14px rgba(255,240,120,1.00))
+      drop-shadow(0 0 30px rgba(251,191,36,1.00))
+      drop-shadow(0 0 58px rgba(245,158,11,0.80))
+      drop-shadow(0 0 90px rgba(220, 90,10,0.50))
+      drop-shadow(0 0 130px rgba(180, 50, 0,0.28));
+  }
+  /* Unstable dip — energy briefly pulls inward */
+  65% {
+    filter:
+      drop-shadow(0 0  3px rgba(255,255,200,0.85))
+      drop-shadow(0 0  8px rgba(255,210, 60,0.90))
+      drop-shadow(0 0 18px rgba(251,191,36,0.80))
+      drop-shadow(0 0 38px rgba(245,158,11,0.60))
+      drop-shadow(0 0 65px rgba(220, 90,10,0.35))
+      drop-shadow(0 0 90px rgba(180, 50, 0,0.16));
   }
 }
 
-.glow-rare img { 
-  filter: drop-shadow(0 0 10px #a78bfa) drop-shadow(0 0 20px #8b5cf6);
-  animation: glow-pulse-purple 2s ease-in-out infinite;
+/* ═══════════════════════════════════════════════════════
+   RARE — enchanted, arcane, refined
+   Soft contained purple aura, gentle magical bloom
+   ═══════════════════════════════════════════════════════ */
+.glow-rare img {
+  filter:
+    drop-shadow(0 0  5px rgba(196,181,253,0.90))
+    drop-shadow(0 0 12px rgba(167,139,250,0.70))
+    drop-shadow(0 0 22px rgba(139, 92,246,0.40))
+    drop-shadow(0 0 36px rgba(109, 40,217,0.18));
+  animation: glow-pulse-purple 3s ease-in-out infinite;
 }
 
 @keyframes glow-pulse-purple {
-  0%, 100% { filter: drop-shadow(0 0 10px #a78bfa) drop-shadow(0 0 20px #8b5cf6); }
-  50% { filter: drop-shadow(0 0 14px #a78bfa) drop-shadow(0 0 28px #8b5cf6); }
+  0%, 100% {
+    filter:
+      drop-shadow(0 0  5px rgba(196,181,253,0.90))
+      drop-shadow(0 0 12px rgba(167,139,250,0.70))
+      drop-shadow(0 0 22px rgba(139, 92,246,0.40))
+      drop-shadow(0 0 36px rgba(109, 40,217,0.18));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0  7px rgba(216,201,255,0.95))
+      drop-shadow(0 0 15px rgba(167,139,250,0.80))
+      drop-shadow(0 0 28px rgba(139, 92,246,0.52))
+      drop-shadow(0 0 46px rgba(109, 40,217,0.24));
+  }
 }
+
+/* ═══════════════════════════════════════════════════════
+   COMMON — subtly touched, faintly awakened
+   Barely-there cool-white shimmer, very gentle
+   ═══════════════════════════════════════════════════════ */
+.glow-common img {
+  filter:
+    drop-shadow(0 0  4px rgba(220,230,255,0.70))
+    drop-shadow(0 0 10px rgba(180,200,255,0.30));
+  animation: glow-pulse-common 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-common {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0  4px rgba(220,230,255,0.70))
+      drop-shadow(0 0 10px rgba(180,200,255,0.30));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0  5px rgba(230,240,255,0.80))
+      drop-shadow(0 0 14px rgba(180,200,255,0.42));
+  }
+}
+
+/* Sovereign's Blessing aura around a king — subtle purple tint on adjacent squares */
+/* Use a tiny gradient overlay as part of the square background so it tints
+   the underlying square colour without covering highlights or piece glows. */
+.square.sovereign-aura {
+  background-image: linear-gradient(rgba(148,112,255,0.75), rgba(148,112,255,0.06)), var(--board-texture);
+  background-blend-mode: normal, multiply;
+}
+
+/* Keep piece glows intact — do not suppress img filters */
 
 .phantom img { 
   opacity: 0.5 !important; 
@@ -403,34 +603,34 @@ h1 {
    combined selectors explicitly list both animations together. */
 .king-shake.glow-legendary img,
 .glow-legendary .king-shake img {
-  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-gold 2s ease-in-out infinite;
+  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-gold 2.4s ease-in-out infinite;
 }
 .king-shake.glow-mythic img,
 .glow-mythic .king-shake img {
-  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-mythic 1.5s ease-in-out infinite;
+  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-mythic 1.8s ease-in-out infinite;
 }
 .king-shake.glow-rare img,
 .glow-rare .king-shake img {
-  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-purple 2s ease-in-out infinite;
+  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-purple 3s ease-in-out infinite;
 }
 .king-shake.glow-evolved img,
 .glow-evolved .king-shake img {
-  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-evolved 8s ease-in-out infinite;
+  animation: king-shake-anim 1s ease-in-out infinite, glow-pulse-evolved 10s ease-in-out infinite;
 }
 
 /* pinned-shake is applied directly to the img element.
    The glow-* img rules override it, so we restore the shake here too. */
 .glow-legendary img.pinned-shake {
-  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-gold 2s ease-in-out infinite;
+  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-gold 2.4s ease-in-out infinite;
 }
 .glow-mythic img.pinned-shake {
-  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-mythic 1.5s ease-in-out infinite;
+  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-mythic 1.8s ease-in-out infinite;
 }
 .glow-rare img.pinned-shake {
-  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-purple 2s ease-in-out infinite;
+  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-purple 3s ease-in-out infinite;
 }
 .glow-evolved img.pinned-shake {
-  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-evolved 8s ease-in-out infinite;
+  animation: pinned-shake-anim 0.225s ease-in-out, glow-pulse-evolved 10s ease-in-out infinite;
 }
 
 .bomb-countdown {
@@ -3704,10 +3904,31 @@ button:active {
 }
 /* Kamikaze bomb: shrink the piece so the bomb emoji is clearly visible on top */
 /* Piece glows inside replay board */
-.codex-replay-sq.glow-legendary img { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b); }
-.codex-replay-sq.glow-mythic img    { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #f59e0b); }
-.codex-replay-sq.glow-rare img      { filter: drop-shadow(0 0 7px #a78bfa) drop-shadow(0 0 14px #8b5cf6); }
-.codex-replay-sq.glow-evolved img   { filter: drop-shadow(0 0 7px #a78bfa) drop-shadow(0 0 14px #8b5cf6) drop-shadow(0 0 20px #06b6d4); }
+/* Codex replay uses scaled-down versions of the main glow identities */
+.codex-replay-sq.glow-rare img {
+  filter:
+    drop-shadow(0 0 4px rgba(196,181,253,0.90))
+    drop-shadow(0 0 9px rgba(139,92,246,0.55));
+}
+.codex-replay-sq.glow-legendary img {
+  filter:
+    drop-shadow(0 0 5px rgba(255,220,100,0.95))
+    drop-shadow(0 0 11px rgba(251,191,36,0.80))
+    drop-shadow(0 0 20px rgba(245,158,11,0.45));
+}
+.codex-replay-sq.glow-mythic img {
+  filter:
+    drop-shadow(0 0 4px rgba(255,255,220,0.95))
+    drop-shadow(0 0 8px rgba(255,230,100,1.00))
+    drop-shadow(0 0 16px rgba(251,191,36,0.90))
+    drop-shadow(0 0 28px rgba(245,158,11,0.55));
+}
+.codex-replay-sq.glow-evolved img {
+  filter:
+    drop-shadow(0 0 4px rgba(220,200,255,0.90))
+    drop-shadow(0 0 9px rgba(180,130,255,0.65))
+    drop-shadow(0 0 18px rgba(140,80,255,0.35));
+}
 .codex-replay-sq.phantom img        { opacity: 0.5; filter: drop-shadow(0 0 12px #06b6d4); }
 .codex-replay-sq.decoy img          { opacity: 0.55; filter: drop-shadow(0 0 6px rgba(100,116,139,0.6)); }
 /* Special square overlays in replay */
@@ -4618,6 +4839,65 @@ button:active {
   flex-direction: column;
   min-height: 0;
 }
+
+/* ── Chaos Log ── */
+#chaos-log-panel {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#chaos-log-list {
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 60px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+#chaos-log-list::-webkit-scrollbar { width: 6px; }
+#chaos-log-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
+#chaos-log-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+#chaos-log-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }
+
+.chaos-log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  animation: chaos-log-fadein 0.3s ease;
+}
+.chaos-log-entry:last-child { border-bottom: none; }
+
+@keyframes chaos-log-fadein {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chaos-log-move {
+  color: rgba(170,176,214,0.45);
+  font-size: 10px;
+  margin-right: 3px;
+}
+
+/* Draft entries */
+.chaos-log-draft-you      { color: #a78bfa; }
+.chaos-log-draft-opponent { color: #f472b6; }
+
+/* Ability entries — you */
+.chaos-log-you   { color: rgba(134,239,172,0.9); }
+/* Ability entries — opponent */
+.chaos-log-opp   { color: rgba(248,113,113,0.9); }
+/* Neutral / system entries */
+.chaos-log-sys   { color: rgba(250,204,21,0.8); }
+
+/* Rarity colouring for draft entries */
+.chaos-rarity-common    { color: #94a3b8; }
+.chaos-rarity-rare      { color: #a78bfa; }
+.chaos-rarity-legendary { color: #fbbf24; }
+.chaos-rarity-mythic    { color: #fde68a; }
+.chaos-rarity-evolved   { color: #f472b6; }
 #new-move-list {
   overflow-y: auto;
   max-height: 350px;
@@ -8263,37 +8543,159 @@ button:active {
   50%       { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor); transform: scale(1.06); }
 }
 
-/* Evolved piece glow — rainbow cycle like mythic but in colour.
-   Each colour phase breathes in (small) → out (big) → in, matching mythic's pulse style. */
+/* ═══════════════════════════════════════════════════════
+   EVOLVED — ascended, cosmic, divine
+   Soft spectral aurora: slow iridescent color drift,
+   chromatic bloom rings, prismatic edge highlights.
+   NOT harsh RGB — flowing, elegant, transcendent.
+   ═══════════════════════════════════════════════════════ */
+
+/* Tile aura — gentle prismatic wash underneath the piece */
+@keyframes evolved-tile-aura {
+  0%   { box-shadow: inset 0 0 40px rgba(180,130,255,0.14), 0 0 30px rgba(180,130,255,0.12); }
+  20%  { box-shadow: inset 0 0 40px rgba(100,180,255,0.14), 0 0 30px rgba(100,180,255,0.12); }
+  40%  { box-shadow: inset 0 0 40px rgba( 80,230,180,0.14), 0 0 30px rgba( 80,230,180,0.12); }
+  60%  { box-shadow: inset 0 0 40px rgba(255,200,100,0.14), 0 0 30px rgba(255,200,100,0.12); }
+  80%  { box-shadow: inset 0 0 40px rgba(255,120,180,0.14), 0 0 30px rgba(255,120,180,0.12); }
+  100% { box-shadow: inset 0 0 40px rgba(180,130,255,0.14), 0 0 30px rgba(180,130,255,0.12); }
+}
+
+.glow-evolved {
+  animation: evolved-tile-aura 10s ease-in-out infinite;
+}
+
+/* Piece glow — layered spectral drop-shadows flowing through soft aurora palette */
 @keyframes glow-pulse-evolved {
-  /* Red */
-  0%   { filter: drop-shadow(0 0 14px rgba(255,60,120,1))  drop-shadow(0 0 28px rgba(255,60,120,0.6))  drop-shadow(0 0 42px rgba(255,60,120,0.3)); }
-  6%   { filter: drop-shadow(0 0 22px rgba(255,60,120,1))  drop-shadow(0 0 44px rgba(255,60,120,0.7))  drop-shadow(0 0 64px rgba(255,60,120,0.4)); }
-  /* Orange */
-  14%  { filter: drop-shadow(0 0 14px rgba(255,150,40,1))  drop-shadow(0 0 28px rgba(255,150,40,0.6))  drop-shadow(0 0 42px rgba(255,150,40,0.3)); }
-  20%  { filter: drop-shadow(0 0 22px rgba(255,150,40,1))  drop-shadow(0 0 44px rgba(255,150,40,0.7))  drop-shadow(0 0 64px rgba(255,150,40,0.4)); }
-  /* Yellow */
-  28%  { filter: drop-shadow(0 0 14px rgba(220,220,40,1))  drop-shadow(0 0 28px rgba(220,220,40,0.6))  drop-shadow(0 0 42px rgba(220,220,40,0.3)); }
-  34%  { filter: drop-shadow(0 0 22px rgba(220,220,40,1))  drop-shadow(0 0 44px rgba(220,220,40,0.7))  drop-shadow(0 0 64px rgba(220,220,40,0.4)); }
-  /* Green */
-  42%  { filter: drop-shadow(0 0 14px rgba(40,220,110,1))  drop-shadow(0 0 28px rgba(40,220,110,0.6))  drop-shadow(0 0 42px rgba(40,220,110,0.3)); }
-  48%  { filter: drop-shadow(0 0 22px rgba(40,220,110,1))  drop-shadow(0 0 44px rgba(40,220,110,0.7))  drop-shadow(0 0 64px rgba(40,220,110,0.4)); }
-  /* Blue */
-  57%  { filter: drop-shadow(0 0 14px rgba(40,170,255,1))  drop-shadow(0 0 28px rgba(40,170,255,0.6))  drop-shadow(0 0 42px rgba(40,170,255,0.3)); }
-  63%  { filter: drop-shadow(0 0 22px rgba(40,170,255,1))  drop-shadow(0 0 44px rgba(40,170,255,0.7))  drop-shadow(0 0 64px rgba(40,170,255,0.4)); }
-  /* Purple */
-  71%  { filter: drop-shadow(0 0 14px rgba(140,60,255,1))  drop-shadow(0 0 28px rgba(140,60,255,0.6))  drop-shadow(0 0 42px rgba(140,60,255,0.3)); }
-  77%  { filter: drop-shadow(0 0 22px rgba(140,60,255,1))  drop-shadow(0 0 44px rgba(140,60,255,0.7))  drop-shadow(0 0 64px rgba(140,60,255,0.4)); }
-  /* Pink */
-  85%  { filter: drop-shadow(0 0 14px rgba(255,60,200,1))  drop-shadow(0 0 28px rgba(255,60,200,0.6))  drop-shadow(0 0 42px rgba(255,60,200,0.3)); }
-  91%  { filter: drop-shadow(0 0 22px rgba(255,60,200,1))  drop-shadow(0 0 44px rgba(255,60,200,0.7))  drop-shadow(0 0 64px rgba(255,60,200,0.4)); }
-  /* Back to red */
-  100% { filter: drop-shadow(0 0 14px rgba(255,60,120,1))  drop-shadow(0 0 28px rgba(255,60,120,0.6))  drop-shadow(0 0 42px rgba(255,60,120,0.3)); }
+  /* Violet-indigo */
+  0% {
+    filter:
+      drop-shadow(0 0  5px rgba(220,200,255,0.95))
+      drop-shadow(0 0 12px rgba(180,130,255,0.80))
+      drop-shadow(0 0 26px rgba(140, 80,255,0.50))
+      drop-shadow(0 0 50px rgba(100, 40,200,0.25))
+      drop-shadow(0 0 80px rgba( 60, 10,160,0.12));
+  }
+  /* Cerulean-sky */
+  18% {
+    filter:
+      drop-shadow(0 0  5px rgba(200,230,255,0.95))
+      drop-shadow(0 0 12px rgba(100,190,255,0.80))
+      drop-shadow(0 0 26px rgba( 40,150,255,0.50))
+      drop-shadow(0 0 50px rgba( 10, 80,220,0.25))
+      drop-shadow(0 0 80px rgba(  0, 40,160,0.12));
+  }
+  /* Aqua-emerald */
+  36% {
+    filter:
+      drop-shadow(0 0  5px rgba(200,255,240,0.95))
+      drop-shadow(0 0 12px rgba( 80,240,190,0.80))
+      drop-shadow(0 0 26px rgba( 20,200,150,0.50))
+      drop-shadow(0 0 50px rgba(  0,150,100,0.25))
+      drop-shadow(0 0 80px rgba(  0, 90, 60,0.12));
+  }
+  /* Amber-gold */
+  54% {
+    filter:
+      drop-shadow(0 0  5px rgba(255,245,200,0.95))
+      drop-shadow(0 0 12px rgba(255,210,100,0.80))
+      drop-shadow(0 0 26px rgba(240,170, 30,0.50))
+      drop-shadow(0 0 50px rgba(200,120,  0,0.25))
+      drop-shadow(0 0 80px rgba(140, 60,  0,0.12));
+  }
+  /* Rose-magenta */
+  72% {
+    filter:
+      drop-shadow(0 0  5px rgba(255,220,240,0.95))
+      drop-shadow(0 0 12px rgba(255,140,200,0.80))
+      drop-shadow(0 0 26px rgba(230, 60,160,0.50))
+      drop-shadow(0 0 50px rgba(180, 10,100,0.25))
+      drop-shadow(0 0 80px rgba(120,  0, 60,0.12));
+  }
+  /* Back to violet */
+  100% {
+    filter:
+      drop-shadow(0 0  5px rgba(220,200,255,0.95))
+      drop-shadow(0 0 12px rgba(180,130,255,0.80))
+      drop-shadow(0 0 26px rgba(140, 80,255,0.50))
+      drop-shadow(0 0 50px rgba(100, 40,200,0.25))
+      drop-shadow(0 0 80px rgba( 60, 10,160,0.12));
+  }
 }
 
 .glow-evolved img {
-  filter: drop-shadow(0 0 14px rgba(255,60,120,1)) drop-shadow(0 0 28px rgba(255,60,120,0.6)) drop-shadow(0 0 42px rgba(255,60,120,0.3));
-  animation: glow-pulse-evolved 8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0  5px rgba(220,200,255,0.95))
+    drop-shadow(0 0 12px rgba(180,130,255,0.80))
+    drop-shadow(0 0 26px rgba(140, 80,255,0.50))
+    drop-shadow(0 0 50px rgba(100, 40,200,0.25))
+    drop-shadow(0 0 80px rgba( 60, 10,160,0.12));
+  animation: glow-pulse-evolved 10s ease-in-out infinite;
+}
+
+/* Pawns are numerous, so their glow is intentionally weaker than major pieces. */
+.pawn-glow {
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.06), 0 0 10px rgba(255,255,255,0.10);
+}
+.pawn-glow img {
+  filter: drop-shadow(0 0 3px rgba(255,255,255,0.45));
+  animation: none !important;
+}
+
+.pawn-glow.glow-common {
+  box-shadow:
+    inset 0 0 10px rgba(220,230,255,0.12),
+    0 0 10px rgba(180,200,255,0.14);
+}
+.pawn-glow.glow-common img {
+  filter:
+    drop-shadow(0 0 4px rgba(220,230,255,0.60))
+    drop-shadow(0 0 8px rgba(180,200,255,0.24)) !important;
+}
+
+.pawn-glow.glow-rare {
+  box-shadow:
+    inset 0 0 12px rgba(196,181,253,0.14),
+    0 0 12px rgba(139,92,246,0.16);
+}
+.pawn-glow.glow-rare img {
+  filter:
+    drop-shadow(0 0 4px rgba(196,181,253,0.72))
+    drop-shadow(0 0 10px rgba(167,139,250,0.34)) !important;
+}
+
+.pawn-glow.glow-legendary {
+  box-shadow:
+    inset 0 0 14px rgba(251,191,36,0.14),
+    0 0 12px rgba(251,191,36,0.16);
+}
+.pawn-glow.glow-legendary img {
+  filter:
+    drop-shadow(0 0 5px rgba(255,220,100,0.78))
+    drop-shadow(0 0 10px rgba(251,191,36,0.38)) !important;
+}
+
+.pawn-glow.glow-mythic {
+  box-shadow:
+    inset 0 0 16px rgba(255,245,160,0.16),
+    0 0 16px rgba(245,158,11,0.18),
+    0 0 26px rgba(245,158,11,0.10);
+}
+.pawn-glow.glow-mythic img {
+  filter:
+    drop-shadow(0 0 5px rgba(255,255,220,0.82))
+    drop-shadow(0 0 12px rgba(245,158,11,0.42)) !important;
+}
+
+.pawn-glow.glow-evolved {
+  box-shadow:
+    inset 0 0 16px rgba(220,200,255,0.18),
+    0 0 16px rgba(140,80,255,0.20),
+    0 0 28px rgba(140,80,255,0.10);
+}
+.pawn-glow.glow-evolved img {
+  filter:
+    drop-shadow(0 0 5px rgba(220,200,255,0.82))
+    drop-shadow(0 0 12px rgba(140,80,255,0.42)) !important;
 }
 
 /* Evolved modifier pill in the mods bar — rainbow border + glow */
@@ -9989,6 +10391,12 @@ button:active {
       <div id="puzzle-hint-text" style="font-size:13px; line-height:1.5; color:rgba(255,255,255,0.82);">No hints used yet.</div>
     </div>
 
+    <!-- Chaos Log -->
+    <div class="game-panel-box" id="chaos-log-panel" style="display:none;">
+      <div class="game-panel-title">⚡ Chaos Log</div>
+      <div id="chaos-log-list"></div>
+    </div>
+
     <!-- Move history fills the rest -->
     <div class="game-panel-box" id="game-move-history-panel">
       <div class="game-panel-title">Move History</div>
@@ -10452,6 +10860,7 @@ let pinnedShake = null; // {x, y} for piece that should shake
 let castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
 let moveHistory = []; // Track all moves in algebraic notation
 let modifiers=[];
+let chaosLogEntries = []; // Chaos Log event history
 let legalMoves=[];
 let pieceData={}; // Track metadata: {x,y} -> {phantom:true, reinforced:true, etc}
 let kamikazeBombs = []; // Track pending explosions: [{x, y, turnsLeft}]
@@ -11189,6 +11598,8 @@ function draw(){
   const b = document.getElementById('board');
   const wrapper = document.getElementById('board-wrapper');
   b.innerHTML = '';
+  const activeMods = new Set(modifiers || []);
+  let heavyPawnGlowCount = 0;
   
   // Chaos theme flickering
   let bt = BOARD_THEMES.find(t => t.id === settings.boardTheme);
@@ -11340,13 +11751,21 @@ function draw(){
       }
 
       // Magnetic Poles
-      if(modifiers.includes('Magnetic Poles')){
+      if(activeMods.has('Magnetic Poles')){
         if((x === 0 && y === 0) || (x === 7 && y === 7)){
           sq.classList.add('magnetic-attract');
         }
         if((x === 0 && y === 7) || (x === 7 && y === 0)){
           sq.classList.add('magnetic-repel');
         }
+      }
+
+      // Sovereign's Blessing: aura applied to king and all adjacent squares
+      if(activeMods.has("Sovereign's Blessing")){
+        let wk = findKing(true);
+        let bk = findKing(false);
+        if(wk){ let dx = Math.abs(x - wk.x), dy = Math.abs(y - wk.y); if(dx <= 1 && dy <= 1) sq.classList.add('sovereign-aura'); }
+        if(bk){ let dx = Math.abs(x - bk.x), dy = Math.abs(y - bk.y); if(dx <= 1 && dy <= 1) sq.classList.add('sovereign-aura'); }
       }
 
       // King in check
@@ -11388,61 +11807,74 @@ function draw(){
         } 
         else {
           // Evolved glows (rainbow — highest priority after phantom/decoy/jesterDecoy)
-          if((modifiers.includes('Fast Pawn (Evolved)') && pieceType==='p') ||
-             (modifiers.includes('Viral Pawn (Evolved)') && pieceType==='p') ||
-             (modifiers.includes('Pawn Bayonet (Evolved)') && pieceType==='p') ||
-             (modifiers.includes('Pegasus (Evolved)') && pieceType==='n') ||
-             (modifiers.includes('Copycat Knight (Evolved)') && pieceType==='n') ||
-             (modifiers.includes('Royal Guard (Evolved)') && pieceType==='k') ||
-             (modifiers.includes('Magnetic Queen (Evolved)') && pieceType==='q') ||
-             (modifiers.includes('Nuclear Queen (Evolved)') && pieceType==='q')) {
+          if((activeMods.has('Fast Pawn (Evolved)') && pieceType==='p') ||
+             (activeMods.has('Viral Pawn (Evolved)') && pieceType==='p') ||
+             (activeMods.has('Pawn Bayonet (Evolved)') && pieceType==='p') ||
+             (activeMods.has('Pegasus (Evolved)') && pieceType==='n') ||
+             (activeMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
+             (activeMods.has('Royal Guard (Evolved)') && pieceType==='k') ||
+             (activeMods.has('Magnetic Queen (Evolved)') && pieceType==='q') ||
+             (activeMods.has('Nuclear Queen (Evolved)') && pieceType==='q')) {
             sq.classList.add('glow-evolved');
+            if(pieceType === 'p') {
+              sq.classList.add('pawn-glow');
+              heavyPawnGlowCount++;
+            }
           }
           // Mythic glows
-          else if((modifiers.includes('Nuclear Queen') && pieceType==='q') ||
-             (modifiers.includes('Duck of Eternal Blocking') && piece === 'D') ||
-             (modifiers.includes('Hive Mind Pawns') && pieceType==='p') ||
-             (modifiers.includes('Pegasus') && pieceType==='n')) {
+          else if((activeMods.has('Nuclear Queen') && pieceType==='q') ||
+             (activeMods.has('Duck of Eternal Blocking') && piece === 'D') ||
+             (activeMods.has('Hive Mind Pawns') && pieceType==='p') ||
+             (activeMods.has('Pegasus') && pieceType==='n')) {
             sq.classList.add('glow-mythic');
+            if(pieceType === 'p') {
+              sq.classList.add('pawn-glow');
+              heavyPawnGlowCount++;
+            }
           }
           // Legendary glows
-          else if((modifiers.includes('Phantom Knight') && pieceType==='n') ||
-		              (modifiers.includes('Jester Knight') && pieceType==='n') ||
-                  (modifiers.includes('Storm Rook') && pieceType==='r') ||
-                  (modifiers.includes('Railgun Rook') && pieceType==='r') ||
-                  (modifiers.includes('Decoy Rook') && pieceType==='r') ||
-                  (modifiers.includes('Phoenix Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Royal Guard') && pieceType==='k') ||
-                  (modifiers.includes('Kamikaze Pawn') && pieceType==='p')) {
+          else if((activeMods.has('Phantom Knight') && pieceType==='n') ||
+		              (activeMods.has('Jester Knight') && pieceType==='n') ||
+                  (activeMods.has('Necromancer Knight') && pieceType==='n') ||
+                  (activeMods.has('Storm Rook') && pieceType==='r') ||
+                  (activeMods.has('Railgun Rook') && pieceType==='r') ||
+                  (activeMods.has('Decoy Rook') && pieceType==='r') ||
+                  (activeMods.has('Phoenix Pawn') && pieceType==='p') ||
+                  (activeMods.has('Royal Guard') && pieceType==='k') ||
+                  (activeMods.has('Kamikaze Pawn') && pieceType==='p')) {
             sq.classList.add('glow-legendary');
+            if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
           // Rare glows
-          else if((modifiers.includes('Mind Control Bishop') && pieceType==='b') ||
-                  (modifiers.includes('Sniper Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Viral Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Magnetic Queen') && pieceType==='q') ||
-                  (modifiers.includes('Double Strike Rook') && pieceType==='r') ||
-                  (modifiers.includes('Copycat Knight') && pieceType==='n') ||
-                  (modifiers.includes('Coward Knight') && pieceType==='n') ||
-                  (modifiers.includes('Copycat Knight (Evolved)') && pieceType==='n') ||
-                  (modifiers.includes('Boomerang Bishop') && pieceType==='b') ||
-                  (modifiers.includes('Pinballing Bishop') && pieceType==='b') ||
-                  (modifiers.includes('Sprinting King') && pieceType==='k') ||
-                  (modifiers.includes('Bounty Hunter Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Tectonic Rook') && pieceType==='r')) {
+            else if((activeMods.has('Mind Control Bishop') && pieceType==='b') ||
+              (activeMods.has('Sniper Pawn') && pieceType==='p') ||
+              (activeMods.has('Viral Pawn') && pieceType==='p') ||
+              (activeMods.has('Magnetic Queen') && pieceType==='q') ||
+              (activeMods.has('Double Strike Rook') && pieceType==='r') ||
+              (activeMods.has('Copycat Knight') && pieceType==='n') ||
+              (activeMods.has('Coward Knight') && pieceType==='n') ||
+              (activeMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
+              (activeMods.has('Boomerang Bishop') && pieceType==='b') ||
+              (activeMods.has('Pinballing Bishop') && pieceType==='b') ||
+              (activeMods.has('Sprinting King') && pieceType==='k') ||
+              (activeMods.has("Sovereign's Blessing") && pieceType==='k') ||
+              (activeMods.has('Bounty Hunter Pawn') && pieceType==='p') ||
+              (activeMods.has('Tectonic Rook') && pieceType==='r')) {
             sq.classList.add('glow-rare');
+            if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
           // Common glows
-          else if((modifiers.includes('Fast Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Trench Pawn') && pieceType==='p') ||
-                  (modifiers.includes('Pawn Bayonet') && pieceType==='p') ||
-                  (modifiers.includes('Reinforced Pawn') && pieceType==='p')) {
+          else if((activeMods.has('Fast Pawn') && pieceType==='p') ||
+                  (activeMods.has('Trench Pawn') && pieceType==='p') ||
+                  (activeMods.has('Pawn Bayonet') && pieceType==='p') ||
+                  (activeMods.has('Reinforced Pawn') && pieceType==='p')) {
             sq.classList.add('glow-common');
+            if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
         }
 
         // Copycat Knight (Evolved): show a small icon of the currently-adopted piece
-        if(modifiers.includes('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && data.copycatEvolved) {
+        if(activeMods.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && data.copycatEvolved) {
           // Use the knight's own colour for the icon so it's clear which side it is
           let iconKey = isWhite(piece) ? data.copycatPiece.toUpperCase() : data.copycatPiece.toLowerCase();
           let iconSrc = pieceImages[iconKey];
@@ -11455,8 +11887,8 @@ function draw(){
         }
 
         // Viral Pawn: show 🦠 badge on pawns that can still duplicate (not on duplicates themselves)
-        if(settings.showBadges && (modifiers.includes('Viral Pawn') || modifiers.includes('Viral Pawn (Evolved)')) && pieceType === 'p') {
-          let canDuplicate = modifiers.includes('Viral Pawn (Evolved)') || !data.viralDuplicate;
+        if(settings.showBadges && (activeMods.has('Viral Pawn') || activeMods.has('Viral Pawn (Evolved)')) && pieceType === 'p') {
+          let canDuplicate = activeMods.has('Viral Pawn (Evolved)') || !data.viralDuplicate;
           if(canDuplicate) {
             sq.classList.add('has-viral-badge');
             let viralBadge = document.createElement('div');
@@ -11467,7 +11899,7 @@ function draw(){
         }
 
         // Phoenix Pawn: show 🐦‍🔥 badge on pawns that haven't respawned yet
-        if(settings.showBadges && modifiers.includes('Phoenix Pawn') && pieceType === 'p' && !data.hasRespawned) {
+        if(settings.showBadges && activeMods.has('Phoenix Pawn') && pieceType === 'p' && !data.hasRespawned) {
           sq.classList.add('has-phoenix-badge');
           let phoenixBadge = document.createElement('div');
           phoenixBadge.className = 'phoenix-pawn-icon';
@@ -11476,7 +11908,7 @@ function draw(){
         }
 
         // Bounty Hunter Pawn: show stacking 🎯 badge for each kill that pawn has
-        if(settings.showBadges && modifiers.includes('Bounty Hunter Pawn') && pieceType === 'p'){
+        if(settings.showBadges && activeMods.has('Bounty Hunter Pawn') && pieceType === 'p'){
           let kills = data.bountyKills || 0;
           if(kills > 0){
             sq.classList.add('has-bounty-badge');
@@ -11489,7 +11921,7 @@ function draw(){
 
         // Reinforced Pawn: show 🛡️ badge only on pawns whose shield hasn't been burned yet
         // shieldBurned is set on the DEFENDING pawn when its block fires
-        if(settings.showBadges && modifiers.includes('Reinforced Pawn') && pieceType === 'p' && !data.shieldBurned) {
+        if(settings.showBadges && activeMods.has('Reinforced Pawn') && pieceType === 'p' && !data.shieldBurned) {
           sq.classList.add('has-shield-badge');
           let shieldBadge = document.createElement('div');
           shieldBadge.className = 'shield-pawn-icon';
@@ -11498,7 +11930,7 @@ function draw(){
         }
 
         // Base Copycat Knight: show icon of currently mimicked piece (same as evolved, but only during active turns)
-        if(modifiers.includes('Copycat Knight') && !modifiers.includes('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && !data.copycatEvolved) {
+        if(activeMods.has('Copycat Knight') && !activeMods.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && !data.copycatEvolved) {
           let iconKey = isWhite(piece) ? data.copycatPiece.toUpperCase() : data.copycatPiece.toLowerCase();
           let iconSrc = pieceImages[iconKey];
           if(iconSrc) {
@@ -11512,7 +11944,7 @@ function draw(){
         // ── Fog of War Bishop ───────────────────────────────────────────────
         // Bishops owned by the Fog player are hidden from the enemy unless
         // at least one enemy piece can capture the square they're on.
-        if(modifiers.includes('Fog of War Bishop') && pieceType === 'b'){
+        if(activeMods.has('Fog of War Bishop') && pieceType === 'b'){
           let bishopIsWhite = isWhite(piece);
           let inEnemyVision = isBishopInEnemyCaptureVision(x, y, bishopIsWhite);
 
@@ -11547,13 +11979,15 @@ function draw(){
 
 
       // Royal Guard (Evolved): show rainbow glow on bodyguard piece itself
-      if(modifiers.includes('Royal Guard (Evolved)') && (piece === 'G' || piece === 'g')){
+      if(activeMods.has('Royal Guard (Evolved)') && (piece === 'G' || piece === 'g')){
         sq.classList.add('glow-evolved');
       }
       sq.onclick = () => clickSquare(x, y);
       b.appendChild(sq);
     }
   }
+
+  b.classList.toggle('pawn-swarm-glows', heavyPawnGlowCount >= 5);
 
   // Info text
   let turnText = `Moves: ${moveCount} | Turn: ${turn}`;
@@ -11856,6 +12290,11 @@ function applyPuzzlePosition(puzzle){
   whiteCaptured = [];
   blackCaptured = [];
   moveHistory = [];
+  chaosLogEntries = [];
+  const clPanel = document.getElementById('chaos-log-panel');
+  if(clPanel) clPanel.style.display = 'none';
+  const clList = document.getElementById('chaos-log-list');
+  if(clList) clList.innerHTML = '';
   kamikazeBombs = [];
   nuclearZones = [];
   tornadoes = [];
@@ -13013,6 +13452,27 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
       break;
   }
 
+  // Sovereign's Blessing: allied pieces adjacent to their king gain a king-like 1-square move
+  if(modifiers.includes("Sovereign's Blessing")){
+    try {
+      let myKing = findKing(isWhite(piece));
+      if(myKing){
+        let dkx = Math.abs(myKing.x - x), dky = Math.abs(myKing.y - y);
+        if(!(dkx===0 && dky===0) && dkx <= 1 && dky <= 1){
+          [[1,1],[1,0],[1,-1],[-1,1],[-1,0],[-1,-1],[0,1],[0,-1]].forEach(([dx,dy])=>{
+            let nx = x + dx, ny = y + dy;
+            if(board[ny]?.[nx] === undefined) return;
+            let target = board[ny][nx];
+            if(target && isWhite(target) === isWhite(piece)) return; // can't capture own
+            if(target && target.toLowerCase() === 'n' && getPieceData(nx,ny).phantom) return;
+            if(target === 'D') return; // ducks block
+            if(!moves.some(m=>m.x===nx && m.y===ny)) moves.push({x:nx,y:ny,sovereignBlessing:true});
+          });
+        }
+      }
+    } catch(e){ console.warn('Sovereign Blessing move calc failed', e); }
+  }
+
   return moves;
 }
 
@@ -13219,7 +13679,7 @@ function animatePieceMove(x1, y1, x2, y2, piece, callback) {
 
   let fromSquare = document.querySelector(`[data-x="${x1}"][data-y="${y1}"]`);
   let toSquare = document.querySelector(`[data-x="${x2}"][data-y="${y2}"]`);
-  
+
   if (!fromSquare || !toSquare) {
     callback();
     return;
@@ -13229,6 +13689,16 @@ function animatePieceMove(x1, y1, x2, y2, piece, callback) {
   let existingImg = fromSquare.querySelector('img');
   let imgSrc = existingImg ? existingImg.src : pieceImages[piece];
   if (!imgSrc) { callback(); return; }
+
+  // Detect rarity trail from the square's glow class
+  const _trailClass = (() => {
+    const cl = fromSquare.classList;
+    if (cl.contains('glow-evolved'))    return 'trail-evolved';
+    if (cl.contains('glow-mythic'))     return 'trail-mythic';
+    if (cl.contains('glow-legendary'))  return 'trail-legendary';
+    if (cl.contains('glow-rare'))       return 'trail-rare';
+    return null;
+  })();
 
   // Speed setting: 'fast'=80ms, 'medium'=140ms, 'slow'=220ms
   const durationMap = { fast: 80, medium: 140, slow: 220 };
@@ -13262,6 +13732,39 @@ function animatePieceMove(x1, y1, x2, y2, piece, callback) {
   animPiece.style.transition = `left ${duration}ms cubic-bezier(0.25,0.1,0.25,1), top ${duration}ms cubic-bezier(0.25,0.1,0.25,1)`;
   animPiece.style.left = endX + 'px';
   animPiece.style.top  = endY + 'px';
+
+  // ── Rarity trail orbs ──────────────────────────────────────────────────
+  // Spawn small glowing orbs along the movement path based on rarity tier.
+  // Number of orbs scales with rarity: rare=2, legendary=3, mythic=5, evolved=3
+  if (_trailClass && duration >= 80) {
+    const orb_counts = { 'trail-rare': 1, 'trail-legendary': 2, 'trail-mythic': 3, 'trail-evolved': 3 };
+    const numOrbs = orb_counts[_trailClass] || 2;
+    const trailOrbs = [];
+
+    for (let i = 0; i < numOrbs; i++) {
+      const t = (i + 1) / (numOrbs + 1); // 0..1 along the path, excluding endpoints
+      const delay = Math.round(t * duration * 0.75);
+      setTimeout(() => {
+        // Sample the piece's current interpolated position
+        const frac = delay / duration;
+        const cx = startX + (endX - startX) * frac + imgSize / 2;
+        const cy = startY + (endY - startY) * frac + imgSize / 2;
+        // Small scatter jitter so orbs don't stack perfectly
+        const jx = (Math.random() - 0.5) * 10;
+        const jy = (Math.random() - 0.5) * 10;
+        const orb = document.createElement('div');
+        orb.className = `piece-trail ${_trailClass}`;
+        orb.style.left = (cx + jx) + 'px';
+        orb.style.top  = (cy + jy) + 'px';
+        orb.style.transform = 'translate(-50%, -50%)';
+        document.body.appendChild(orb);
+        trailOrbs.push(orb);
+        // Remove after animation completes
+        const dur = parseFloat(getComputedStyle(orb).getPropertyValue('--trail-dur') || '0.5') * 1000;
+        setTimeout(() => orb.remove(), dur + 50);
+      }, delay);
+    }
+  }
 
   setTimeout(() => {
     animPiece.remove();
@@ -13375,6 +13878,39 @@ function move(x1,y1,x2,y2,castleType){
   let piece=board[y1][x1];
   let captured=board[y2][x2];
 
+  // Capture move metadata before legalMoves is cleared, for Chaos Log
+  const _selectedMoveMeta = legalMoves.find(m => m.x===x2 && m.y===y2) || {};
+  const _moverWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+
+  // Log Pinballing Bishop bounce
+  if(_selectedMoveMeta.pinball && piece.toLowerCase()==='b') {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pinballing Bishop — bounced to ${sqNotation(x2,y2)}!`);
+  }
+  // Log Boomerang Bishop return move
+  if(_selectedMoveMeta.boomerang && piece.toLowerCase()==='b') {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ' used Boomerang Bishop — returned to starting square!');
+  }
+  // Log Pegasus second jump
+  if(_selectedMoveMeta.pegasus && piece.toLowerCase()==='n') {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pegasus — double jump to ${sqNotation(x2,y2)}!`);
+  }
+  // Log Railgun move
+  if(_selectedMoveMeta.railgun && piece.toLowerCase()==='r') {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Railgun Rook — piercing shot at ${sqNotation(x2,y2)}!`);
+  }
+  // Log Pawn Bayonet forward capture
+  if(piece.toLowerCase()==='p' && captured && x1===x2 && modifiers.includes('Pawn Bayonet')) {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pawn Bayonet — pierced forward at ${sqNotation(x2,y2)}!`);
+  }
+  // Log Sprinting King 2-square move
+  if(piece.toLowerCase()==='k' && modifiers.includes('Sprinting King') && !castleType && (Math.abs(x2-x1) === 2 || Math.abs(y2-y1) === 2)) {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Sprinting King — dashed to ${sqNotation(x2,y2)}!`);
+  }
+  // Log Sniper Pawn long-diagonal capture
+  if(piece.toLowerCase()==='p' && captured && Math.abs(x2-x1)===2 && modifiers.includes('Sniper Pawn')) {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Sniper Pawn — long-range capture at ${sqNotation(x2,y2)}!`);
+  }
+
   if(puzzleModeActive){
     const puzzleValidation = validatePuzzleMoveAttempt(x1, y1, x2, y2, castleType);
     if(!puzzleValidation.ok){
@@ -13435,6 +13971,9 @@ function move(x1,y1,x2,y2,castleType){
       // Mark the DEFENDER's shield as burned at x2,y2.
       setPieceData(x2,y2,{shieldBurned:true});
       showToast(`${isWhite(captured)?'White':'Black'} pawn reinforced! 🛡️`);
+      // Log the shield absorb — the defended pawn's owner gets the 'you' tag
+      const _rpWho = (gameMode==='online') ? (isWhite(captured)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(captured) ? 'you' : 'opponent');
+      logChaos(_rpWho, 'ability', (_rpWho==='you'?'Your':'Opponent\'s') + ` Reinforced Pawn absorbed a hit at ${sqNotation(x2,y2)}! 🛡️`);
       // Attacker loses their turn — record the failed capture and end the turn
       recordMove(piece, x1, y1, x2, y2, null, null);
       // No board move happened yet, so nothing to undo — just finish the turn
@@ -13449,6 +13988,9 @@ function move(x1,y1,x2,y2,castleType){
     mindControlled = true;
     captured = isWhite(piece) ? captured.toUpperCase() : captured.toLowerCase();
     console.log('Mind control activated!');
+    const _mcWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _mcPiece = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[board[y2][x2]?.toLowerCase()] || 'piece';
+    logChaos(_mcWho, 'ability', (_mcWho==='you'?'You':'Opponent') + ` used Mind Control Bishop — ${_mcPiece} at ${sqNotation(x2,y2)} switched sides! 🌀`);
   }
   
   // Track captured pieces (before they're removed from board)
@@ -13461,13 +14003,17 @@ function move(x1,y1,x2,y2,castleType){
       if(captured.toLowerCase()==='p' && modifiers.includes('Phoenix Pawn')){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
-          respawnPhoenixPawn(captured);
+          const _ppSpot = respawnPhoenixPawn(captured);
+          const _ppWho = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+          logChaos(_ppWho, 'ability', (_ppWho==='you'?'Your':'Opponent\'s') + ` Phoenix Pawn respawned at ${_ppSpot ? sqNotation(_ppSpot.x,_ppSpot.y) : '?'}!`);
         }
       }
       
       // Kamikaze Pawn: place bomb on capture square
       if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
+        const _kzWho = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+        logChaos(_kzWho, 'ability', (_kzWho==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
       }
     } else {
       // Black captured a white piece
@@ -13477,13 +14023,17 @@ function move(x1,y1,x2,y2,castleType){
       if(captured.toLowerCase()==='p' && modifiers.includes('Phoenix Pawn')){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
-          respawnPhoenixPawn(captured);
+          const _ppSpot2 = respawnPhoenixPawn(captured);
+          const _ppWho2 = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+          logChaos(_ppWho2, 'ability', (_ppWho2==='you'?'Your':'Opponent\'s') + ` Phoenix Pawn respawned at ${_ppSpot2 ? sqNotation(_ppSpot2.x,_ppSpot2.y) : '?'}!`);
         }
       }
       
       // Kamikaze Pawn: place bomb on capture square
       if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
+        const _kzWho2 = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+        logChaos(_kzWho2, 'ability', (_kzWho2==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
       }
     }
   }
@@ -13587,6 +14137,9 @@ function move(x1,y1,x2,y2,castleType){
       });
       // Include the decoy square in the last-move highlight
       if(lastMove) lastMove.decoyX = jesterDecoyMove.x, lastMove.decoyY = jesterDecoyMove.y;
+      // Chaos Log — don't reveal which knight is real
+      const _jWho = (gameMode === 'online') ? (isWhite(piece) === (myColor === 'white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_jWho, 'ability', (_jWho === 'you' ? 'You' : 'Opponent') + ' used Jester Knight — a decoy appeared somewhere...');
     }
   }
   
@@ -13609,6 +14162,8 @@ function move(x1,y1,x2,y2,castleType){
       playExplosionSound();
       showExplosion(x2,y2);
       explode(x2,y2);
+      const _nqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_nqWho, 'ability', (_nqWho==='you'?'You':'Opponent') + ` used Nuclear Queen — explosion at ${sqNotation(x2,y2)}! ☢️`);
     }
 
     // Nuclear Queen (Evolved): same initial explosion, then mark adjacent squares as nuclear zones
@@ -13616,6 +14171,8 @@ function move(x1,y1,x2,y2,castleType){
       playExplosionSound();
       showExplosion(x2,y2);
       explode(x2,y2);
+      const _nqeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_nqeWho, 'ability', (_nqeWho==='you'?'You':'Opponent') + ` used Nuclear Queen — nuclear zones placed around ${sqNotation(x2,y2)}! ☢️`);
       // Place a nuclear zone on the capture square AND every adjacent square
       for(let dy=-1; dy<=1; dy++){
         for(let dx=-1; dx<=1; dx++){
@@ -13633,16 +14190,22 @@ function move(x1,y1,x2,y2,castleType){
   // Magnetic Queen: pull all enemy pieces in 3x3 area 1 square closer
   if(modifiers.includes('Magnetic Queen') && captured && piece.toLowerCase()==='q'){
     magneticPull(x2,y2,piece);
+    const _mqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_mqWho, 'ability', (_mqWho==='you'?'You':'Opponent') + ' used Magnetic Queen — nearby enemies were pulled in!');
   }
 
   // Magnetic Queen (Evolved): push all enemy pieces in 5x5 area 1 square away
   if(modifiers.includes('Magnetic Queen (Evolved)') && captured && piece.toLowerCase()==='q'){
     magneticPush(x2,y2,piece);
+    const _mpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_mpWho, 'ability', (_mpWho==='you'?'You':'Opponent') + ' used Magnetic Queen — enemies were blasted away!');
   }
   
   // Tectonic Rook: push all enemy pieces in same row/column away
   if(modifiers.includes('Tectonic Rook') && captured && piece.toLowerCase()==='r'){
     tectonicPush(x2,y2,piece);
+    const _trWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_trWho, 'ability', (_trWho==='you'?'You':'Opponent') + ` used Tectonic Rook — shockwave at ${sqNotation(x2,y2)}!`);
   }
   
   // Phantom Knight: becomes untargetable after capture
@@ -13651,16 +14214,47 @@ function move(x1,y1,x2,y2,castleType){
     setPieceData(x2,y2,{phantom:true, phantomTurns:2}); // 2 turns = opponent's turn + your next turn
     console.log(`Knight at (${x2},${y2}) became phantom. Data:`, getPieceData(x2,y2));
     console.log('All piece data:', pieceData);
+    const _phWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_phWho, 'ability', (_phWho==='you'?'You':'Opponent') + ` used Phantom Knight — knight at ${sqNotation(x2,y2)} is untargetable!`);
   }
   
+  // Necromancer Knight: resurrect captured piece as your own on back ranks
+  if(piece.toLowerCase()==='n' && captured && modifiers.includes('Necromancer Knight') && !mindControlled && captured.toLowerCase() !== 'k' && captured !== 'D' && captured !== 'G' && captured !== 'g'){
+    const _ncIsWhiteKnight = isWhite(piece);
+    // Back ranks for the capturing player: rows 6-7 (y=6,7) for white, rows 0-1 (y=0,1) for black
+    const _ncRows = _ncIsWhiteKnight ? [6, 7] : [0, 1];
+    const _ncSpots = [];
+    for(let _ncy of _ncRows){
+      for(let _ncx = 0; _ncx < 8; _ncx++){
+        if(!board[_ncy][_ncx]) _ncSpots.push({x:_ncx, y:_ncy});
+      }
+    }
+    if(_ncSpots.length > 0){
+      const _ncSpot = _ncSpots[Math.floor(Math.random() * _ncSpots.length)];
+      const _ncPiece = _ncIsWhiteKnight ? captured.toUpperCase() : captured.toLowerCase();
+      board[_ncSpot.y][_ncSpot.x] = _ncPiece;
+      clearPieceData(_ncSpot.x, _ncSpot.y);
+      showExplosion(_ncSpot.x, _ncSpot.y);
+      const _ncWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _ncPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen'}[captured.toLowerCase()] || captured.toLowerCase();
+      logChaos(_ncWho, 'ability', (_ncWho==='you'?'Your':'Opponent\'s') + ` Necromancer Knight resurrected a ${_ncPieceName} at ${sqNotation(_ncSpot.x,_ncSpot.y)}! 💀`);
+    }
+  }
+
   // Copycat Knight: gain captured piece's movement for 1 turn
   if(piece.toLowerCase()==='n' && captured && modifiers.includes('Copycat Knight') && !mindControlled && captured !== 'D' && captured !== 'G' && captured !== 'g'){
     setPieceData(x2,y2,{copycatPiece: captured.toLowerCase(), copycatTurns: 2}); // 2 turns like phantom
+    const _ccWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _ccPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[captured.toLowerCase()] || captured.toLowerCase();
+    logChaos(_ccWho, 'ability', (_ccWho==='you'?'You':'Opponent') + ` used Copycat Knight — adopted ${_ccPieceName} movement!`);
   }
 
   // Copycat Knight (Evolved): permanently adopt captured piece's movement (no expiry — updates on next capture)
   if(piece.toLowerCase()==='n' && captured && modifiers.includes('Copycat Knight (Evolved)') && !mindControlled && captured !== 'D' && captured !== 'G' && captured !== 'g'){
     setPieceData(x2,y2,{copycatPiece: captured.toLowerCase(), copycatEvolved: true});
+    const _cceWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _ccePieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[captured.toLowerCase()] || captured.toLowerCase();
+    logChaos(_cceWho, 'ability', (_cceWho==='you'?'You':'Opponent') + ` used Copycat Knight (Evolved) — permanently became a ${_ccePieceName}!`);
   }
   
   // Railgun Rook: capture all consecutive enemies the rook passed through
@@ -13685,12 +14279,18 @@ function move(x1,y1,x2,y2,castleType){
         }
         sx-=rdx; sy-=rdy;
       }
+      if(railgunFired){
+        const _rgWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+        logChaos(_rgWho, 'ability', (_rgWho==='you'?'You':'Opponent') + ` used Railgun Rook — pierced the file!`);
+      }
     }
   }
 
   // Storm Rook: lightning strike
   if(piece.toLowerCase()==='r' && modifiers.includes('Storm Rook') && !mindControlled){
     stormRookStrike(x2,y2);
+    const _srWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_srWho, 'ability', (_srWho==='you'?'You':'Opponent') + ` used Storm Rook — lightning struck around ${sqNotation(x2,y2)}!`);
   }
   
   // Double Strike Rook: move again after capturing
@@ -13698,6 +14298,8 @@ function move(x1,y1,x2,y2,castleType){
     doubleStrikeActive = true;
     doubleStrikeRookX = x2;
     doubleStrikeRookY = y2;
+    const _dsWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_dsWho, 'ability', (_dsWho==='you'?'You':'Opponent') + ' used Double Strike Rook — strike again!');
     setTimeout(()=>{
       selected = {x:x2, y:y2};
       legalMoves = getLegalMoves(x2,y2).filter(m=>!board[m.y][m.x]); // Only non-capture moves
@@ -13742,6 +14344,8 @@ function move(x1,y1,x2,y2,castleType){
       cowardRetreatActive = true;
       cowardKnightX = x2;
       cowardKnightY = y2;
+      const _ckWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_ckWho, 'ability', (_ckWho==='you'?'Your':'Opponent\'s') + ` Coward Knight at ${sqNotation(x2,y2)} must now retreat! 😨`);
       setTimeout(()=>{
         selected = {x:x2, y:y2};
         legalMoves = retreatMoves;
@@ -13761,7 +14365,10 @@ function move(x1,y1,x2,y2,castleType){
   // Bounty Hunter Pawn: increment kill counter on the capturing pawn
   if(piece.toLowerCase() === 'p' && captured && captured !== '' && captured.toLowerCase() !== 'k' && captured !== 'D' && captured !== 'G' && captured !== 'g' && modifiers.includes('Bounty Hunter Pawn')){
     let pData = getPieceData(x2, y2); // pawn is now at x2,y2 after the move
-    setPieceData(x2, y2, { bountyKills: (pData.bountyKills || 0) + 1 });
+    const _newKills = (pData.bountyKills || 0) + 1;
+    setPieceData(x2, y2, { bountyKills: _newKills });
+    const _bhWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_bhWho, 'ability', (_bhWho==='you'?'Your':'Opponent\'s') + ` Bounty Hunter Pawn scored kill #${_newKills} at ${sqNotation(x2,y2)}!`);
   }
 
   // Viral Pawn: when a pawn captures, spawn a duplicate on origin square (once per pawn — duplicates can't duplicate)
@@ -13774,6 +14381,8 @@ function move(x1,y1,x2,y2,castleType){
       let newData = {...pawnData, viralDuplicate: true};
       setPieceData(x1, y1, newData);
       autoPromotePassivePawns();
+      const _vpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_vpWho, 'ability', (_vpWho==='you'?'Your':'Opponent\'s') + ` Viral Pawn cloned at ${sqNotation(x1,y1)}!`);
     }
   }
 
@@ -13786,6 +14395,8 @@ function move(x1,y1,x2,y2,castleType){
         setPieceData(x1, y1, {...movedData});
       }
       autoPromotePassivePawns();
+      const _vpeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_vpeWho, 'ability', (_vpeWho==='you'?'Your':'Opponent\'s') + ` Viral Pawn (Evolved) cloned at ${sqNotation(x1,y1)}!`);
     }
   }
 
@@ -14123,6 +14734,7 @@ function processKamikazeBombs(){
       
       // Remove bomb from array
       kamikazeBombs.splice(i, 1);
+      logChaos('sys', 'ability', `💥 Kamikaze bomb exploded at ${sqNotation(bomb.x, bomb.y)}!`);
     }
   }
 }
@@ -14148,6 +14760,7 @@ function processNuclearZones(){
         incrementEffectsTriggered(1);
       }
       nuclearZones.splice(i, 1);
+      logChaos('sys', 'ability', `☢️ Nuclear zone detonated at ${sqNotation(zone.x, zone.y)}!`);
     }
   }
 }
@@ -14276,6 +14889,7 @@ const MODIFIER_LORE = {
   'Boomerang Bishop':   'It moves forward like any other bishop… but there’s a subtle pull, like something about its path doesn’t want to be left behind. Its return isn’t a surprise—it’s part of the movement.',
   'Pinballing Bishop':  'It doesn’t resist impact—it uses it. Each bounce feels like a reaction it anticipated, turning collisions into direction. It never truly loses control, even when it looks chaotic.',
   'Tectonic Rook':      'It moves slowly, deliberately—like it’s aware of the weight it carries. When it acts, the board feels it. Not in pieces, but in structure. Each move is a shift in the ground beneath everyone’s feet.',
+  'Necromancer Knight': 'It doesn’t destroy — it converts. What it touches doesn’t disappear so much as change sides, rising from the capture square to stand behind your lines. There’s something deeply unsettling about watching your own piece blink into existence on the back rank, wearing your colours.',
   'Phantom Knight':     'It’s there… and then it isn’t, but somehow, you still feel it. Its presence lingers in the space it occupied, like the idea of it matters more than the moment it moved. It’s a ghost story told in chess form.',
   'Jester Knight':      'It moves like it’s performing. Every leap has flair, every step feels like part of a trick. It wants you to watch it—only to leave you unsure if what you saw was the truth or the joke.',
   'Storm Rook':         'It doesn’t just move—it disrupts. There’s energy in its path, like the air itself can’t decide how to react. It feels less like a piece and more like an event.',
@@ -14524,7 +15138,7 @@ function spawnDuck(){
 }
 
 function respawnPhoenixPawn(pawnPiece){
-  if(puzzleModeActive) return;
+  if(puzzleModeActive) return null;
   // Respawn pawn on random empty square
   let emptySquares = [];
   for(let y=0; y<8; y++){
@@ -14538,7 +15152,9 @@ function respawnPhoenixPawn(pawnPiece){
     board[spot.y][spot.x] = pawnPiece;
     setPieceData(spot.x, spot.y, {hasRespawned:true});
     autoPromotePassivePawns();
+    return spot;
   }
+  return null;
 }
 
 // Auto-promote any pawn that passively ended up on a back rank (phoenix, hive, tornado, magnetic drift, etc.)
@@ -14931,6 +15547,58 @@ function hideRequestModal() {
   document.getElementById('request-modal').classList.remove('show');
 }
 
+// ════════════════════════════════════════════════════════════════
+//  CHAOS LOG — persistent in-panel event log
+// ════════════════════════════════════════════════════════════════
+
+// Convert board coords to algebraic (e.g. x=0,y=7 → "a1")
+function sqNotation(x, y) {
+  return String.fromCharCode(97 + x) + (8 - y);
+}
+
+// who: 'you' | 'opponent' | 'sys'
+// type: 'draft' | 'ability'
+// message: the log text (no move number prefix — added automatically)
+function logChaos(who, type, message, rarityClass) {
+  if(puzzleModeActive) return; // don't log during puzzles
+
+  const panel = document.getElementById('chaos-log-panel');
+  const list  = document.getElementById('chaos-log-list');
+  if(!panel || !list) return;
+
+  // Show the panel if it's the first entry
+  panel.style.display = '';
+
+  // Determine CSS class
+  let entryClass = 'chaos-log-you';
+  if(who === 'opponent') entryClass = 'chaos-log-opp';
+  else if(who === 'sys')  entryClass = 'chaos-log-sys';
+  else if(type === 'draft') entryClass = who === 'you' ? 'chaos-log-draft-you' : 'chaos-log-draft-opponent';
+
+  // Build entry element
+  const entry = document.createElement('div');
+  entry.className = 'chaos-log-entry';
+
+  const moveTag = document.createElement('span');
+  moveTag.className = 'chaos-log-move';
+  moveTag.textContent = `[${moveCount}]`;
+
+  const text = document.createElement('span');
+  text.className = entryClass;
+  if(rarityClass) text.className += ' ' + rarityClass;
+  text.textContent = ' ' + message;
+
+  entry.appendChild(moveTag);
+  entry.appendChild(text);
+  list.appendChild(entry);
+
+  // Scroll to bottom
+  list.scrollTop = list.scrollHeight;
+
+  // Store for potential replay
+  chaosLogEntries.push({ move: moveCount, who, type, message });
+}
+
 function showToast(message, duration=2000){
   let toast = document.getElementById('toast');
   toast.innerText = message;
@@ -14957,6 +15625,7 @@ const allMods=[
   {name:'Boomerang Bishop',rarity:'rare',desc:'Bishop can return to its starting square at any point if free',icon:'♗'},
   {name:'Pinballing Bishop',rarity:'rare',desc:'Bishops can deflect off edges of the board',icon:'♗'},
   {name:'Tectonic Rook',rarity:'rare',desc:'Rook captures push all enemy pieces in same row/column 1 square away',icon:'♜'},
+  {name:'Necromancer Knight',rarity:'legendary',desc:'Knight captures resurrect pieces into your own, spawning them on your back rank',icon:'♞'},
   {name:'Phantom Knight',rarity:'legendary',desc:'Knights become untargetable for 1 turn after capturing',icon:'♞'},
   {name:'Jester Knight',rarity:'legendary',desc:'Knights spawn a fake decoy knight on a random legal move square',icon:'♞'},
   {name:'Storm Rook',rarity:'legendary',desc:'Rooks strike lightning on random square in their row/column when moving',icon:'♜'},
@@ -14970,6 +15639,7 @@ const allMods=[
   {name:'Viral Pawn',rarity:'rare',desc:'When a pawn captures, a duplicate spawns on its original square. Duplicates cannot duplicate again',icon:'♟',evolvesTo:'Viral Pawn (Evolved)'},
   {name:'Hive Mind Pawns',rarity:'mythic',desc:'When you move a pawn, ALL your pawns move the same direction if legal',icon:'♟'},
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
+  {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns. Your pieces are safe.',icon:'🌪️'},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
@@ -15089,6 +15759,7 @@ const CODEX_EXAMPLES = {
   'Pegasus (Evolved)': 'The second hop becomes a flexible repositioning tool rather than only a king-hunt tool.',
   'Copycat Knight': 'Capture a bishop or rook to give a knight one unexpected turn of line-piece movement.',
   'Copycat Knight (Evolved)': 'The knight can permanently change jobs until it captures something better.',
+  'Necromancer Knight': 'A knight capture can add a piece to your own back rank, potentially rebuilding material or creating surprise threats.',
   'Phantom Knight': 'A capturing knight can jump into danger and survive the immediate reply.',
   'Jester Knight': 'A decoy can muddy tactics by forcing the opponent to verify which knight is real.',
   'Coward Knight': 'A knight can poke and then drift away from danger automatically.',
@@ -15231,7 +15902,7 @@ function getCodexCategory(mod){
   if(lower.includes('bishop')) return 'bishop';
   if(lower.includes('rook')) return 'rook';
   if(lower.includes('queen')) return 'queen';
-  if(lower.includes('king') || lower.includes('royal guard')) return 'king';
+  if(lower.includes('king') || lower.includes('royal guard') || lower.includes('sovereign') || lower.includes('blessing')) return 'king';
   return 'environmental';
 }
 
@@ -17093,6 +17764,22 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
     rPieceData[`${viralClone.x},${viralClone.y}`] = { isViralClone: true };
   }
 
+  // Necromancer Knight: resurrect captured piece as own on back ranks (online mirror)
+  if(piece.toLowerCase()==='n' && captured && rModifiers.includes('Necromancer Knight') && captured.toLowerCase() !== 'k' && captured !== 'D' && captured !== 'G' && captured !== 'g') {
+    const _ncIsW = isW(piece);
+    const _ncRows = _ncIsW ? [6, 7] : [0, 1];
+    const _ncSpots = [];
+    for(let _ncy of _ncRows){
+      for(let _ncx = 0; _ncx < 8; _ncx++){
+        if(!rBoard[_ncy][_ncx]) _ncSpots.push({x:_ncx, y:_ncy});
+      }
+    }
+    if(_ncSpots.length > 0){
+      const _ncSpot = _ncSpots[Math.floor(Math.random() * _ncSpots.length)];
+      rBoard[_ncSpot.y][_ncSpot.x] = _ncIsW ? captured.toUpperCase() : captured.toLowerCase();
+    }
+  }
+
   // Phantom Knight: mark as phantom after capturing
   if(piece.toLowerCase()==='n' && captured && rModifiers.includes('Phantom Knight')) {
     rPieceData[`${toX},${toY}`] = { phantom: true };
@@ -17448,6 +18135,10 @@ function placeRoyalGuard(x, y){
   royalGuardKingX = -1;
   royalGuardKingY = -1;
 
+  // Log Royal Guard placement
+  const _rgWho = (gameMode==='online') ? ((isWhiteKing ? 'white' : 'black') === myColor ? 'you' : 'opponent') : (isWhiteKing ? 'you' : 'opponent');
+  logChaos(_rgWho, 'ability', (_rgWho==='you'?'Your':'Opponent\'s') + ` Royal Guard bodyguard placed at ${sqNotation(x,y)}! 🛡️`);
+
   // Dismiss the toast
   let toastEl = document.getElementById('toast');
   if(toastEl) toastEl.classList.remove('show');
@@ -17730,11 +18421,48 @@ function chaosDraft(){
       front.appendChild(particle);
     }
 
+    // Build AFFECTS line (computed once, used in innerHTML below)
+    const _affectsHtml = (()=>{
+      const modPieceType = {
+        'Pawn Bayonet':'p', 'Pawn Bayonet (Evolved)':'p',
+        'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
+        'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
+        'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
+        'Trench Pawn':'p', 'Bounty Hunter Pawn':'p',
+        'Phase Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
+        'Pinballing Bishop':'b', 'Fog of War Bishop':'b',
+        'Sidestep Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n', 'Necromancer Knight':'n',
+        'Copycat Knight (Evolved)':'n', 'Phantom Knight':'n', 'Jester Knight':'n',
+        'Pegasus':'n', 'Pegasus (Evolved)':'n',
+        'Phase Rook':'r', 'Double Strike Rook':'r', 'Tectonic Rook':'r',
+        'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
+        'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q',
+        'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
+        'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
+        "Sovereign's Blessing":'k',
+      };
+      const pieceNames = {p:'PAWNS',b:'BISHOPS',n:'KNIGHTS',r:'ROOKS',q:'QUEENS',k:'KINGS'};
+      const pt = modPieceType[mod.name];
+      if(!pt) return '';
+      const playerIsWhite = (gameMode === 'online') ? (myColor === 'white') : true;
+      let count = 0;
+      for(let cy=0; cy<8; cy++){
+        for(let cx=0; cx<8; cx++){
+          const bp = board[cy][cx];
+          if(!bp) continue;
+          if(bp.toLowerCase() === pt && isWhite(bp) === playerIsWhite) count++;
+        }
+      }
+      const color = count > 0 ? 'rgba(74,222,128,0.95)' : 'rgba(248,113,113,0.95)';
+      return `<div style="font-size:9px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.45);margin-bottom:4px;position:relative;z-index:1;">AFFECTS: <span style="color:${color}">${count} ${pieceNames[pt]}</span></div>`;
+    })();
+
     front.innerHTML += `
       <strong style="position:relative;z-index:1;">${isEvo ? '✦ EVOLVED' : mod.rarity.toUpperCase()}</strong>
       ${evoHintHtml}
       <div class="evolution-icon" style="font-size:44px;margin:6px 0 10px 0;filter:drop-shadow(0 0 12px currentColor);position:relative;z-index:1;">${mod.icon}</div>
-      <div class="evolution-name" style="font-weight:700;font-size:clamp(13px,1.3vw,16px);margin-bottom:6px;letter-spacing:0.5px;position:relative;z-index:1;">${displayName}</div>
+      <div class="evolution-name" style="font-weight:700;font-size:clamp(13px,1.3vw,16px);margin-bottom:4px;letter-spacing:0.5px;position:relative;z-index:1;">${displayName}</div>
+      ${_affectsHtml}
       <small style="position:relative;z-index:1;">${mod.desc}</small>
       <div class="card-cta"><span class="cta-default">CLICK CARD TO DRAFT</span><span class="cta-hover">DRAFT THIS!</span></div>
     `;
@@ -17765,6 +18493,12 @@ function chaosDraft(){
       }
       markModifierDiscovered(mod.name);
       syncModifierDisplays();
+
+      // Log to Chaos Log
+      const _rarityKey = isEvo ? 'evolved' : (mod.rarity || 'common');
+      const _rarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
+      const _displayName = isEvo ? mod.name.replace(' (Evolved)', '') + ' (Evolved)' : mod.name;
+      logChaos('you', 'draft', `You drafted ${_displayName} (${_rarityLabel})!`, `chaos-rarity-${_rarityKey}`);
 
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
       if(mod.name === 'Time Bomb') spawnTimeBomb();
@@ -17947,6 +18681,11 @@ function restart(){
   whiteCaptured=[];
   blackCaptured=[];
   moveHistory=[];
+  chaosLogEntries=[];
+  const _rlList = document.getElementById('chaos-log-list');
+  if(_rlList) _rlList.innerHTML = '';
+  const _rlPanel = document.getElementById('chaos-log-panel');
+  if(_rlPanel) _rlPanel.style.display = 'none';
   kamikazeBombs=[];
   nuclearZones=[];
   tornadoes=[];
@@ -21121,6 +21860,12 @@ function showOpponentDraftReveal(mod) {
   const isEvo = mod.isEvolution === true;
   const displayName = isEvo ? mod.name.replace(' (Evolved)', '') : mod.name;
 
+  // Log opponent draft to Chaos Log
+  const _oppRarityKey = isEvo ? 'evolved' : (mod.rarity || 'common');
+  const _oppRarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
+  const _oppDisplayName = isEvo ? displayName + ' (Evolved)' : displayName;
+  logChaos('opponent', 'draft', `Opponent drafted ${_oppDisplayName} (${_oppRarityLabel})!`, `chaos-rarity-${_oppRarityKey}`);
+
   const rarityColors = {
     common:    'rgba(148,163,184,',
     rare:      'rgba(139,92,246,',
@@ -23002,6 +23747,11 @@ function sandboxNewGame() {
   sbxCloseSaveModal();
   pieceData = {}; initBoard();
   modifiers = []; moveCount = 0; turn = 'white';
+  chaosLogEntries = [];
+  const _clList = document.getElementById('chaos-log-list');
+  if(_clList) _clList.innerHTML = '';
+  const _clPanel = document.getElementById('chaos-log-panel');
+  if(_clPanel) _clPanel.style.display = 'none';
   selected = null; legalMoves = []; lastMove = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
   kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null;
