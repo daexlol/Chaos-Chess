@@ -214,7 +214,43 @@ h1 {
   animation: none !important;
 }
 
-/* ── Dot-style legal move indicators ───────────────────────────────── */
+/* ── Modifier-only move highlights (purple) ─────────────────────────── */
+.highlight-mod {
+  box-shadow: inset 0 0 0 4px #401166 !important;
+  animation: pulse-purple 1.5s ease-in-out infinite;
+}
+.highlight-mod:hover {
+  background-color: rgba(88, 28, 135, 0.3) !important;
+  box-shadow: inset 0 0 0 4px #401166, inset 0 0 20px rgba(88,28,135,0.25) !important;
+  animation: none !important;
+}
+@keyframes pulse-purple {
+  0%, 100% { box-shadow: inset 0 0 0 4px #401166; }
+  50%       { box-shadow: inset 0 0 0 4px #450f74; }
+}
+
+.highlight-dot-mod .legal-dot {
+  background: rgba(88, 28, 135, 0.6);
+}
+.highlight-dot-mod .legal-dot.legal-dot-capture {
+  background: transparent;
+  border-color: rgba(88, 28, 135, 0.6);
+}
+.highlight-dot-mod:hover .legal-dot {
+  background: rgba(88, 28, 135, 0.8);
+}
+.highlight-dot-mod:hover .legal-dot.legal-dot-capture {
+  background: rgba(88, 28, 135, 0.25);
+  border-color: rgba(88, 28, 135, 0.85);
+}
+.highlight-dot-mod:hover {
+  transform: revert;
+}
+
+#board.flipped .highlight-mod:hover,
+#board.flipped .highlight-dot-mod:hover {
+  transform: rotate(180deg) !important;
+}
 .legal-dot {
   position: absolute;
   width: 30px;
@@ -449,6 +485,22 @@ h1 {
       drop-shadow(0 0  5px rgba(230,240,255,0.80))
       drop-shadow(0 0 14px rgba(180,200,255,0.42));
   }
+}
+
+/* ── Piece glow floating particles ──────────────────────────────────── */
+.piece-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  animation: pieceParticleDrift linear infinite;
+}
+
+@keyframes pieceParticleDrift {
+  0%   { transform: translateY(0) translateX(0) scale(1);   opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 0.7; }
+  100% { transform: translateY(var(--pp-dy,-55px)) translateX(var(--pp-dx,0px)) scale(0.3); opacity: 0; }
 }
 
 /* Sovereign's Blessing aura around a king — subtle purple tint on adjacent squares */
@@ -10924,6 +10976,7 @@ let castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ
 let moveHistory = []; // Track all moves in algebraic notation
 let modifiers=[];
 let chaosLogEntries = []; // Chaos Log event history
+let fogBishopVisibility = {}; // tracks prev visibility per bishop square for transition logging
 let legalMoves=[];
 let pieceData={}; // Track metadata: {x,y} -> {phantom:true, reinforced:true, etc}
 let kamikazeBombs = []; // Track pending explosions: [{x, y, turnsLeft}]
@@ -11659,6 +11712,55 @@ function initBoard(){
   pieceData['5,7'] = {bishopStart: {x:5, y:7}};
 }
 
+// Rarity config: [count, minSize, maxSize, minDuration, maxDuration, colorFn, dy]
+const PIECE_PARTICLE_CONFIG = {
+  'glow-common':    { count: 2, sMin: 1.5, sMax: 2.5, dMin: 3.5, dMax: 5.5, dy: -45, color: () => `rgba(148,163,184,` },
+  'glow-rare':      { count: 4, sMin: 2,   sMax: 3.5, dMin: 2.5, dMax: 4.5, dy: -55, color: () => `rgba(139,92,246,`  },
+  'glow-legendary': { count: 5, sMin: 2,   sMax: 4,   dMin: 2,   dMax: 4,   dy: -60, color: () => `rgba(251,191,36,`  },
+  'glow-mythic':    { count: 7, sMin: 2.5, sMax: 4.5, dMin: 1.8, dMax: 3.5, dy: -65, color: () => `rgba(253,224,71,`  },
+  'glow-evolved':   { count: 10,sMin: 2.5, sMax: 5,   dMin: 1.5, dMax: 3,   dy: -70, color: (i, total) => {
+    // Rainbow cycle through rarity colours
+    const cols = ['rgba(253,224,71,','rgba(139,92,246,','rgba(251,191,36,','rgba(96,165,250,','rgba(52,211,153,'];
+    return cols[i % cols.length];
+  }},
+};
+
+function spawnPieceParticles(boardEl) {
+  const glowClasses = Object.keys(PIECE_PARTICLE_CONFIG);
+  boardEl.querySelectorAll('.square').forEach(sq => {
+    const glowClass = glowClasses.find(c => sq.classList.contains(c));
+    if (!glowClass) return;
+
+    const cfg = PIECE_PARTICLE_CONFIG[glowClass];
+
+    for (let i = 0; i < cfg.count; i++) {
+      const p = document.createElement('div');
+      p.className = 'piece-particle';
+      const size   = cfg.sMin + Math.random() * (cfg.sMax - cfg.sMin);
+      const dur    = cfg.dMin + Math.random() * (cfg.dMax - cfg.dMin);
+      const delay  = -(Math.random() * dur); // stagger so they're not all in sync
+      const left   = 10 + Math.random() * 80;
+      const top    = 30 + Math.random() * 55;
+      const dx     = (-12 + Math.random() * 24).toFixed(1);
+      const col    = typeof cfg.color === 'function' ? cfg.color(i, cfg.count) : cfg.color;
+
+      p.style.cssText = [
+        `width:${size.toFixed(1)}px`,
+        `height:${size.toFixed(1)}px`,
+        `left:${left.toFixed(1)}%`,
+        `top:${top.toFixed(1)}%`,
+        `background:${col}0.85)`,
+        `box-shadow:0 0 ${(size*2.5).toFixed(1)}px ${col}0.6)`,
+        `--pp-dy:${cfg.dy}px`,
+        `--pp-dx:${dx}px`,
+        `animation-duration:${dur.toFixed(2)}s`,
+        `animation-delay:${delay.toFixed(2)}s`,
+      ].join(';');
+      sq.appendChild(p);
+    }
+  });
+}
+
 function draw(){
   const b = document.getElementById('board');
   const wrapper = document.getElementById('board-wrapper');
@@ -11725,14 +11827,16 @@ function draw(){
       // Highlight legal moves FIRST (goes over right-click highlight)
       if(settings.showLegal && legalMoves.some(m => m.x === x && m.y === y)) {
         const legalStyle = settings.legalStyle || 'dots';
+        const matchedMove = legalMoves.find(m => m.x === x && m.y === y);
+        const isModOnly = matchedMove && matchedMove.modifierOnly;
         if(legalStyle === 'dots') {
-          sq.classList.add('highlight-dot');
+          sq.classList.add(isModOnly ? 'highlight-dot-mod' : 'highlight-dot');
           const dot = document.createElement('div');
           // Use a ring-style dot for capture squares, filled dot for empty
           dot.className = board[y][x] ? 'legal-dot legal-dot-capture' : 'legal-dot';
           sq.appendChild(dot);
         } else {
-          sq.classList.add('highlight');
+          sq.classList.add(isModOnly ? 'highlight-mod' : 'highlight');
         }
       }
 
@@ -11941,7 +12045,8 @@ function draw(){
           else if((activeMods.has('Fast Pawn') && pieceType==='p') ||
                   (activeMods.has('Trench Pawn') && pieceType==='p') ||
                   (activeMods.has('Pawn Bayonet') && pieceType==='p') ||
-                  (activeMods.has('Reinforced Pawn') && pieceType==='p')) {
+                  (activeMods.has('Reinforced Pawn') && pieceType==='p') ||
+                  (activeMods.has('Dragon Rook') && pieceType==='r')) {
             sq.classList.add('glow-common');
             if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
@@ -12040,6 +12145,26 @@ function draw(){
             shouldHide = !inEnemyVision;
           }
 
+          // Detect visibility transition and log it
+          const _fogKey = `${x},${y}`;
+          const _fogPrevVisible = fogBishopVisibility[_fogKey];
+          const _fogNowVisible = !shouldHide;
+          if(_fogPrevVisible !== undefined && _fogPrevVisible !== _fogNowVisible) {
+            const _fogBishopOwner = (gameMode === 'online')
+              ? (bishopIsWhite === (myColor === 'white') ? 'your' : "opponent's")
+              : (bishopIsWhite ? "white's" : "black's");
+            const _fogCapital = _fogBishopOwner.charAt(0).toUpperCase() + _fogBishopOwner.slice(1);
+            const _fogWho = (gameMode === 'online')
+              ? (bishopIsWhite === (myColor === 'white') ? 'you' : 'opponent')
+              : 'sys';
+            if(_fogNowVisible) {
+              logChaos(_fogWho, 'ability', `${_fogCapital} bishop appeared!`);
+            } else {
+              logChaos(_fogWho, 'ability', `${_fogCapital} bishop vanished into the fog!`);
+            }
+          }
+          fogBishopVisibility[_fogKey] = _fogNowVisible;
+
           // Strip any glow classes already applied, then apply fog class
           sq.classList.remove('glow-legendary','glow-mythic','glow-rare','glow-evolved');
           if(shouldHide){
@@ -12062,6 +12187,9 @@ function draw(){
   }
 
   b.classList.toggle('pawn-swarm-glows', heavyPawnGlowCount >= 5);
+
+  // Spawn floating particles on glowing pieces
+  spawnPieceParticles(b);
 
   // Info text
   let turnText = `Moves: ${moveCount} | Turn: ${turn}`;
@@ -12364,7 +12492,7 @@ function applyPuzzlePosition(puzzle){
   whiteCaptured = [];
   blackCaptured = [];
   moveHistory = [];
-  chaosLogEntries = [];
+  chaosLogEntries = []; fogBishopVisibility = {};
   const clPanel = document.getElementById('chaos-log-panel');
   if(clPanel) clPanel.style.display = 'none';
   const clList = document.getElementById('chaos-log-list');
@@ -13154,7 +13282,7 @@ function getLegalMoves(x,y){
   });
   
   // Filter out moves that would leave king in check
-  return moves.filter(move=>{
+  moves = moves.filter(move=>{
     let oldPiece = board[move.y][move.x];
     let castleMove = move.castle;
     
@@ -13186,6 +13314,25 @@ function getLegalMoves(x,y){
     
     return !inCheck;
   });
+
+  // Tag modifier-only moves in purple by computing base moves without modifiers
+  if(modifiers.length > 0) {
+    const savedModifiers = modifiers;
+    modifiers = [];
+    let baseMoves = getLegalMovesRaw(x,y,true,currentlyInCheck);
+    baseMoves = baseMoves.filter(move=>{
+      let oldPiece = board[move.y][move.x];
+      board[move.y][move.x] = piece; board[y][x] = '';
+      let inCheck = isInCheck(isWhite(piece));
+      board[y][x] = piece; board[move.y][move.x] = oldPiece;
+      return !inCheck;
+    });
+    modifiers = savedModifiers;
+    const baseSet = new Set(baseMoves.map(m => `${m.x},${m.y}`));
+    moves.forEach(m => { if(!baseSet.has(`${m.x},${m.y}`)) m.modifierOnly = true; });
+  }
+
+  return moves;
 }
 
 function getLegalMovesRaw(x,y,allowPegasus,inCheck){
@@ -13410,6 +13557,18 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
       break;
     case 'r':
       addSlides(x,y,piece,moves,[[1,0],[-1,0],[0,1],[0,-1]]);
+      if(modifiers.includes('Dragon Rook')){
+        [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx,dy])=>{
+          let nx=x+dx, ny=y+dy;
+          if(board[ny]?.[nx]===undefined) return;
+          let target = board[ny][nx];
+          if(!target || isWhite(target)!==isWhite(piece)){
+            if(target && target.toLowerCase()==='n' && getPieceData(nx,ny).phantom) return;
+            if(target === 'D') return;
+            moves.push({x:nx,y:ny,dragonRook:true});
+          }
+        });
+      }
       // Railgun Rook: pierce through consecutive enemy pieces, land on first empty square after chain
       if(modifiers.includes('Railgun Rook')){
         [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
@@ -13847,105 +14006,381 @@ function animatePieceMove(x1, y1, x2, y2, piece, callback) {
 }
 
 // Sound effects using Web Audio API
+// ============================================================
+//  AUDIO ENGINE — CHAOS CHESS
+// ============================================================
 let audioContext = null;
 
 function initAudio() {
   if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
+  if (audioContext.state === 'suspended') audioContext.resume();
 }
 
+// ── Helpers ────────────────────────────────────────────────
+
+function _makeNoise(dur) {
+  const len = Math.ceil(audioContext.sampleRate * dur);
+  const buf = audioContext.createBuffer(1, len, audioContext.sampleRate);
+  const d   = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = audioContext.createBufferSource();
+  src.buffer = buf;
+  return src;
+}
+
+function _osc(type, freq, start, end, dur, gain, dest) {
+  const o = audioContext.createOscillator();
+  const g = audioContext.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, start);
+  if (end !== null) o.frequency.exponentialRampToValueAtTime(end, start + dur);
+  g.gain.setValueAtTime(gain, start);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+  o.connect(g); g.connect(dest);
+  o.start(start); o.stop(start + dur);
+}
+
+function _filter(type, freq, q) {
+  const f = audioContext.createBiquadFilter();
+  f.type = type; f.frequency.value = freq;
+  if (q !== undefined) f.Q.value = q;
+  return f;
+}
+
+// ── Move ──────────────────────────────────────────────────
 function playMoveSound() {
-  if(!settings.sounds) return;
+  if (!settings.sounds) return;
   initAudio();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.frequency.value = 200;
-  oscillator.type = 'sine';
-  
-  gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.1);
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.55;
+  master.connect(audioContext.destination);
+
+  // Woody thud — short noise burst shaped like a tap
+  const noise = _makeNoise(0.12);
+  const lp = _filter('lowpass', 900);
+  const hp = _filter('highpass', 180);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.35, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  noise.connect(lp); lp.connect(hp); hp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 0.12);
+
+  // Soft tonal click underneath
+  _osc('sine', 320, t, 180, 0.09, 0.12, master);
 }
 
+// ── Capture ───────────────────────────────────────────────
 function playCaptureSound() {
-  if(!settings.sounds) return;
+  if (!settings.sounds) return;
   initAudio();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.frequency.value = 150;
-  oscillator.type = 'square';
-  
-  gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.15);
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.55;
+  master.connect(audioContext.destination);
+
+  // Hard impact noise
+  const noise = _makeNoise(0.25);
+  const lp = _filter('lowpass', 1800);
+  const hp = _filter('highpass', 100);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.6, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+  noise.connect(lp); lp.connect(hp); hp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 0.25);
+
+  // Sharp metallic crack on top
+  _osc('sawtooth', 420, t, 80, 0.18, 0.13, master);
+  // Slight ring-out
+  _osc('sine', 900, t + 0.02, 400, 0.3, 0.06, master);
 }
 
+// ── Check ─────────────────────────────────────────────────
 function playCheckSound() {
-  if(!settings.sounds) return;
+  if (!settings.sounds) return;
   initAudio();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.frequency.value = 400;
-  oscillator.type = 'triangle';
-  
-  gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.3);
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.5;
+  master.connect(audioContext.destination);
+
+  // Two-tone urgent sting
+  _osc('triangle', 520, t,        null, 0.18, 0.28, master);
+  _osc('triangle', 780, t + 0.14, null, 0.22, 0.22, master);
+  // Low tension drone
+  _osc('sine', 110, t, null, 0.4, 0.12, master);
 }
 
+// ── Explosion (nuclear / kamikaze / storm) ────────────────
 function playExplosionSound() {
-  if(!settings.sounds) return;
+  if (!settings.sounds) return;
   initAudio();
-  
-  // Create a short burst of noise for explosion effect
-  const bufferSize = audioContext.sampleRate * 0.3; // 300ms
-  const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-  const data = buffer.getChannelData(0);
-  
-  // Generate noise with decreasing intensity
-  for (let i = 0; i < bufferSize; i++) {
-    const decay = 1 - (i / bufferSize);
-    data[i] = (Math.random() * 2 - 1) * decay;
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.5;
+  master.connect(audioContext.destination);
+
+  // Sub-bass body
+  _osc('sine', 55, t, 28, 0.7, 0.5, master);
+  // Mid-frequency punch
+  _osc('sawtooth', 140, t, 40, 0.45, 0.32, master);
+
+  // Noise layer — low-pass only, no harsh highs
+  const noise = _makeNoise(0.7);
+  const lp = _filter('lowpass', 1200);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.75, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  noise.connect(lp); lp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 0.7);
+
+  // Gentle crackle tail — kept low and filtered
+  const noise2 = _makeNoise(0.4);
+  const lp2 = _filter('lowpass', 2000);
+  const ng2 = audioContext.createGain();
+  ng2.gain.setValueAtTime(0.1, t + 0.05);
+  ng2.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+  noise2.connect(lp2); lp2.connect(ng2); ng2.connect(master);
+  noise2.start(t + 0.05); noise2.stop(t + 0.45);
+}
+
+// ── Castle ────────────────────────────────────────────────
+function playCastleSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.55;
+  master.connect(audioContext.destination);
+
+  // King thud
+  const n1 = _makeNoise(0.12);
+  const lp1 = _filter('lowpass', 700); const hp1 = _filter('highpass', 140);
+  const ng1 = audioContext.createGain();
+  ng1.gain.setValueAtTime(0.7, t); ng1.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  n1.connect(lp1); lp1.connect(hp1); hp1.connect(ng1); ng1.connect(master);
+  n1.start(t); n1.stop(t + 0.12);
+  _osc('sine', 280, t, 200, 0.1, 0.16, master);
+
+  // Rook thud — slightly lighter, 120ms later
+  const n2 = _makeNoise(0.1);
+  const lp2 = _filter('lowpass', 600); const hp2 = _filter('highpass', 160);
+  const ng2 = audioContext.createGain();
+  ng2.gain.setValueAtTime(0.5, t + 0.12); ng2.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+  n2.connect(lp2); lp2.connect(hp2); hp2.connect(ng2); ng2.connect(master);
+  n2.start(t + 0.12); n2.stop(t + 0.22);
+  _osc('sine', 340, t + 0.12, 240, 0.09, 0.13, master);
+}
+
+// ── Promotion ─────────────────────────────────────────────
+function playPromotionSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.45;
+  master.connect(audioContext.destination);
+
+  // Rising triumphant arpeggio — C E G C
+  [[261.6, 0], [329.6, 0.1], [392, 0.2], [523.2, 0.32]].forEach(([freq, delay]) => {
+    _osc('triangle', freq, t + delay, freq * 1.004, 0.38, 0.22, master);
+    _osc('sine',     freq, t + delay, null,          0.28, 0.10, master);
+  });
+  // Shimmer on top
+  _osc('sine', 1046, t + 0.35, null, 0.5, 0.08, master);
+}
+
+// ── Checkmate ─────────────────────────────────────────────
+function playCheckmateSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.5;
+  master.connect(audioContext.destination);
+
+  // Dramatic descending chord — Dm ish
+  [[293.7, 0.0], [220.0, 0.0], [174.6, 0.0]].forEach(([freq, delay]) => {
+    _osc('triangle', freq, t + delay, freq * 0.6, 1.4, 0.18, master);
+  });
+  // Heavy bass hit
+  _osc('sine', 73, t, 40, 1.0, 0.5, master);
+  // Noise impact at front
+  const noise = _makeNoise(0.4);
+  const lp = _filter('lowpass', 800);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+  noise.connect(lp); lp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 0.4);
+}
+
+// ── Draw ──────────────────────────────────────────────────
+function playDrawSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.4;
+  master.connect(audioContext.destination);
+
+  // Unresolved hollow cadence — two tones that don't quite resolve
+  _osc('sine',     330, t,        300, 0.9, 0.18, master);
+  _osc('sine',     370, t + 0.25, 340, 0.9, 0.15, master);
+  _osc('triangle', 220, t,        null, 0.7, 0.10, master);
+}
+
+// ── Railgun ───────────────────────────────────────────────
+function playRailgunSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.55;
+  master.connect(audioContext.destination);
+
+  // Laser charge — rising sweep
+  _osc('sawtooth', 80,   t,       800,  0.08, 0.3,  master);
+  _osc('sine',     800,  t + 0.07, 3200, 0.12, 0.18, master);
+  // Discharge crack
+  const noise = _makeNoise(0.15);
+  const hp = _filter('highpass', 3000);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.45, t + 0.08); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.23);
+  noise.connect(hp); hp.connect(ng); ng.connect(master);
+  noise.start(t + 0.08); noise.stop(t + 0.23);
+  // Tail ring
+  _osc('sine', 1800, t + 0.1, 400, 0.4, 0.12, master);
+}
+
+// ── Storm Rook (lightning) ────────────────────────────────
+function playLightningSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.6;
+  master.connect(audioContext.destination);
+
+  // Crack
+  const noise = _makeNoise(0.3);
+  const hp = _filter('highpass', 900);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  noise.connect(hp); hp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 0.3);
+  // Thunder rumble underneath
+  _osc('sine', 48, t + 0.02, 32, 0.55, 0.4, master);
+  _osc('sine', 62, t,        null, 0.25, 0.2, master);
+}
+
+// ── Draft open ────────────────────────────────────────────
+function playDraftOpenSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.45;
+  master.connect(audioContext.destination);
+
+  // Rising chaos swell — swept noise + chord
+  const noise = _makeNoise(1.0);
+  const bp = _filter('bandpass', 600, 0.5);
+  const ng = audioContext.createGain();
+  ng.gain.setValueAtTime(0.0001, t);
+  ng.gain.linearRampToValueAtTime(0.6,    t + 0.5);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+  noise.connect(bp); bp.connect(ng); ng.connect(master);
+  noise.start(t); noise.stop(t + 1.0);
+
+  // Eerie rising tone
+  _osc('sawtooth', 55, t, 220, 0.8, 0.22, master);
+  _osc('sine',    110, t + 0.3, 440, 0.6, 0.2, master);
+  // High shimmer
+  _osc('triangle', 880, t + 0.55, 1320, 0.45, 0.12, master);
+}
+
+// ── Draft pick (per rarity) ───────────────────────────────
+function playDraftPickSound(rarity) {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.connect(audioContext.destination);
+
+  rarity = rarity || 'common';
+
+  if (rarity === 'common') {
+    master.gain.value = 0.38;
+    // Soft chime — clean and simple
+    _osc('sine', 523, t,        null, 0.5, 0.22, master);
+    _osc('sine', 659, t + 0.06, null, 0.4, 0.12, master);
+
+  } else if (rarity === 'rare') {
+    master.gain.value = 0.42;
+    // Magical whoosh + two-note sting
+    const noise = _makeNoise(0.25);
+    const bp = _filter('bandpass', 1200, 1.2);
+    const ng = audioContext.createGain();
+    ng.gain.setValueAtTime(0.4, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+    noise.connect(bp); bp.connect(ng); ng.connect(master);
+    noise.start(t); noise.stop(t + 0.25);
+    _osc('triangle', 440, t,        523, 0.35, 0.25, master);
+    _osc('sine',     659, t + 0.18, null, 0.3,  0.18, master);
+
+  } else if (rarity === 'legendary') {
+    master.gain.value = 0.48;
+    // Brass-like impact hit
+    _osc('sawtooth', 110, t, 82,  0.28, 0.35, master);
+    _osc('sawtooth', 220, t, 165, 0.22, 0.3,  master);
+    _osc('triangle', 440, t + 0.05, null, 0.4, 0.2, master);
+    const noise = _makeNoise(0.2);
+    const lp = _filter('lowpass', 600);
+    const ng = audioContext.createGain();
+    ng.gain.setValueAtTime(0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    noise.connect(lp); lp.connect(ng); ng.connect(master);
+    noise.start(t); noise.stop(t + 0.2);
+    // Ring out
+    _osc('sine', 880, t + 0.08, null, 0.6, 0.12, master);
+
+  } else if (rarity === 'mythic') {
+    master.gain.value = 0.52;
+    // Deep power chord + shockwave
+    _osc('sawtooth', 82,  t,        55,  0.5,  0.42, master);
+    _osc('sawtooth', 164, t,        110, 0.35, 0.38, master);
+    _osc('triangle', 328, t + 0.04, null, 0.4, 0.35, master);
+    _osc('sine',     656, t + 0.06, null, 0.35, 0.28, master);
+    const noise = _makeNoise(0.35);
+    const lp = _filter('lowpass', 1200);
+    const ng = audioContext.createGain();
+    ng.gain.setValueAtTime(0.7, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    noise.connect(lp); lp.connect(ng); ng.connect(master);
+    noise.start(t); noise.stop(t + 0.35);
+    // High-end shine
+    _osc('sine', 1320, t + 0.1, null, 0.55, 0.14, master);
+
+  } else if (rarity === 'evolved') {
+    master.gain.value = 0.55;
+    // Full cinematic hit — layered chaos
+    // Sub boom
+    _osc('sine', 55, t, 28, 0.65, 0.6, master);
+    // Power chord
+    [[98, 0], [147, 0.03], [196, 0.06], [294, 0.1]].forEach(([freq, delay]) => {
+      _osc('sawtooth', freq, t + delay, freq * 0.5, 0.55 - delay, 0.3 - delay * 0.3, master);
+    });
+    // Shimmering high harmonics cascade
+    [[880, 0.12], [1320, 0.18], [1760, 0.24], [2640, 0.3]].forEach(([freq, delay]) => {
+      _osc('triangle', freq, t + delay, null, 0.5 - delay, 0.12, master);
+    });
+    // Noise burst
+    const noise = _makeNoise(0.5);
+    const bp = _filter('bandpass', 800, 0.8);
+    const ng = audioContext.createGain();
+    ng.gain.setValueAtTime(0.65, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    noise.connect(bp); bp.connect(ng); ng.connect(master);
+    noise.start(t); noise.stop(t + 0.5);
   }
-  
-  const noise = audioContext.createBufferSource();
-  noise.buffer = buffer;
-  
-  const gainNode = audioContext.createGain();
-  const filter = audioContext.createBiquadFilter();
-  
-  noise.connect(filter);
-  filter.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  // Low-pass filter for a muffled boom effect
-  filter.type = 'lowpass';
-  filter.frequency.value = 200;
-  
-  gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  
-  noise.start(audioContext.currentTime);
-  noise.stop(audioContext.currentTime + 0.3);
 }
 
 function move(x1,y1,x2,y2,castleType){
@@ -14014,15 +14449,6 @@ function move(x1,y1,x2,y2,castleType){
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pawn Bayonet — pierced forward at ${sqNotation(x2,y2)}!`);
   }
 
-  // Log Fog of War Bishop appearance/disappearance — only say it happened, never where
-  if(piece.toLowerCase()==='b' && modifiers.includes('Fog of War Bishop')) {
-    if(_moverWho === 'you') {
-      logChaos('you', 'ability', 'Your Fog of War Bishop moved!');
-    } else {
-      logChaos('opponent', 'ability', "Opponent's bishop disappeared into the fog!");
-    }
-  }
-
   // Log Trench Pawn backward move
   if(piece.toLowerCase()==='p' && modifiers.includes('Trench Pawn') && !captured) {
     const _movingBackward = (isWhite(piece) && y2 > y1) || (!isWhite(piece) && y2 < y1);
@@ -14056,11 +14482,13 @@ function move(x1,y1,x2,y2,castleType){
     }
   }
   
-  // Play sound effect
-  if(captured && captured !== 'D' && captured !== 'G' && captured !== 'g') {
-    playCaptureSound();
-  } else {
-    playMoveSound();
+  // Play sound effect (castle sound plays later in completeTurn)
+  if(!castleType) {
+    if(captured && captured !== 'D' && captured !== 'G' && captured !== 'g') {
+      playCaptureSound();
+    } else {
+      playMoveSound();
+    }
   }
   
   console.log(`=== MOVE START ===`);
@@ -14286,6 +14714,7 @@ function move(x1,y1,x2,y2,castleType){
         board[y2][0] = '';
         movePieceData(y2,0,y2,3);
       }
+      playCastleSound();
     }
 
     if(modifiers.includes('Nuclear Queen') && captured && piece.toLowerCase()==='q'){
@@ -14409,6 +14838,7 @@ function move(x1,y1,x2,y2,castleType){
         sx-=rdx; sy-=rdy;
       }
       if(railgunFired){
+        playRailgunSound();
         const _rgWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
         logChaos(_rgWho, 'ability', (_rgWho==='you'?'You':'Opponent') + ` used Railgun Rook — pierced the file!`);
       }
@@ -14418,6 +14848,7 @@ function move(x1,y1,x2,y2,castleType){
   // Storm Rook: lightning strike
   if(piece.toLowerCase()==='r' && modifiers.includes('Storm Rook') && !mindControlled){
     stormRookStrike(x2,y2);
+    playLightningSound();
     const _srWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
     logChaos(_srWho, 'ability', (_srWho==='you'?'You':'Opponent') + ` used Storm Rook — lightning struck around ${sqNotation(x2,y2)}!`);
   }
@@ -14674,13 +15105,15 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   if(!whiteKingAlive){
     if(gameMode === 'online') sendGameState();
     draw();
-    endGame('White king was killed! Black wins! 👑💀', 5000);
+    playCheckmateSound();
+      endGame('White king was killed! Black wins! 👑💀', 5000);
     return;
   }
   if(!blackKingAlive){
     if(gameMode === 'online') sendGameState();
     draw();
-    endGame('Black king was killed! White wins! 👑💀', 5000);
+    playCheckmateSound();
+      endGame('Black king was killed! White wins! 👑💀', 5000);
     return;
   }
   
@@ -14712,8 +15145,10 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     if(gameMode === 'online') sendGameState();
     draw();
     if(inCheck) {
+      playCheckmateSound();
       endGame(`Checkmate! ${turn==='white'?'Black':'White'} wins! 👑`, 4000);
     } else {
+      playDrawSound();
       endGame('Stalemate! Draw. 🤝', 4000);
     }
     return;
@@ -14726,7 +15161,8 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   if(occurrences >= 3){
     if(gameMode === 'online') sendGameState();
     draw();
-    endGame('Draw by Repetition! 🤝', 4000);
+    playDrawSound();
+      endGame('Draw by Repetition! 🤝', 4000);
     return;
   }
   
@@ -14751,6 +15187,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     let promotionRow = isWhite(piece) ? 0 : 7;
     if(y2 === promotionRow){
       // Show promotion modal, complete turn AFTER selection
+      playPromotionSound();
       promotePawn(x2, y2, completeTurn);
       return; // Don't finish turn yet!
     }
@@ -15213,7 +15650,8 @@ function processTimeBombs(){
             // King destroyed by time bomb — game over
             let winner = isWhite(piece) ? 'Black' : 'White';
             draw();
-            endGame(`${winner} wins! The king didn't move in time! 💣`, 3500);
+            playCheckmateSound();
+      endGame(`${winner} wins! The king didn't move in time! 💣`, 3500);
             return;
           }
           if(isWhite(piece)) blackCaptured.push(piece); else whiteCaptured.push(piece);
@@ -15257,6 +15695,7 @@ function processBottomlessPit(){
       board[pitSquare.y][pitSquare.x] = '';
       clearPieceData(pitSquare.x, pitSquare.y);
       draw();
+      playCheckmateSound();
       endGame(`${winner} wins! The king fell into the pit! 🕳️`, 3500);
       return;
     }
@@ -15552,7 +15991,6 @@ function processTornadoes(){
 
 function applyTornadoPull(tx, ty, owner){
   let pulls = [];
-  let ownerIsWhite = (owner === 'white');
   
   for(let dy = -2; dy <= 2; dy++){
     for(let dx = -2; dx <= 2; dx++){
@@ -15569,8 +16007,7 @@ function applyTornadoPull(tx, ty, owner){
       // Kings are immune to tornado pulls
       if(piece.toLowerCase() === 'k') continue;
       
-      // Only pull enemy pieces (pieces belonging to the opponent of the owner)
-      if(isWhite(piece) === ownerIsWhite) continue;
+      // Pull ALL pieces — tornado doesn't discriminate
       
       // Calculate direction to pull (1 tile toward tornado center)
       let pullDx = 0, pullDy = 0;
@@ -15746,7 +16183,7 @@ function logChaos(who, type, message, rarityClass) {
   list.scrollTop = list.scrollHeight;
 
   // Store for potential replay
-  chaosLogEntries.push({ move: moveCount, who, type, message });
+  chaosLogEntries.push({ move: moveCount, who, type, message, rarityClass: rarityClass || null });
 }
 
 function showToast(message, duration=2000){
@@ -15765,6 +16202,7 @@ const allMods=[
   {name:'Sidestep Knight',rarity:'common',desc:'Knights can also move 1 square in any direction',icon:'♞'},
   {name:'Fast Pawn',rarity:'common',desc:'Pawns can always move 2 squares forward',icon:'♟',evolvesTo:'Fast Pawn (Evolved)'},
   {name:'Phase Rook',rarity:'common',desc:'Rooks can move through one piece',icon:'♜'},
+  {name:'Dragon Rook',rarity:'common',desc:'Rooks can also move one square diagonally',icon:'♜'},
   {name:'Sniper Pawn',rarity:'rare',desc:'Pawns can capture 2 tiles diagonally (jumping over pieces)',icon:'♟'},
   {name:'Mind Control Bishop',rarity:'rare',desc:'25% chance captured piece joins your side instead',icon:'♗'},
   {name:'Pegasus',rarity:'mythic',desc:'Knights leap twice, second jump must move closer to enemy king',icon:'♞',evolvesTo:'Pegasus (Evolved)'},
@@ -18389,6 +18827,7 @@ function chaosDraft(){
   // Start chaos glitch + backdrop
   startDraftGlitch();
   setTimeout(() => draft.classList.add('active'), 10);
+  playDraftOpenSound();
   const _backdrop = document.getElementById('draft-backdrop');
   if (_backdrop) {
     _backdrop.style.display = 'block';
@@ -18586,6 +19025,7 @@ function chaosDraft(){
         'Pegasus':'n', 'Pegasus (Evolved)':'n',
         'Phase Rook':'r', 'Double Strike Rook':'r', 'Tectonic Rook':'r',
         'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
+        'Dragon Rook':'r',
         'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q',
         'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
         'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
@@ -18633,6 +19073,10 @@ function chaosDraft(){
       wrap.style.opacity = '1';
 
       stopDraftTimer();
+
+      // Play pick sound based on rarity
+      const _pickRarity = isEvo ? 'evolved' : (mod.rarity || 'common');
+      playDraftPickSound(_pickRarity);
 
       if(isEvo){
         let baseIdx = modifiers.indexOf(mod.baseModifier);
@@ -19231,7 +19675,8 @@ function handleRemoteData(data){
 
   // Handle special messages
   if(data.type === 'resign'){
-    endGame(`${data.color==='white'?'White':'Black'} resigned. ${data.color==='white'?'Black':'White'} wins! 🏳️`, 5000);
+    playCheckmateSound();
+      endGame(`${data.color==='white'?'White':'Black'} resigned. ${data.color==='white'?'Black':'White'} wins! 🏳️`, 5000);
     return;
   }
   
@@ -19248,7 +19693,8 @@ function handleRemoteData(data){
       subtitle: `${data.color==='white'?'White':'Black'} is offering a draw`,
       onAccept: () => {
         connection.send({type: 'draw_accept'});
-        endGame('Draw by Agreement! 🤝', 4000);
+        playDrawSound();
+      endGame('Draw by Agreement! 🤝', 4000);
       },
       onDecline: () => {
         connection.send({type: 'draw_decline'});
@@ -19259,7 +19705,8 @@ function handleRemoteData(data){
   }
   
   if(data.type === 'draw_accept'){
-    endGame('Draw by Agreement! 🤝', 4000);
+    playDrawSound();
+      endGame('Draw by Agreement! 🤝', 4000);
     return;
   }
   
@@ -19332,6 +19779,32 @@ function handleRemoteData(data){
   // Detect newly drafted modifier by opponent and show reveal card
   const oldModifiers = modifiers ? [...modifiers] : [];
 
+  // ── Play sounds for opponent's move ─────────────────────
+  if (data.lastMove && data.lastMove !== lastMove) {
+    const lm = data.lastMove;
+    const oldWhiteCount = (whiteCaptured || []).length;
+    const oldBlackCount = (blackCaptured || []).length;
+    const newWhiteCount = (data.whiteCaptured || []).length;
+    const newBlackCount = (data.blackCaptured || []).length;
+    const captureHappened = newWhiteCount > oldWhiteCount || newBlackCount > oldBlackCount;
+    const extraPiecesGone = (newWhiteCount - oldWhiteCount) + (newBlackCount - oldBlackCount) > 1;
+
+    // Castle: king moved exactly 2 squares horizontally on same row
+    const isKingMove = lm.fromX !== undefined && lm.toX !== undefined &&
+      Math.abs(lm.toX - lm.fromX) === 2 && lm.fromY === lm.toY &&
+      (data.board[lm.toY] && (data.board[lm.toY][lm.toX] === 'K' || data.board[lm.toY][lm.toX] === 'k'));
+
+    if (extraPiecesGone) {
+      playExplosionSound();
+    } else if (isKingMove) {
+      playCastleSound();
+    } else if (captureHappened) {
+      playCaptureSound();
+    } else {
+      playMoveSound();
+    }
+  }
+
   // Apply opponent's game state
   board = data.board;
   pieceData = data.pieceData;
@@ -19364,6 +19837,51 @@ function handleRemoteData(data){
   tornadoes = data.tornadoes || [];
   moveHistory = data.moveHistory || [];
   if(data.lastMove !== undefined) lastMove = data.lastMove;
+
+  // Replay any new chaos log entries sent by the opponent, flipping you/opponent perspective
+  if(data.chaosLogEntries && Array.isArray(data.chaosLogEntries)) {
+    const localCount = chaosLogEntries.length;
+    const remoteEntries = data.chaosLogEntries;
+    if(remoteEntries.length > localCount) {
+      const newEntries = remoteEntries.slice(localCount);
+      newEntries.forEach(entry => {
+        // Draft entries are already handled by showOpponentDraftReveal on the receiver side
+        if(entry.type === 'draft') return;
+        // Flip perspective: sender's 'you' becomes our 'opponent' and vice versa
+        let flippedWho = entry.who;
+        if(entry.who === 'you')       flippedWho = 'opponent';
+        else if(entry.who === 'opponent') flippedWho = 'you';
+        // Also flip pronouns in the message text
+        let msg = entry.message;
+        // Replace leading "You " / "Your " with placeholder, then opponent→you, then placeholder→opponent
+        msg = msg
+          .replace(/^You used /,       '__SELF__ used ')
+          .replace(/^You /,            '__SELF__ ')
+          .replace(/^Your /,           '__OPP__ ')
+          .replace(/^Opponent used /,  'You used ')
+          .replace(/^Opponent's /,     'Your ')
+          .replace(/^Opponent /,       'You ')
+          .replace(/^__SELF__ used /,  'Opponent used ')
+          .replace(/^__SELF__ /,       'Opponent ')
+          .replace(/^__OPP__ /,        'Your ');
+        // Flip "your" / "opponent's" mid-sentence (for Magnetic Poles etc.)
+        msg = msg
+          .replace(/\byour bishop\b/gi,    "opponent's bishop")
+          .replace(/\bopponent's bishop\b/gi, 'your bishop')
+          .replace(/\byour pawn\b/gi,      "opponent's pawn")
+          .replace(/\bopponent's pawn\b/gi, 'your pawn')
+          .replace(/\byour knight\b/gi,    "opponent's knight")
+          .replace(/\bopponent's knight\b/gi, 'your knight')
+          .replace(/\byour rook\b/gi,      "opponent's rook")
+          .replace(/\bopponent's rook\b/gi, 'your rook')
+          .replace(/\byour queen\b/gi,     "opponent's queen")
+          .replace(/\bopponent's queen\b/gi, 'your queen')
+          .replace(/\byour king\b/gi,      "opponent's king")
+          .replace(/\bopponent's king\b/gi, 'your king');
+        logChaos(flippedWho, entry.type, msg, entry.rarityClass);
+      });
+    }
+  }
   
   updateTimerDisplay();
   updateMoveDisplay();
@@ -19398,6 +19916,7 @@ function handleRemoteData(data){
     if(inCheck) {
       endGame(`Checkmate! ${turn==='white'?'Black':'White'} wins! 👑`, 4000);
     } else {
+      playDrawSound();
       endGame('Stalemate! Draw. 🤝', 4000);
     }
     return;
@@ -19434,7 +19953,8 @@ function sendGameState(){
       nuclearZones: nuclearZones,
       tornadoes: tornadoes,
       moveHistory: moveHistory,
-      lastMove: lastMove
+      lastMove: lastMove,
+      chaosLogEntries: chaosLogEntries
     });
   }
 }
@@ -19444,7 +19964,8 @@ function resign(){
   if(gameMode !== 'online' || !connection || !connection.open) return;
   if(!settings.confirmResign || confirm('Are you sure you want to resign?')){
     connection.send({type: 'resign', color: myColor});
-    endGame(`You resigned. ${myColor==='white'?'Black':'White'} wins! 🏳️`, 4000);
+    playCheckmateSound();
+      endGame(`You resigned. ${myColor==='white'?'Black':'White'} wins! 🏳️`, 4000);
   }
 }
 
@@ -19491,14 +20012,16 @@ function startTimer(){
       if(whiteTime <= 0){
         whiteTime = 0;
         stopTimer();
-        endGame('White ran out of time! Black wins! ⏱️', 5000);
+        playCheckmateSound();
+      endGame('White ran out of time! Black wins! ⏱️', 5000);
       }
     } else {
       blackTime--;
       if(blackTime <= 0){
         blackTime = 0;
         stopTimer();
-        endGame('Black ran out of time! White wins! ⏱️', 5000);
+        playCheckmateSound();
+      endGame('Black ran out of time! White wins! ⏱️', 5000);
       }
     }
     updateTimerDisplay();
@@ -21649,7 +22172,7 @@ clickSquare = function(x, y) {
   function removeDragHoverClass() {
     if (dragHoverSquare) {
       const sq = document.querySelector(`[data-x="${dragHoverSquare.x}"][data-y="${dragHoverSquare.y}"]`);
-      if (sq) { sq.classList.remove('drag-hover-ring'); sq.classList.remove('drag-hover-dots'); }
+      if (sq) { sq.classList.remove('drag-hover-ring'); sq.classList.remove('drag-hover-dots'); sq.classList.remove('drag-hover-mod'); }
       dragHoverSquare = null;
     }
   }
@@ -21789,7 +22312,7 @@ clickSquare = function(x, y) {
     }
     if (overValidDest && !(dragHoverSquare && dragHoverSquare.x === gx && dragHoverSquare.y === gy)) {
       const targetSq = document.querySelector(`[data-x="${gx}"][data-y="${gy}"]`);
-      if (targetSq) { const hoverCls = (settings.legalStyle || 'dots') === 'dots' ? 'drag-hover-dots' : 'drag-hover-ring'; targetSq.classList.add(hoverCls); dragHoverSquare = { x: gx, y: gy }; }
+      if (targetSq) { const hoverCls = (settings.legalStyle || 'dots') === 'dots' ? 'drag-hover-dots' : 'drag-hover-ring'; targetSq.classList.add(hoverCls); const hoverMove = dragState.legalMoves && dragState.legalMoves.find(m => m.x === gx && m.y === gy); if(hoverMove && hoverMove.modifierOnly) targetSq.classList.add('drag-hover-mod'); dragHoverSquare = { x: gx, y: gy }; }
     }
   });
 
@@ -21858,6 +22381,10 @@ clickSquare = function(x, y) {
       background-color: rgba(16, 185, 129, 0.25) !important;
       animation: none !important;
     }
+    .drag-hover-ring.drag-hover-mod {
+      box-shadow: inset 0 0 0 4px #6b21a8, inset 0 0 20px rgba(88,28,135,0.25) !important;
+      background-color: rgba(88, 28, 135, 0.3) !important;
+    }
     .drag-hover-dots {
       animation: none !important;
     }
@@ -21867,6 +22394,13 @@ clickSquare = function(x, y) {
     .drag-hover-dots .legal-dot.legal-dot-capture {
       background: rgba(16, 185, 129, 0.2) !important;
       border-color: rgba(16, 185, 129, 0.6) !important;
+    }
+    .drag-hover-dots.drag-hover-mod .legal-dot {
+      background: rgba(88, 28, 135, 0.65) !important;
+    }
+    .drag-hover-dots.drag-hover-mod .legal-dot.legal-dot-capture {
+      background: rgba(88, 28, 135, 0.25) !important;
+      border-color: rgba(88, 28, 135, 0.75) !important;
     }
     #board .square img[style*="visibility: hidden"] {
       visibility: hidden !important;
@@ -24162,7 +24696,7 @@ function sandboxNewGame() {
   sbxCloseSaveModal();
   pieceData = {}; initBoard();
   modifiers = []; moveCount = 0; turn = 'white';
-  chaosLogEntries = [];
+  chaosLogEntries = []; fogBishopVisibility = {};
   const _clList = document.getElementById('chaos-log-list');
   if(_clList) _clList.innerHTML = '';
   const _clPanel = document.getElementById('chaos-log-panel');
