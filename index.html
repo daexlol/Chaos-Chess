@@ -4100,6 +4100,116 @@ button:active {
 }
 
 /* ===== PRIVATE GAME HUB — REDESIGNED ===== */
+/* LOCAL SETUP SCREEN */
+#local-setup {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+#local-setup.active { display: flex; }
+
+.pvt-card-passplay {
+  border-color: rgba(52,211,153,0.2);
+  box-shadow: 0 8px 32px rgba(52,211,153,0.08);
+}
+.pvt-card-ai {
+  border-color: rgba(96,165,250,0.2);
+  box-shadow: 0 8px 32px rgba(96,165,250,0.08);
+}
+
+.local-setup-icon-area {
+  font-size: 52px; text-align: center;
+  margin: 18px 0 14px;
+}
+.local-setup-feature-list {
+  margin-bottom: 24px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.local-setup-feature {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  padding-left: 4px;
+}
+.local-passplay-btn {
+  background: linear-gradient(135deg, #059669, #065f46) !important;
+  box-shadow: 0 6px 24px rgba(5,150,105,0.45) !important;
+}
+.local-passplay-btn:hover {
+  box-shadow: 0 10px 36px rgba(5,150,105,0.65) !important;
+}
+
+.local-ai-disclaimer {
+  font-size: 11px !important;
+  color: rgba(251,191,36,0.7) !important;
+  background: rgba(251,191,36,0.06);
+  border: 1px solid rgba(251,191,36,0.15);
+  border-radius: 8px; padding: 8px 10px;
+  margin-bottom: 16px !important;
+  line-height: 1.5;
+}
+.local-ai-difficulty-wrap { margin-bottom: 4px; }
+.local-ai-diff-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+}
+.local-ai-diff-labels span:nth-child(2) {
+  color: #60a5fa; font-weight: 700; font-size: 12px;
+}
+.local-ai-slider {
+  width: 100%; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, #3b82f6 0%, #3b82f6 60%, rgba(255,255,255,0.12) 60%);
+  margin-bottom: 6px;
+}
+.local-ai-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.25);
+  cursor: pointer; transition: box-shadow 0.15s;
+}
+.local-ai-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 5px rgba(96,165,250,0.35);
+}
+.local-ai-diff-sublabel {
+  font-size: 11px; color: rgba(255,255,255,0.3);
+  text-align: center; margin-bottom: 0;
+}
+.local-ai-color-row {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.local-ai-color-btn {
+  flex: 1; padding: 10px 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: rgba(255,255,255,0.55);
+  font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+  cursor: pointer; margin: 0; box-shadow: none;
+  transition: all 0.15s ease;
+}
+.local-ai-color-btn:hover {
+  background: rgba(96,165,250,0.1);
+  border-color: rgba(96,165,250,0.35);
+  color: #93c5fd; transform: none;
+}
+.local-ai-color-active {
+  background: rgba(96,165,250,0.15) !important;
+  border-color: rgba(96,165,250,0.6) !important;
+  color: #93c5fd !important;
+  box-shadow: 0 0 14px rgba(96,165,250,0.2) !important;
+}
+.local-ai-btn {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  box-shadow: 0 6px 24px rgba(37,99,235,0.45) !important;
+}
+.local-ai-btn:hover {
+  box-shadow: 0 10px 36px rgba(37,99,235,0.65) !important;
+}
+
 #online-setup {
   display: none;
   flex-direction: column;
@@ -9389,12 +9499,12 @@ button:active {
           <div class="menu-play-card-sub">Ranked · Matchmaking · Friends</div>
           <div class="menu-play-card-arrow">→</div>
         </button>
-        <button class="menu-play-card local" onclick="startLocal()">
+        <button class="menu-play-card local" onclick="showLocalSetup()">
           <span class="chaos-card-chip" aria-hidden="true">SYS::LOC</span>
           <div class="menu-play-card-icon">🖥️</div>
           <div class="menu-play-card-label">Offline</div>
           <div class="menu-play-card-title">Play Local</div>
-          <div class="menu-play-card-sub">Pass & Play · Custom Game</div>
+          <div class="menu-play-card-sub">Pass & Play · Play vs AI</div>
           <div class="menu-play-card-arrow">→</div>
         </button>
       </div>
@@ -9487,7 +9597,7 @@ button:active {
 
     <!-- MAIN MENU (legacy, hidden since we now use hub) -->
     <div id="main-menu" class="menu-buttons" style="display:none;">
-      <button class="menu-btn" onclick="startLocal()">Play Local</button>
+      <button class="menu-btn" onclick="showLocalSetup()">Play Local</button>
       <button class="menu-btn" onclick="showLobby()">Play Online</button>
     </div>
 
@@ -9605,6 +9715,70 @@ button:active {
     </div>
 
     <!-- PRIVATE GAME SETUP — REDESIGNED MULTIPLAYER HUB -->
+    <!-- LOCAL SETUP SCREEN -->
+    <div id="local-setup">
+
+      <div class="pvt-hub-grid">
+
+        <!-- LEFT CARD: PASS & PLAY -->
+        <div class="pvt-card pvt-card-passplay">
+          <div class="pvt-card-badge" style="color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3);">PASS &amp; PLAY</div>
+          <div class="pvt-card-title">Pass &amp; Play</div>
+          <div class="pvt-card-sub">Two players, one device. Take turns passing the screen between moves.</div>
+
+          <div class="local-setup-icon-area">🖥️</div>
+
+          <div class="local-setup-feature-list">
+            <div class="local-setup-feature">✓ Full Chaos Chess experience</div>
+            <div class="local-setup-feature">✓ All modifiers active</div>
+            <div class="local-setup-feature">✓ Two human players</div>
+          </div>
+
+          <button class="pvt-host-btn local-passplay-btn" onclick="startLocal()">
+            <span class="pvt-host-btn-icon">🎮</span>
+            Start Pass &amp; Play
+          </button>
+        </div>
+
+        <!-- RIGHT CARD: PLAY VS AI -->
+        <div class="pvt-card pvt-card-ai">
+          <div class="pvt-card-badge" style="color:#60a5fa;background:rgba(96,165,250,0.12);border-color:rgba(96,165,250,0.3);">VS AI</div>
+          <div class="pvt-card-title">Play vs AI</div>
+          
+
+          <div class="pvt-section-label" style="margin-top:8px;">Difficulty</div>
+          <div class="local-ai-difficulty-wrap">
+            <div class="local-ai-diff-labels">
+              <span>Level 1</span>
+              <span id="local-ai-diff-label">Level 5</span>
+              <span>Level 10</span>
+            </div>
+            <input type="range" id="local-ai-difficulty" class="local-ai-slider" min="1" max="10" value="5"
+              oninput="localAiUpdateLabel(this.value)">
+            <div class="local-ai-diff-sublabel" id="local-ai-diff-sublabel">Thinks for ~500ms per move</div>
+          </div>
+
+          <div class="pvt-section-label" style="margin-top:16px;">Play as</div>
+          <div class="local-ai-color-row">
+            <button class="local-ai-color-btn local-ai-color-active" id="local-ai-color-white" onclick="localAiSelectColor('white')">♔ White</button>
+            <button class="local-ai-color-btn" id="local-ai-color-random" onclick="localAiSelectColor('random')">🎲 Random</button>
+            <button class="local-ai-color-btn" id="local-ai-color-black" onclick="localAiSelectColor('black')">♚ Black</button>
+          </div>
+
+          <button class="pvt-host-btn local-ai-btn" onclick="startVsAI()">
+            <span class="pvt-host-btn-icon">🤖</span>
+            Play vs Chaosfish
+          </button>
+        </div>
+
+      </div>
+
+      <div class="pvt-back-area">
+        <button class="pvt-back-btn" onclick="backFromLocalSetup()">← Back</button>
+      </div>
+
+    </div><!-- /#local-setup -->
+
     <div id="online-setup">
 
       <!-- TOP BAR -->
@@ -11690,6 +11864,7 @@ let blackTime = 0;
 let timerInterval = null;
 let draftTimerInterval = null;
 let draftTimeRemaining = 0;
+let currentDrafter = 'white'; // alternates each draft, white goes first
 
 function initBoard(){
   board = [
@@ -11784,7 +11959,7 @@ function draw(){
     ? b.classList.contains('flipped')
     : (puzzleModeActive
       ? (!!activePuzzle && activePuzzle.playerColor === 'black' && settings.flipBoard)
-      : (settings.flipBoard && gameMode === 'online' && myColor === 'black'));
+      : (settings.flipBoard && !!myColor && myColor === 'black'));
   b.classList.toggle('flipped', !!shouldFlipBoard);
 
   // Board glow: green when it's your turn in online mode
@@ -13147,6 +13322,9 @@ function hasLegalMoves(white){
 
 function clickSquare(x,y){
   if(document.getElementById('draft').style.display==='block') return;
+
+  // Block input when it's the AI's turn
+  if(typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && turn === aiColor) return;
   
   // Handle Royal Guard bodyguard placement mode
   if(royalGuardPlacementMode){
@@ -14386,6 +14564,9 @@ function playDraftPickSound(rarity) {
 function move(x1,y1,x2,y2,castleType){
   let piece=board[y1][x1];
   let captured=board[y2][x2];
+
+  // Always update lastMove so AI moves get the highlight too
+  lastMove = { fromX: x1, fromY: y1, toX: x2, toY: y2 };
 
   // Capture move metadata before legalMoves is cleared, for Chaos Log
   const _selectedMoveMeta = legalMoves.find(m => m.x===x2 && m.y===y2) || {};
@@ -17990,7 +18171,7 @@ const CODEX_REPLAYS = {
         ['','','N','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:6,toX:3,toY:4}]
+      moves: [{fromX:2,fromY:6,toX:3,toY:4},{fromX:0,fromY:0,toX:1,toY:1},{fromX:3,fromY:4,toX:3,toY:1}]
     },
     {
       type: 'bad',
@@ -18007,7 +18188,7 @@ const CODEX_REPLAYS = {
         ['','','N','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:6,toX:3,toY:4}]
+      moves: [{fromX:2,fromY:6,toX:3,toY:4},{fromX:0,fromY:0,toX:1,toY:1},{fromX:3,fromY:4,toX:3,toY:3}]
     }
   ],
 
@@ -18746,17 +18927,66 @@ function chaosDraft(){
   console.log('gameMode:', gameMode);
   console.log('moveCount:', moveCount);
   console.log('myColor:', myColor);
-  
-  // In online mode, alternate who gets to draft
+  console.log('currentDrafter:', currentDrafter);
+
+  // ── Determine whose draft this is ────────────────────────────────────
+  const drafter = currentDrafter; // snapshot before we advance it
+  currentDrafter = (currentDrafter === 'white') ? 'black' : 'white'; // advance for next time
+
+  // Online mode: only show draft to the player whose turn it is
   if(gameMode === 'online'){
-    let draftNumber = moveCount / DRAFT_FREQUENCY;
-    let isWhiteDraft = (draftNumber % 2 === 1);
-    if((isWhiteDraft && myColor !== 'white') || (!isWhiteDraft && myColor !== 'black')){
+    if(drafter !== myColor){
       showToast(`Opponent is drafting a modifier...`, 3000);
       return;
     }
   }
-  
+
+  // AI mode: if drafter is the AI colour, build picks silently and return
+  // before touching the backdrop or glitch DOM — must happen before any DOM work
+  if (aiActive && gameMode === 'local' && drafter === aiColor) {
+    // Build available pool (same logic as main path)
+    const _evolvedBaseNames = evolvedMods.filter(ev => modifiers.includes(ev.name)).map(ev => ev.baseModifier);
+    const _available = allMods.filter(m =>
+      !modifiers.includes(m.name) &&
+      !settings.bannedMods.includes(m.name) &&
+      !_evolvedBaseNames.includes(m.name)
+    );
+    const _evolutionPool = evolvedMods.filter(ev =>
+      !modifiers.includes(ev.name) && modifiers.includes(ev.baseModifier)
+    );
+    // Build picks with same rarity weighting
+    const _EVOLUTION_CHANCE = 0.15;
+    const _picks = [];
+    const _pickCount = Math.min(3, _available.length + _evolutionPool.length);
+    const _usedEvos = [];
+    let _attempts = 0;
+    while (_picks.length < _pickCount && _attempts < 100) {
+      _attempts++;
+      let _cand;
+      if (_evolutionPool.length > 0 && Math.random() < _EVOLUTION_CHANCE) {
+        const _unused = _evolutionPool.filter(ev => !_usedEvos.includes(ev) && !_picks.includes(ev));
+        if (_unused.length > 0) { _cand = _unused[Math.floor(Math.random() * _unused.length)]; _usedEvos.push(_cand); }
+      }
+      if (!_cand) {
+        if (_available.length === 0) continue;
+        let _roll = Math.random() * 100;
+        let _rarity = _roll < 15 ? 'mythic' : _roll < 40 ? 'legendary' : _roll < 70 ? 'rare' : 'common';
+        let _cands = _available.filter(m => m.rarity === _rarity);
+        _cand = _cands.length > 0 ? _cands[Math.floor(Math.random() * _cands.length)] : _available[Math.floor(Math.random() * _available.length)];
+      }
+      if (!_picks.includes(_cand)) _picks.push(_cand);
+    }
+    if (_picks.length > 0) {
+      const _chosen = aiScoreDraftPicks(_picks, aiColor);
+      aiApplyDraftPick(_chosen);
+      playDraftPickSound(_chosen.isEvolution ? 'evolved' : (_chosen.rarity || 'common'));
+      showToast(`AI drafted a modifier...`, 2000);
+      showOpponentDraftReveal(_chosen);
+      draw();
+    }
+    return;
+  }
+
   let draft = document.getElementById('draft');
   draft.innerHTML = '';
 
@@ -18900,7 +19130,6 @@ function chaosDraft(){
     if(!picks.includes(candidate)) picks.push(candidate);
   }
 
-  // ── Build card wrappers (start face-down) ───────────────────────────
   const cardElements = []; // store refs to .card elements for timer auto-pick
 
   picks.forEach((mod, idx) => {
@@ -19112,8 +19341,11 @@ function chaosDraft(){
       stopDraftGlitch();
       hideDraftBackdrop();
       draft.classList.remove('active');
+      draft.style.pointerEvents = 'none'; // prevent any ghost clicks during fade-out
       setTimeout(() => {
         draft.style.display = 'none';
+        draft.style.pointerEvents = '';
+        draft.innerHTML = '';
         if(gameMode === 'online') sendGameState();
         draw();
       }, 400);
@@ -19291,6 +19523,7 @@ function restart(){
   royalGuardKingX=-1; royalGuardKingY=-1;
   royalGuardPendingCallback=null;
   positionHistory=[];
+  currentDrafter = 'white';
   // Reset per-game stat counters
   gameEffectsTriggered = 0;
   myMovesThisGame = 0;
@@ -20533,6 +20766,7 @@ function backToOnlineMenu(){ backToLobby(); } // Alias for existing code
 function hideAll(){
   document.getElementById('main-menu').style.display = 'none';
   document.getElementById('online-setup').classList.remove('active');
+  document.getElementById('local-setup').classList.remove('active');
   document.getElementById('lobby-screen').classList.remove('active');
   document.getElementById('tc-select-screen').classList.remove('active');
   document.getElementById('matchmaking-screen').classList.remove('active');
@@ -22210,6 +22444,9 @@ clickSquare = function(x, y) {
       if (puzzleModeActive && (puzzleInputLocked || puzzleAutoPlaying)) return;
       if (puzzleModeActive && (!activePuzzle || turn !== activePuzzle.playerColor)) return;
 
+      // Block drag during AI's turn
+      if (aiActive && gameMode === 'local' && turn === aiColor) return;
+
       // Check piece-specific guards (decoy, jester decoy)
       const data = getPieceData(x, y);
       if (data.decoy) return;
@@ -22410,6 +22647,690 @@ clickSquare = function(x, y) {
 })();
 
 // ============================================================
+//  AI DRAFT SCORING
+// ============================================================
+
+// Which piece type each modifier cares about (lowercase)
+const MOD_PIECE_TYPE = {
+  'Pawn Bayonet':'p', 'Pawn Bayonet (Evolved)':'p',
+  'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
+  'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
+  'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
+  'Trench Pawn':'p', 'Bounty Hunter Pawn':'p',
+  'Phase Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
+  'Pinballing Bishop':'b', 'Fog of War Bishop':'b',
+  'Sidestep Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n',
+  'Necromancer Knight':'n', 'Copycat Knight (Evolved)':'n',
+  'Phantom Knight':'n', 'Jester Knight':'n',
+  'Pegasus':'n', 'Pegasus (Evolved)':'n',
+  'Phase Rook':'r', 'Double Strike Rook':'r', 'Tectonic Rook':'r',
+  'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r', 'Dragon Rook':'r',
+  'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q',
+  'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
+  'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
+  "Sovereign's Blessing":'k',
+};
+
+// Synergy pairs — if AI already has modA, modB scores higher
+const MOD_SYNERGIES = {
+  'Railgun Rook':     ['Double Strike Rook', 'Phase Rook', 'Tectonic Rook', 'Storm Rook'],
+  'Double Strike Rook': ['Railgun Rook', 'Phase Rook'],
+  'Nuclear Queen':    ['Magnetic Queen'],
+  'Magnetic Queen':   ['Nuclear Queen'],
+  'Fast Pawn':        ['Pawn Bayonet', 'Viral Pawn', 'Hive Mind Pawns', 'Sniper Pawn'],
+  'Hive Mind Pawns':  ['Fast Pawn', 'Pawn Bayonet', 'Trench Pawn'],
+  'Viral Pawn':       ['Fast Pawn', 'Kamikaze Pawn', 'Bounty Hunter Pawn'],
+  'Pegasus':          ['Sidestep Knight', 'Copycat Knight', 'Phantom Knight'],
+  'Necromancer Knight': ['Phantom Knight', 'Copycat Knight'],
+  'Royal Guard':      ["Sovereign's Blessing", 'Sprinting King'],
+  "Sovereign's Blessing": ['Royal Guard', 'Sprinting King'],
+  'Kamikaze Pawn':    ['Viral Pawn', 'Fast Pawn'],
+  'Phoenix Pawn':     ['Kamikaze Pawn', 'Viral Pawn'],
+};
+
+// Aggressive / defensive bias per modifier (positive = offensive, negative = defensive)
+const MOD_AGGRESSION = {
+  'Nuclear Queen': 3, 'Railgun Rook': 3, 'Kamikaze Pawn': 2, 'Pegasus': 2,
+  'Hive Mind Pawns': 2, 'Magnetic Queen': 2, 'Sniper Pawn': 2, 'Viral Pawn': 2,
+  'Necromancer Knight': 2, 'Storm Rook': 2, 'Bounty Hunter Pawn': 1,
+  'Double Strike Rook': 1, 'Fast Pawn': 1, 'Pawn Bayonet': 1, 'Mind Control Bishop': 1,
+  'Copycat Knight': 1, 'Phantom Knight': 0, 'Fog of War Bishop': 0,
+  'Reinforced Pawn': -1, 'Royal Guard': -2, "Sovereign's Blessing": -2,
+  'Sprinting King': -1, 'Coward Knight': -2, 'Decoy Rook': -1,
+  'Phoenix Pawn': -1, 'Boomerang Bishop': 0, 'Phase Rook': 0, 'Phase Bishop': 0,
+};
+
+function countPiecesOnBoard(pieceType, isWhitePlayer) {
+  let count = 0;
+  for (let y = 0; y < 8; y++)
+    for (let x = 0; x < 8; x++) {
+      const p = board[y][x];
+      if (p && p.toLowerCase() === pieceType && isWhite(p) === isWhitePlayer) count++;
+    }
+  return count;
+}
+
+function countMaterialBalance() {
+  // Returns positive if white is ahead, negative if black is ahead
+  const vals = { p:1, n:3, b:3, r:5, q:9, k:0 };
+  let score = 0;
+  for (let y = 0; y < 8; y++)
+    for (let x = 0; x < 8; x++) {
+      const p = board[y][x];
+      if (!p) continue;
+      const v = vals[p.toLowerCase()] || 0;
+      score += isWhite(p) ? v : -v;
+    }
+  return score; // positive = white winning
+}
+
+function aiScoreDraftPicks(picks, color) {
+  const diff   = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+  const noise  = [0, 0.6, 0.45, 0.3, 0.15, 0.05][diff]; // random fraction at each level
+  const isAiWhite = (color === 'white');
+  const material  = countMaterialBalance();
+  // Positive material = white winning. If AI is losing, skew defensive.
+  const aiMaterialLead = isAiWhite ? material : -material;
+  const aggressionBias = aiMaterialLead > 3 ? 1 : aiMaterialLead < -3 ? -1 : 0;
+
+  const scored = picks.map(mod => {
+    let score = 0;
+
+    // ── Rarity bonus ────────────────────────────────────────
+    const rarityBonus = { common:0, rare:1, legendary:2.5, mythic:3.5 };
+    score += (rarityBonus[mod.rarity] || 0);
+    if (mod.isEvolution) score += 4; // always value evolutions highly
+
+    // ── Piece affinity ──────────────────────────────────────
+    const pt = MOD_PIECE_TYPE[mod.name];
+    if (pt) {
+      const myCount  = countPiecesOnBoard(pt, isAiWhite);
+      const oppCount = countPiecesOnBoard(pt, !isAiWhite);
+      const totalPT  = allMods.filter(m => MOD_PIECE_TYPE[m.name] === pt).length;
+
+      // Strong bonus if AI has those pieces
+      score += myCount * 1.2;
+      // Penalty if AI has none but opponent has some (mod helps opponent more)
+      // Only apply when there are still piece-specific mods to compare against
+      if (myCount === 0 && oppCount > 0) {
+        // Check if every available pick has the same issue (then ignore penalty)
+        const allHaveNoPieces = picks.every(m => {
+          const mpt = MOD_PIECE_TYPE[m.name];
+          return mpt && countPiecesOnBoard(mpt, isAiWhite) === 0;
+        });
+        if (!allHaveNoPieces) score -= 3.5;
+      }
+    } else {
+      // Global modifier (Duck, Time Bomb, etc.) — neutral, slight bonus
+      score += 0.5;
+    }
+
+    // ── Synergy with existing mods ──────────────────────────
+    const synergies = MOD_SYNERGIES[mod.name] || [];
+    synergies.forEach(s => { if (modifiers.includes(s)) score += 2; });
+    // Also: if AI already has a mod that lists this one as a synergy
+    Object.entries(MOD_SYNERGIES).forEach(([existing, list]) => {
+      if (modifiers.includes(existing) && list.includes(mod.name)) score += 1.5;
+    });
+
+    // ── Aggression bias ─────────────────────────────────────
+    const agg = MOD_AGGRESSION[mod.name] || 0;
+    score += agg * aggressionBias * 0.8;
+
+    // ── Difficulty noise ────────────────────────────────────
+    score += (Math.random() * 2 - 1) * score * noise;
+    // Also a small flat random term so equal scores vary
+    score += Math.random() * noise * 2;
+
+    return { mod, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0].mod;
+}
+
+function aiApplyDraftPick(mod) {
+  const isEvo = mod.isEvolution === true;
+  if (isEvo) {
+    const baseIdx = modifiers.indexOf(mod.baseModifier);
+    if (baseIdx !== -1) modifiers.splice(baseIdx, 1);
+  }
+  modifiers.push(mod.name);
+  markModifierDiscovered(mod.name);
+  syncModifierDisplays();
+
+  // Handle special placement modifiers silently
+  if (mod.name === 'Duck of Eternal Blocking') spawnDuck();
+  if (mod.name === 'Time Bomb') spawnTimeBomb();
+  if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
+  if (mod.name === 'Tornado de Caballos') {
+    // Place tornado on a random empty square
+    tornadoPlacementMode = false;
+    const emptySquares = [];
+    for (let y = 0; y < 8; y++)
+      for (let x = 0; x < 8; x++)
+        if (!board[y][x] && !tornadoes.find(t => t.x===x && t.y===y)) emptySquares.push({x,y});
+    if (emptySquares.length > 0) {
+      const spot = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+      placeTornado(spot.x, spot.y);
+    }
+  }
+}
+
+// ============================================================
+//  LOCAL SETUP SCREEN
+// ============================================================
+
+let _localAiColor = 'white';
+
+// Think time per level (ms)
+const AI_DIFFICULTY_THINK_MS = {
+  1: 1000,   2: 1000,   3: 1000,  4: 1000,  5: 1000,
+  6: 1000,  7: 1000, 8: 1000, 9: 1000, 10: 1000
+};
+
+// Display names
+const AI_DIFFICULTY_LABELS = {
+  1:  'Level 1 — Beginner',  2:  'Level 2 — Novice',
+  3:  'Level 3 — Amateur',   4:  'Level 4 — Casual',
+  5:  'Level 5 — Intermediate', 6: 'Level 6 — Club',
+  7:  'Level 7 — Advanced',  8:  'Level 8 — Expert',
+  9:  'Level 9 — Master',    10: 'Level 10 — Grandmaster'
+};
+
+// Sublabels
+const AI_DIFFICULTY_SUBLABEL = {
+  1:  'Blunders frequently — just learning the ropes',
+  2:  'Makes lots of mistakes',
+  3:  'Misses tactics often',
+  4:  'Plays reasonably but makes clear errors',
+  5:  'Decent play with occasional inaccuracies',
+  6:  'Club-level play — rarely blunders',
+  7:  'Strong play with minor inaccuracies',
+  8:  'Expert-level — makes very few mistakes',
+  9:  'Master-level play',
+  10: 'Plays the strongest move almost every time',
+};
+
+// Per-level error injection config:
+// blunderChance: probability of making a near-random move (complete blunder)
+// mistakeChance: probability of picking a random-ish move among legal options
+// randomPoolFraction: when making a "mistake", pick from the worst X% of moves
+const AI_ERROR_CONFIG = {
+  1:  { blunderChance: 0.30, mistakeChance: 0.50, randomPoolFraction: 0.90 },  // Blunders frequently
+  2:  { blunderChance: 0.18, mistakeChance: 0.45, randomPoolFraction: 0.80 },  // Makes lots of mistakes
+  3:  { blunderChance: 0.10, mistakeChance: 0.35, randomPoolFraction: 0.70 },  // Misses tactics often
+  4:  { blunderChance: 0.05, mistakeChance: 0.20, randomPoolFraction: 0.55 },  // Plays reasonably but makes errors
+  5:  { blunderChance: 0.02, mistakeChance: 0.12, randomPoolFraction: 0.45 },  // Decent play with occasional inaccuracies
+  6:  { blunderChance: 0.006, mistakeChance: 0.08, randomPoolFraction: 0.35 }, // Rarely blunders
+  7:  { blunderChance: 0.001, mistakeChance: 0.04, randomPoolFraction: 0.25 }, // Minor inaccuracies
+  8:  { blunderChance: 0.0005, mistakeChance: 0.02, randomPoolFraction: 0.20 },// Very few mistakes
+  9:  { blunderChance: 0.0001, mistakeChance: 0.005, randomPoolFraction: 0.10 },// Master-level play
+  10: { blunderChance: 0.0, mistakeChance: 0.002, randomPoolFraction: 0.05 },   // Strongest move almost always
+};
+
+function showLocalSetup() {
+  hideAll();
+  showSubView();
+  document.getElementById('local-setup').classList.add('active');
+  // Reset to defaults each time
+  localAiSelectColor('white');
+  const slider = document.getElementById('local-ai-difficulty');
+  if (slider) { slider.value = 5; localAiUpdateLabel(5); }
+}
+
+function backFromLocalSetup() {
+  hideAll();
+  showHubView();
+  updateMenuHubUI();
+}
+
+function localAiUpdateLabel(val) {
+  val = parseInt(val);
+  const lbl = document.getElementById('local-ai-diff-label');
+  const sub = document.getElementById('local-ai-diff-sublabel');
+  const slider = document.getElementById('local-ai-difficulty');
+  if (lbl) lbl.textContent = AI_DIFFICULTY_LABELS[val] || 'Medium';
+  if (sub) sub.textContent = AI_DIFFICULTY_SUBLABEL[val] || '';
+  // Update slider gradient to reflect position
+  if (slider) {
+    const pct = ((val - 1) / 9) * 100;
+    slider.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${pct}%, rgba(255,255,255,0.12) ${pct}%)`;
+  }
+}
+
+function localAiSelectColor(color) {
+  _localAiColor = color;
+  ['white','random','black'].forEach(c => {
+    const btn = document.getElementById(`local-ai-color-${c}`);
+    if (btn) btn.classList.toggle('local-ai-color-active', c === color);
+  });
+}
+
+// ── Stockfish AI ────────────────────────────────────────────
+
+let stockfishWorker   = null;
+let stockfishReady    = false;
+let stockfishCallback = null;
+let aiThinkMs         = 500;
+let aiColor           = 'black'; // which colour the AI plays
+let aiActive          = false;
+
+function initStockfish() {
+  if (stockfishWorker) return;
+  // Fetch the script and create a Blob URL so it works when opened from disk (origin: null)
+  fetch('https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js')
+    .then(r => r.blob())
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      stockfishWorker = new Worker(blobUrl);
+      stockfishWorker.onmessage = function(e) {
+        const line = e.data;
+        if (line === 'uciok') {
+          stockfishWorker.postMessage('isready');
+        } else if (line === 'readyok') {
+          stockfishReady = true;
+        } else if (typeof line === 'string' && line.startsWith('bestmove') && stockfishCallback) {
+          const parts = line.split(' ');
+          const mv = parts[1];
+          const cb = stockfishCallback;
+          stockfishCallback = null;
+          if (cb && mv && mv !== '(none)') cb(mv);
+        }
+      };
+      stockfishWorker.postMessage('uci');
+    })
+    .catch(err => {
+      console.error('Failed to load Chaosfish:', err);
+      showToast('Could not load Chaosfish engine — check your internet connection.', 4000);
+      aiActive = false;
+    });
+}
+
+function boardToFen() {
+  let fen = '';
+  for (let y = 0; y < 8; y++) {
+    let empty = 0;
+    for (let x = 0; x < 8; x++) {
+      const piece = board[y][x];
+      if (!piece) { empty++; }
+      else {
+        if (empty) { fen += empty; empty = 0; }
+        fen += piece; // already correct case: uppercase = white, lowercase = black
+      }
+    }
+    if (empty) fen += empty;
+    if (y < 7) fen += '/';
+  }
+  fen += ' ' + (turn === 'white' ? 'w' : 'b');
+  // Castling rights
+  let cr = '';
+  if (castleRights) {
+    if (castleRights.whiteKingside)  cr += 'K';
+    if (castleRights.whiteQueenside) cr += 'Q';
+    if (castleRights.blackKingside)  cr += 'k';
+    if (castleRights.blackQueenside) cr += 'q';
+  }
+  fen += ' ' + (cr || '-');
+  // En passant (not tracked in detail, use -)
+  fen += ' - 0 ' + Math.ceil((moveCount + 1) / 2);
+  return fen;
+}
+
+// ── Option C: Ask Stockfish to evaluate modifier moves ──────────────────────
+// Returns true if a given move from (fx,fy)→(tx,ty) is modifier-exclusive
+// (i.e. it could NOT exist in standard chess)
+function isModifierMove(fx, fy, tx, ty, moveObj) {
+  const piece = board[fy][fx];
+  if (!piece) return false;
+  const pt = piece.toLowerCase();
+
+  // Railgun: rook landing on an empty square past enemies
+  if (moveObj && moveObj.railgun) return true;
+  // Pegasus: second jump tag
+  if (moveObj && moveObj.pegasus) return true;
+  // Boomerang: return tag
+  if (moveObj && moveObj.boomerang) return true;
+  // Pinball: bounce tag
+  if (moveObj && moveObj.pinball) return true;
+  // Pawn Bayonet: pawn captures straight forward
+  if (pt === 'p' && tx === fx && board[ty][tx] && isWhite(board[ty][tx]) !== isWhite(piece)) return true;
+  // Sidestep Knight: non-standard L moves tagged
+  if (moveObj && moveObj.sidestep) return true;
+  // Fast Pawn / Evolved: 2 or 3 square advance beyond normal
+  if (pt === 'p' && Math.abs(ty - fy) >= 2) {
+    // Standard pawns can move 2 from starting rank — only flag if >2 or if not from start
+    const startRank = isWhite(piece) ? 6 : 1;
+    if (Math.abs(ty - fy) === 3) return true;
+    if (Math.abs(ty - fy) === 2 && fy !== startRank) return true;
+  }
+  // Phase Bishop/Rook: moves through a blocker
+  if ((pt === 'b' && modifiers.includes('Phase Bishop')) || (pt === 'r' && modifiers.includes('Phase Rook'))) {
+    const dx = tx === fx ? 0 : (tx > fx ? 1 : -1);
+    const dy = ty === fy ? 0 : (ty > fy ? 1 : -1);
+    let cx = fx + dx, cy = fy + dy;
+    while (cx !== tx || cy !== ty) {
+      if (board[cy][cx]) return true; // there's a blocker in the path
+      cx += dx; cy += dy;
+    }
+  }
+  // Sprinting King: 2-square non-castle king move
+  if (pt === 'k' && !moveObj?.castle && (Math.abs(tx-fx) === 2 || Math.abs(ty-fy) === 2)) return true;
+  // Copycat Knight using non-knight movement
+  if (pt === 'n' && getPieceData(fx, fy).copycatPiece) return true;
+  // Sniper Pawn: 2-square diagonal capture
+  if (pt === 'p' && Math.abs(tx-fx) === 2 && board[ty][tx]) return true;
+  // Trench Pawn: backward move
+  if (pt === 'p') {
+    const movingBack = (isWhite(piece) && ty > fy) || (!isWhite(piece) && ty < fy);
+    if (movingBack) return true;
+  }
+
+  return false;
+}
+
+// Simulate a move on a board copy and return FEN
+function simulateMoveToFen(fx, fy, tx, ty, castleType) {
+  // Deep copy board
+  const simBoard = board.map(r => [...r]);
+  const simPiece = simBoard[fy][fx];
+  const simCapture = simBoard[ty][tx];
+
+  // Basic move
+  simBoard[ty][tx] = simPiece;
+  simBoard[fy][fx] = '';
+
+  // Handle castling rook
+  if (castleType === 'kingside') {
+    simBoard[ty][5] = simBoard[ty][7];
+    simBoard[ty][7] = '';
+  } else if (castleType === 'queenside') {
+    simBoard[ty][3] = simBoard[ty][0];
+    simBoard[ty][0] = '';
+  }
+
+  // Auto-promote pawns on back rank
+  if (simPiece.toLowerCase() === 'p') {
+    if (ty === 0) simBoard[ty][tx] = 'Q';
+    if (ty === 7) simBoard[ty][tx] = 'q';
+  }
+
+  // Build FEN from simBoard
+  let fen = '';
+  for (let y = 0; y < 8; y++) {
+    let empty = 0;
+    for (let x = 0; x < 8; x++) {
+      const p = simBoard[y][x];
+      if (!p || p === 'D' || p === 'G' || p === 'g') { empty++; }
+      else {
+        if (empty) { fen += empty; empty = 0; }
+        fen += p;
+      }
+    }
+    if (empty) fen += empty;
+    if (y < 7) fen += '/';
+  }
+  // Switch turn
+  const nextTurn = (turn === 'white') ? 'b' : 'w';
+  fen += ' ' + nextTurn + ' - - 0 ' + Math.ceil((moveCount + 1) / 2);
+  return fen;
+}
+
+// Ask Stockfish to evaluate a FEN, resolve with centipawn score from AI's perspective
+function stockfishEvalFen(fen, thinkMs) {
+  return new Promise((resolve) => {
+    if (!stockfishWorker || !stockfishReady) { resolve(-99999); return; }
+
+    let score = null;
+    const tempHandler = stockfishWorker.onmessage;
+
+    stockfishWorker.onmessage = function(e) {
+      const line = e.data;
+      if (typeof line === 'string') {
+        // Parse score from info lines
+        const scoreMatch = line.match(/score cp (-?\d+)/);
+        const mateMatch  = line.match(/score mate (-?\d+)/);
+        if (scoreMatch) score = parseInt(scoreMatch[1]);
+        if (mateMatch)  score = parseInt(mateMatch[1]) > 0 ? 100000 : -100000;
+
+        if (line.startsWith('bestmove')) {
+          stockfishWorker.onmessage = tempHandler;
+          // Score is from the side-to-move's perspective in the FEN (opponent of AI after AI move)
+          // Flip so higher = better for AI
+          resolve(score !== null ? -score : 0);
+        }
+      }
+    };
+
+    stockfishWorker.postMessage(`position fen ${fen}`);
+    stockfishWorker.postMessage(`go movetime ${thinkMs}`);
+  });
+}
+
+async function requestAiMove() {
+  if (!aiActive || !stockfishWorker) return;
+  if (turn !== aiColor) return;
+  if (gameMode !== 'local') return;
+
+  await new Promise(r => setTimeout(r, 320));
+  if (!aiActive || turn !== aiColor) return;
+
+  if (!stockfishReady) {
+    setTimeout(requestAiMove, 200);
+    return;
+  }
+
+  // ── 1. Collect all AI legal moves ────────────────────────────────────────
+  const allModifierMoves = []; // modifier-exclusive moves
+  const allRegularMoves  = []; // standard-chess moves
+
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      if (!board[y][x] || isWhite(board[y][x]) !== (aiColor === 'white')) continue;
+      const legal = getLegalMoves(x, y);
+      for (const m of legal) {
+        const entry = { fx: x, fy: y, tx: m.x, ty: m.y, castle: m.castle || null, moveObj: m };
+        if (isModifierMove(x, y, m.x, m.y, m)) {
+          allModifierMoves.push(entry);
+        } else {
+          allRegularMoves.push(entry);
+        }
+      }
+    }
+  }
+
+  if (allRegularMoves.length === 0 && allModifierMoves.length === 0) return;
+
+  // ── 2. Get Stockfish's best regular move ──────────────────────────────────
+  const mainFen = boardToFen();
+  let stockfishBestMove = null;
+  let stockfishBestScore = -Infinity;
+
+  await new Promise((resolve) => {
+    stockfishCallback = (uciMove) => {
+      const fx = uciMove.charCodeAt(0) - 97;
+      const fy = 8 - parseInt(uciMove[1]);
+      const tx = uciMove.charCodeAt(2) - 97;
+      const ty = 8 - parseInt(uciMove[3]);
+      const legal = getLegalMoves(fx, fy);
+      if (legal.some(m => m.x === tx && m.y === ty)) {
+        const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
+        stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
+      }
+      resolve();
+    };
+    stockfishWorker.postMessage(`position fen ${mainFen}`);
+    stockfishWorker.postMessage(`go movetime ${aiThinkMs}`);
+  });
+
+  // ── 3. Score ALL moves with quick Stockfish probes ───────────────────────
+  // Regular moves AND modifier moves all get evaluated so the ranked pool is complete.
+  const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
+  const scoredMoves = []; // { move, score }
+
+  // Score Stockfish's own best move first as a reference
+  if (stockfishBestMove) {
+    const baseFen = simulateMoveToFen(
+      stockfishBestMove.fx, stockfishBestMove.fy,
+      stockfishBestMove.tx, stockfishBestMove.ty,
+      stockfishBestMove.castle
+    );
+    const s = await stockfishEvalFen(baseFen, probeMs);
+    if (!aiActive || turn !== aiColor) return;
+    scoredMoves.push({ move: stockfishBestMove, score: s });
+    stockfishBestScore = s;
+  }
+
+  // Score every modifier move
+  // First do a quick pre-filter with minimal time to skip obviously bad moves
+  const quickProbeMs = 50;
+  const filteredModifierMoves = [];
+  for (const mm of allModifierMoves) {
+    if (!aiActive || turn !== aiColor) return;
+    const simFen = simulateMoveToFen(mm.fx, mm.fy, mm.tx, mm.ty, mm.castle);
+    const s = await stockfishEvalFen(simFen, quickProbeMs);
+    if (!aiActive || turn !== aiColor) return;
+    // Only keep modifier moves that don't lose badly (threshold: -300 cp)
+    if (s > -300) {
+      filteredModifierMoves.push(mm);
+    }
+  }
+
+  // Now do full evaluation on the promising modifier moves
+  for (const mm of filteredModifierMoves) {
+    if (!aiActive || turn !== aiColor) return;
+    const simFen = simulateMoveToFen(mm.fx, mm.fy, mm.tx, mm.ty, mm.castle);
+    const s = await stockfishEvalFen(simFen, probeMs);
+    if (!aiActive || turn !== aiColor) return;
+    scoredMoves.push({ move: mm, score: s });
+  }
+
+  // Also score a sample of regular moves so the weak pool is meaningful
+  // (scoring all could be slow — sample up to 12 additional regular moves)
+  const regularSample = allRegularMoves
+    .filter(m => !stockfishBestMove ||
+      !(m.fx===stockfishBestMove.fx && m.fy===stockfishBestMove.fy &&
+        m.tx===stockfishBestMove.tx && m.ty===stockfishBestMove.ty))
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 12);
+
+  for (const rm of regularSample) {
+    if (!aiActive || turn !== aiColor) return;
+    const simFen = simulateMoveToFen(rm.fx, rm.fy, rm.tx, rm.ty, rm.castle);
+    const s = await stockfishEvalFen(simFen, probeMs);
+    if (!aiActive || turn !== aiColor) return;
+    scoredMoves.push({ move: rm, score: s });
+  }
+
+  if (!aiActive || turn !== aiColor) return;
+
+  // Sort descending: best move first, worst last
+  scoredMoves.sort((a, b) => b.score - a.score);
+
+  const bestScoredMove = scoredMoves.length > 0 ? scoredMoves[0].move : stockfishBestMove;
+
+  // ── 4. Apply difficulty-based imperfection ───────────────────────────────
+  const _diff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+  const _errCfg = AI_ERROR_CONFIG[_diff] || AI_ERROR_CONFIG[5];
+  const _allMoves = [...allRegularMoves, ...allModifierMoves];
+  const _roll = Math.random();
+
+  if (scoredMoves.length > 0 && _roll < _errCfg.blunderChance) {
+    // Blunder — pick from the worst fraction of the Stockfish-scored pool
+    // scoredMoves is sorted best→worst; slice from the tail
+    const blunderCount = Math.max(1, Math.floor(scoredMoves.length * _errCfg.randomPoolFraction));
+    const blunderPool = scoredMoves.slice(scoredMoves.length - blunderCount);
+    const pick = blunderPool[Math.floor(Math.random() * blunderPool.length)].move;
+    move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
+    return;
+  } else if (scoredMoves.length > 1 && _roll < _errCfg.blunderChance + _errCfg.mistakeChance) {
+    // Mistake — pick from the worst fraction of the Stockfish-scored pool
+    // scoredMoves is sorted best→worst; slice from the tail
+    const weakCount = Math.max(1, Math.floor(scoredMoves.length * _errCfg.randomPoolFraction));
+    const weakPool  = scoredMoves.slice(scoredMoves.length - weakCount);
+    const pick = weakPool[Math.floor(Math.random() * weakPool.length)].move;
+    move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
+    return;
+  }
+
+  // ── 5. Execute best move ─────────────────────────────────────────────────
+  if (bestScoredMove) {
+    move(bestScoredMove.fx, bestScoredMove.fy, bestScoredMove.tx, bestScoredMove.ty, bestScoredMove.castle || null);
+    return;
+  }
+
+  // Fallback: random legal move
+  if (_allMoves.length > 0) {
+    const pick = _allMoves[Math.floor(Math.random() * _allMoves.length)];
+    move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
+  }
+}
+
+function startVsAI() {
+  const diff = parseInt(document.getElementById('local-ai-difficulty').value) || 5;
+  aiThinkMs  = AI_DIFFICULTY_THINK_MS[diff] || 500;
+
+  let playerColor = _localAiColor;
+  if (playerColor === 'random') playerColor = Math.random() < 0.5 ? 'white' : 'black';
+  aiColor = playerColor === 'white' ? 'black' : 'white';
+
+  // Start as a local game
+  aiActive = true;
+  gameMode = 'local';
+  myColor  = playerColor; // used only for board flip
+
+  const menu = document.getElementById('menu');
+  menu.classList.add('hidden');
+  menu.style.display = '';
+  document.getElementById('game-container').classList.add('active');
+  document.getElementById('multiplayer-controls').style.display = 'none';
+  document.getElementById('local-controls').style.display = 'flex';
+  restart();
+  setupLocalGameCards();
+  showToast(`Playing vs Chaosfish — you are ${playerColor}`, 3000);
+
+  // Flip board if player is black
+  const boardEl = document.getElementById('board');
+  if (playerColor === 'black') {
+    boardEl.classList.add('flipped');
+  } else {
+    boardEl.classList.remove('flipped');
+  }
+
+  initStockfish();
+
+  // If AI plays white, it goes first
+  if (aiColor === 'white') {
+    setTimeout(requestAiMove, 600);
+  }
+}
+
+// Hook into the end of move() to trigger AI response
+const _origMove = move;
+move = function(x1, y1, x2, y2, castleType) {
+  _origMove.apply(this, arguments);
+  if (aiActive && gameMode === 'local' && turn === aiColor) {
+    requestAiMove();
+  }
+};
+
+// Reset AI state when game restarts or mode changes
+const _origRestart = restart;
+restart = function() {
+  _origRestart.apply(this, arguments);
+  if (!aiActive) return;
+  // If AI was active and restart is called manually, re-trigger AI if it's AI's turn
+  if (aiActive && turn === aiColor) setTimeout(requestAiMove, 400);
+};
+
+// Clean up AI when going back to menu
+const _origShowMainMenu = showMainMenu;
+showMainMenu = function() {
+  aiActive = false;
+  _origShowMainMenu.apply(this, arguments);
+};
+
+// ============================================================
 //  NEW IN-GAME UI WIRING
 // ============================================================
 
@@ -22479,8 +23400,29 @@ function setupLocalGameCards() {
   const userName = (currentProfile && currentProfile.username) ? currentProfile.username : 'Player 2';
   const userRating = (currentProfile && currentProfile.rating) ? currentProfile.rating : null;
   const userInitial = userName[0].toUpperCase();
-  const opponentName = puzzleModeActive ? 'Puzzle' : 'Player 1';
 
+  // AI Mode: show Chaosfish with level and title
+  if (aiActive) {
+    const aiDiff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+    const fullLabel = AI_DIFFICULTY_LABELS[aiDiff] || 'Level 5 — Intermediate';
+    const titleOnly = fullLabel.split(' — ')[1] || 'Intermediate';
+    const opponentName = `Chaosfish`;
+    const opponentRating = `Level ${aiDiff} (${titleOnly})`;
+
+    if (selfAvatar) { selfAvatar.textContent = userInitial; selfAvatar.className = 'gpc-avatar ' + bottomAvatarClass; }
+    if (selfNameEl) selfNameEl.textContent = userName;
+    if (selfRatingEl) selfRatingEl.textContent = userRating ? '⚡ ' + userRating : '';
+    if (selfLbl) selfLbl.textContent = bottomColor + ' (You)';
+
+    if (oppAvatar) { oppAvatar.textContent = '🐟'; oppAvatar.className = 'gpc-avatar ' + topAvatarClass; }
+    if (oppNameEl) oppNameEl.textContent = opponentName;
+    if (oppRatingEl) oppRatingEl.textContent = opponentRating;
+    if (oppLbl) oppLbl.textContent = topColor + ' (AI)';
+    return;
+  }
+
+  // Puzzle Mode
+  const opponentName = puzzleModeActive ? 'Puzzle' : 'Player 1';
   if (selfAvatar) { selfAvatar.textContent = userInitial; selfAvatar.className = 'gpc-avatar ' + bottomAvatarClass; }
   if (selfNameEl) selfNameEl.textContent = userName;
   if (selfRatingEl) selfRatingEl.textContent = userRating ? '⚡ ' + userRating : '';
@@ -22727,6 +23669,7 @@ updateTimerDisplay = function() {
 // Patch startLocal to set up the new UI
 const _origStartLocal = startLocal;
 startLocal = function() {
+  aiActive = false; // disable AI for pass & play
   _origStartLocal.apply(this, arguments);
   updateGameTopbar();
   setupLocalGameCards();
@@ -22884,7 +23827,8 @@ function showOpponentDraftReveal(mod) {
   // catch the same click that triggered the reveal, and isn't blocked
   // by any other click handlers on the board/wrapper
   setTimeout(() => {
-    function onAnyClick() {
+    function onAnyClick(e) {
+      e.stopPropagation(); // prevent the dismissing click from reaching the board/draft cards
       clearTimeout(autoTimer);
       dismiss();
       document.removeEventListener('click', onAnyClick, true);
