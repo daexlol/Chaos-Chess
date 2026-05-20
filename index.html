@@ -15042,6 +15042,7 @@ function move(x1,y1,x2,y2,castleType){
     const _dsWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
     logChaos(_dsWho, 'ability', (_dsWho==='you'?'You':'Opponent') + ' used Double Strike Rook — strike again!');
     setTimeout(()=>{
+      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
       selected = {x:x2, y:y2};
       legalMoves = getLegalMoves(x2,y2).filter(m=>!board[m.y][m.x]); // Only non-capture moves
       draw();
@@ -15088,6 +15089,7 @@ function move(x1,y1,x2,y2,castleType){
       const _ckWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
       logChaos(_ckWho, 'ability', (_ckWho==='you'?'Your':'Opponent\'s') + ` Coward Knight at ${sqNotation(x2,y2)} must now retreat! 😨`);
       setTimeout(()=>{
+        if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
         selected = {x:x2, y:y2};
         legalMoves = retreatMoves;
         draw();
@@ -15754,8 +15756,8 @@ function promotePawn(x, y, onComplete){
   let piece = board[y][x];
   let white = isWhite(piece);
   
-  // Auto-queen setting: skip modal
-  if(settings.autoQueen){
+  // Auto-queen setting or AI's turn: skip modal
+  if(settings.autoQueen || (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && white === (aiColor === 'white'))){
     board[y][x] = white ? 'Q' : 'q';
     if(onComplete) onComplete();
     return;
@@ -22912,6 +22914,8 @@ function localAiSelectColor(color) {
 let stockfishWorker   = null;
 let stockfishReady    = false;
 let stockfishCallback = null;
+let stockfishLastPv   = null; // tracks last pv move from info lines for mate position fallback
+let stockfishLastKnownMate = false; // true when last info line indicated a forced mate
 let aiThinkMs         = 500;
 let aiColor           = 'black'; // which colour the AI plays
 let aiActive          = false;
@@ -22930,12 +22934,22 @@ function initStockfish() {
           stockfishWorker.postMessage('isready');
         } else if (line === 'readyok') {
           stockfishReady = true;
+        } else if (typeof line === 'string' && line.startsWith('info') && stockfishCallback) {
+          const pvMatch = line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
+          if (pvMatch) { stockfishLastPv = pvMatch[1]; console.log('[SF] pv captured:', stockfishLastPv); }
+          if (line.includes('score mate ')) { stockfishLastKnownMate = true; console.log('[SF] mate detected in:', line); }
         } else if (typeof line === 'string' && line.startsWith('bestmove') && stockfishCallback) {
+          console.log('[SF] bestmove line:', line, '| lastPv:', stockfishLastPv, '| knownMate:', stockfishLastKnownMate);
           const parts = line.split(' ');
           const mv = parts[1];
           const cb = stockfishCallback;
           stockfishCallback = null;
-          if (cb && mv && mv !== '(none)') cb(mv);
+          const effectiveMv = (mv && mv !== '(none)' && mv !== '0000') ? mv : stockfishLastPv;
+          const wasMate = stockfishLastKnownMate;
+          console.log('[SF] effectiveMv:', effectiveMv, '| wasMate:', wasMate);
+          stockfishLastPv = null;
+          stockfishLastKnownMate = false;
+          if (cb) cb(effectiveMv || null, wasMate);
         }
       };
       stockfishWorker.postMessage('uci');
@@ -22953,17 +22967,17 @@ function boardToFen() {
     let empty = 0;
     for (let x = 0; x < 8; x++) {
       const piece = board[y][x];
-      if (!piece) { empty++; }
+      // Skip custom pieces Stockfish doesn't understand (Duck=D, Royal Guard=G/g)
+      if (!piece || piece === 'D' || piece === 'G' || piece === 'g') { empty++; }
       else {
         if (empty) { fen += empty; empty = 0; }
-        fen += piece; // already correct case: uppercase = white, lowercase = black
+        fen += piece;
       }
     }
     if (empty) fen += empty;
     if (y < 7) fen += '/';
   }
   fen += ' ' + (turn === 'white' ? 'w' : 'b');
-  // Castling rights
   let cr = '';
   if (castleRights) {
     if (castleRights.whiteKingside)  cr += 'K';
@@ -22972,7 +22986,6 @@ function boardToFen() {
     if (castleRights.blackQueenside) cr += 'q';
   }
   fen += ' ' + (cr || '-');
-  // En passant (not tracked in detail, use -)
   fen += ' - 0 ' + Math.ceil((moveCount + 1) / 2);
   return fen;
 }
@@ -23055,7 +23068,7 @@ function simulateMoveToFen(fx, fy, tx, ty, castleType) {
     if (ty === 7) simBoard[ty][tx] = 'q';
   }
 
-  // Build FEN from simBoard
+  // Build FEN from simBoard (skip custom pieces Stockfish doesn't understand)
   let fen = '';
   for (let y = 0; y < 8; y++) {
     let empty = 0;
@@ -23095,9 +23108,14 @@ function stockfishEvalFen(fen, thinkMs) {
 
         if (line.startsWith('bestmove')) {
           stockfishWorker.onmessage = tempHandler;
-          // Score is from the side-to-move's perspective in the FEN (opponent of AI after AI move)
-          // Flip so higher = better for AI
-          resolve(score !== null ? -score : 0);
+          if (line.includes('(none)') || line.includes('0000')) {
+            // Opponent has no legal moves after this simulated move = checkmate/stalemate
+            // Treat as a massive win for the AI
+            resolve(100000);
+          } else {
+            // Score is from the opponent's perspective after the AI's move — flip for AI
+            resolve(score !== null ? -score : 0);
+          }
         }
       }
     };
@@ -23111,6 +23129,69 @@ async function requestAiMove() {
   if (!aiActive || !stockfishWorker) return;
   if (turn !== aiColor) return;
   if (gameMode !== 'local') return;
+
+  // ── Handle secondary moves (Double Strike Rook / Coward Knight) ───────────
+  // These fire immediately without the Stockfish think delay — the AI just
+  // picks the best available move from the constrained set.
+  if (doubleStrikeActive) {
+    const secondMoves = getLegalMoves(doubleStrikeRookX, doubleStrikeRookY)
+      .filter(m => !board[m.y][m.x]); // non-capture only (same filter as player UI)
+    if (secondMoves.length > 0) {
+      // Think about the best non-capture square using Stockfish
+      const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
+      let bestMove = secondMoves[0], bestScore = -Infinity;
+      for (const m of secondMoves) {
+        if (!aiActive || turn !== aiColor) return;
+        const simFen = simulateMoveToFen(doubleStrikeRookX, doubleStrikeRookY, m.x, m.y, m.castle || null);
+        const s = await stockfishEvalFen(simFen, probeMs);
+        if (s > bestScore) { bestScore = s; bestMove = m; }
+      }
+      if (!aiActive || turn !== aiColor) return;
+      move(doubleStrikeRookX, doubleStrikeRookY, bestMove.x, bestMove.y, bestMove.castle || null);
+    } else {
+      // No valid second move — clear the flag manually so the turn completes
+      doubleStrikeActive = false;
+      doubleStrikeRookX = -1;
+      doubleStrikeRookY = -1;
+    }
+    return;
+  }
+
+  if (cowardRetreatActive) {
+    // Recompute retreat moves the same way the move function does
+    const kx = cowardKnightX, ky = cowardKnightY;
+    const knightPiece = board[ky][kx];
+    const enemyIsWhite = knightPiece ? !isWhite(knightPiece) : (aiColor !== 'white');
+    let nearest = null, nearestDist = Infinity;
+    for (let ey = 0; ey < 8; ey++) {
+      for (let ex = 0; ex < 8; ex++) {
+        const ep = board[ey][ex];
+        if (!ep || isWhite(ep) !== enemyIsWhite) continue;
+        const dist = Math.abs(ex - kx) + Math.abs(ey - ky);
+        if (dist < nearestDist) { nearestDist = dist; nearest = { x: ex, y: ey }; }
+      }
+    }
+    const retreatMoves = [];
+    if (nearest) {
+      [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx,dy]) => {
+        const rx = kx + dx, ry = ky + dy;
+        if (rx < 0 || rx > 7 || ry < 0 || ry > 7) return;
+        if (board[ry][rx]) return;
+        if (Math.abs(rx - nearest.x) + Math.abs(ry - nearest.y) > nearestDist)
+          retreatMoves.push({ x: rx, y: ry });
+      });
+    }
+    if (retreatMoves.length > 0) {
+      const pick = retreatMoves[Math.floor(Math.random() * retreatMoves.length)];
+      move(kx, ky, pick.x, pick.y, null);
+    } else {
+      // No retreat available — clear flag so turn completes
+      cowardRetreatActive = false;
+      cowardKnightX = -1;
+      cowardKnightY = -1;
+    }
+    return;
+  }
 
   await new Promise(r => setTimeout(r, 320));
   if (!aiActive || turn !== aiColor) return;
@@ -23146,22 +23227,48 @@ async function requestAiMove() {
   let stockfishBestMove = null;
   let stockfishBestScore = -Infinity;
 
+  let stockfishFoundMate = false;
+
   await new Promise((resolve) => {
-    stockfishCallback = (uciMove) => {
-      const fx = uciMove.charCodeAt(0) - 97;
-      const fy = 8 - parseInt(uciMove[1]);
-      const tx = uciMove.charCodeAt(2) - 97;
-      const ty = 8 - parseInt(uciMove[3]);
-      const legal = getLegalMoves(fx, fy);
-      if (legal.some(m => m.x === tx && m.y === ty)) {
-        const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
-        stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
+    stockfishCallback = (uciMove, wasMate) => {
+      console.log('[AI] callback uciMove:', uciMove, 'wasMate:', wasMate);
+      if (uciMove) {
+        const fx = uciMove.charCodeAt(0) - 97;
+        const fy = 8 - parseInt(uciMove[1]);
+        const tx = uciMove.charCodeAt(2) - 97;
+        const ty = 8 - parseInt(uciMove[3]);
+        const legal = getLegalMoves(fx, fy);
+        console.log('[AI] legal moves at', fx, fy, ':', legal.map(m=>m.x+','+m.y));
+        if (legal.some(m => m.x === tx && m.y === ty)) {
+          const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
+          stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
+          console.log('[AI] stockfishBestMove set:', stockfishBestMove);
+        } else {
+          console.log('[AI] move', uciMove, 'not in legal moves — stockfishBestMove stays null');
+        }
       }
+      stockfishFoundMate = !!wasMate;
       resolve();
     };
+    console.log('[AI] sending FEN to Stockfish:', mainFen);
     stockfishWorker.postMessage(`position fen ${mainFen}`);
     stockfishWorker.postMessage(`go movetime ${aiThinkMs}`);
   });
+
+  console.log('[AI] after main call — stockfishBestMove:', stockfishBestMove, 'foundMate:', stockfishFoundMate);
+
+  if (!aiActive || turn !== aiColor) return;
+
+  // Fast path: Stockfish found a forced mate and has a valid move — skip probes
+  if (stockfishBestMove && stockfishFoundMate) {
+    const _diff2 = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+    const _err2 = AI_ERROR_CONFIG[_diff2] || AI_ERROR_CONFIG[5];
+    if (Math.random() >= _err2.blunderChance + _err2.mistakeChance) {
+      console.log('[AI] playing mate move immediately:', stockfishBestMove);
+      move(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove.castle || null);
+      return;
+    }
+  }
 
   // ── 3. Score ALL moves with quick Stockfish probes ───────────────────────
   // Regular moves AND modifier moves all get evaluated so the ranked pool is complete.
