@@ -12304,19 +12304,27 @@ function draw(){
 
           // Determine whether THIS render should show or hide the bishop.
           // In online mode: always show your own bishops; only fog enemy bishops.
-          // In local mode: fog ALL bishops that aren't in enemy vision (both sides).
+          // In vs-AI mode: always show the player's own bishops; fog the AI's bishops.
+          // In local pass & play: fog ALL bishops when not in enemy vision (both sides,
+          //   since both players share the same screen — hiding your own is the balance).
           let shouldHide;
           if(gameMode === 'online' && myColor){
             let viewerIsWhite = (myColor === 'white');
             if(viewerIsWhite === bishopIsWhite){
-              // This is our own bishop — always visible to us
               shouldHide = false;
             } else {
-              // This is the enemy's bishop — hide it unless we can see it
+              shouldHide = !inEnemyVision;
+            }
+          } else if(aiActive && gameMode === 'local'){
+            // Player always sees their own bishops; AI bishops only appear when in vision
+            let playerIsWhite = (aiColor === 'white') ? false : true; // player is opposite of AI
+            if(bishopIsWhite === playerIsWhite){
+              shouldHide = false;
+            } else {
               shouldHide = !inEnemyVision;
             }
           } else {
-            // Local mode — fog both sides' bishops when not in enemy vision
+            // Local pass & play — fog both sides' bishops when not in enemy vision
             shouldHide = !inEnemyVision;
           }
 
@@ -18972,7 +18980,7 @@ function chaosDraft(){
       if (!_cand) {
         if (_available.length === 0) continue;
         let _roll = Math.random() * 100;
-        let _rarity = _roll < 15 ? 'mythic' : _roll < 40 ? 'legendary' : _roll < 70 ? 'rare' : 'common';
+        let _rarity = _roll < 5 ? 'mythic' : _roll < 20 ? 'legendary' : _roll < 55 ? 'rare' : 'common';
         let _cands = _available.filter(m => m.rarity === _rarity);
         _cand = _cands.length > 0 ? _cands[Math.floor(Math.random() * _cands.length)] : _available[Math.floor(Math.random() * _available.length)];
       }
@@ -22727,64 +22735,82 @@ function countMaterialBalance() {
 }
 
 function aiScoreDraftPicks(picks, color) {
-  const diff   = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
-  const noise  = [0, 0.6, 0.45, 0.3, 0.15, 0.05][diff]; // random fraction at each level
+  const diff      = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
   const isAiWhite = (color === 'white');
   const material  = countMaterialBalance();
-  // Positive material = white winning. If AI is losing, skew defensive.
   const aiMaterialLead = isAiWhite ? material : -material;
   const aggressionBias = aiMaterialLead > 3 ? 1 : aiMaterialLead < -3 ? -1 : 0;
+
+  // ── Difficulty model ────────────────────────────────────────────────────────
+  // At level 1: nearly random — scores barely matter, just pick randomly.
+  // At levels 2-5: noisy but trending toward correct choices.
+  // At levels 6-7: starts making coherent picks most of the time.
+  // At levels 8-9: good reads, occasional slip.
+  // At level 10: always picks the best option.
+  //
+  // Two levers:
+  //   scoreWeight  — how much the computed score influences the pick (0=ignore, 1=full)
+  //   flatNoise    — flat random bonus added to each pick, drowning out small differences
+  //
+  //                   diff:  1     2     3     4     5     6     7     8     9    10
+  const scoreWeights =      [0.05, 0.15, 0.30, 0.45, 0.60, 0.75, 0.87, 0.93, 0.97, 1.00];
+  const flatNoises   =      [4.0,  3.0,  2.2,  1.6,  1.1,  0.65, 0.35, 0.18, 0.07, 0.0 ];
+  const scoreWeight  = scoreWeights[diff - 1] ?? 1.0;
+  const flatNoise    = flatNoises[diff - 1]   ?? 0.0;
 
   const scored = picks.map(mod => {
     let score = 0;
 
-    // ── Rarity bonus ────────────────────────────────────────
-    const rarityBonus = { common:0, rare:1, legendary:2.5, mythic:3.5 };
-    score += (rarityBonus[mod.rarity] || 0);
-    if (mod.isEvolution) score += 4; // always value evolutions highly
-
-    // ── Piece affinity ──────────────────────────────────────
+    // ── Piece affinity (primary factor) ────────────────────────────────────
     const pt = MOD_PIECE_TYPE[mod.name];
     if (pt) {
       const myCount  = countPiecesOnBoard(pt, isAiWhite);
       const oppCount = countPiecesOnBoard(pt, !isAiWhite);
-      const totalPT  = allMods.filter(m => MOD_PIECE_TYPE[m.name] === pt).length;
 
-      // Strong bonus if AI has those pieces
-      score += myCount * 1.2;
-      // Penalty if AI has none but opponent has some (mod helps opponent more)
-      // Only apply when there are still piece-specific mods to compare against
-      if (myCount === 0 && oppCount > 0) {
-        // Check if every available pick has the same issue (then ignore penalty)
+      score += myCount * 1.5;
+
+      // Hard penalty if AI has none of those pieces — mod is almost useless
+      if (myCount === 0) {
         const allHaveNoPieces = picks.every(m => {
           const mpt = MOD_PIECE_TYPE[m.name];
           return mpt && countPiecesOnBoard(mpt, isAiWhite) === 0;
         });
-        if (!allHaveNoPieces) score -= 3.5;
+        if (!allHaveNoPieces) score -= 5;
       }
+
+      // Bonus if AI has more of that piece than the opponent (better leverage)
+      if (myCount > oppCount) score += 1;
     } else {
-      // Global modifier (Duck, Time Bomb, etc.) — neutral, slight bonus
-      score += 0.5;
+      // Global modifier — works regardless of pieces, modest neutral bonus
+      score += 1.5;
     }
 
-    // ── Synergy with existing mods ──────────────────────────
+    // ── Synergy with existing mods (second-most important) ─────────────────
     const synergies = MOD_SYNERGIES[mod.name] || [];
-    synergies.forEach(s => { if (modifiers.includes(s)) score += 2; });
-    // Also: if AI already has a mod that lists this one as a synergy
+    synergies.forEach(s => { if (modifiers.includes(s)) score += 2.5; });
     Object.entries(MOD_SYNERGIES).forEach(([existing, list]) => {
-      if (modifiers.includes(existing) && list.includes(mod.name)) score += 1.5;
+      if (modifiers.includes(existing) && list.includes(mod.name)) score += 2;
     });
 
-    // ── Aggression bias ─────────────────────────────────────
+    // ── Aggression bias ─────────────────────────────────────────────────────
     const agg = MOD_AGGRESSION[mod.name] || 0;
     score += agg * aggressionBias * 0.8;
 
-    // ── Difficulty noise ────────────────────────────────────
-    score += (Math.random() * 2 - 1) * score * noise;
-    // Also a small flat random term so equal scores vary
-    score += Math.random() * noise * 2;
+    // ── Rarity: tiebreaker only ─────────────────────────────────────────────
+    const rarityBonus = { common: 0, rare: 0.4, legendary: 0.9, mythic: 1.5 };
+    score += (rarityBonus[mod.rarity] || 0);
 
-    return { mod, score };
+    // Evolutions: strong bonus but piece fit still matters
+    if (mod.isEvolution) score += 3;
+
+    // ── Apply difficulty scaling ────────────────────────────────────────────
+    // Scale the computed score down by scoreWeight, then add flat random noise.
+    // At low levels scoreWeight~0 means all picks start near 0 before the noise
+    // buries them, so the pick is effectively random.
+    // At high levels scoreWeight~1 and flatNoise~0, so the best pick wins cleanly.
+    const scaledScore = score * scoreWeight + (Math.random() * flatNoise);
+
+    return { mod, score: scaledScore };
   });
 
   scored.sort((a, b) => b.score - a.score);
@@ -23125,6 +23151,163 @@ function stockfishEvalFen(fen, thinkMs) {
   });
 }
 
+// ── Chaos-aware position bonus (centipawn-scale, from AI's perspective) ──────
+// Adds/subtracts bonus points for modifier-specific threats and hazards that
+// Stockfish is blind to. Called after every Stockfish probe and blended in.
+function chaosBonusScore(fx, fy, tx, ty, moveObj) {
+  const piece = board[fy][fx];
+  if (!piece) return 0;
+  const pt = piece.toLowerCase();
+  const aiIsWhite = (aiColor === 'white');
+  const sign = (isWhite(piece) === aiIsWhite) ? 1 : -1;
+  let bonus = 0;
+
+  // ── Bottomless Pit ────────────────────────────────────────────────────────
+  if (pitSquare) {
+    if (tx === pitSquare.x && ty === pitSquare.y) bonus -= sign * 900;
+    if (fx === pitSquare.x && fy === pitSquare.y) bonus += sign * 300;
+    const pitOccupant = board[pitSquare.y][pitSquare.x];
+    if (pitOccupant && isWhite(pitOccupant) !== aiIsWhite) bonus += sign * 100;
+  }
+
+  // ── Time Bombs ────────────────────────────────────────────────────────────
+  for (const bomb of timeBombs) {
+    const dist    = Math.max(Math.abs(tx - bomb.x), Math.abs(ty - bomb.y));
+    const srcDist = Math.max(Math.abs(fx - bomb.x), Math.abs(fy - bomb.y));
+    if (bomb.turnsLeft <= 1) {
+      if (dist <= 1) bonus -= sign * 600;
+      if (srcDist <= 1 && dist > 1) bonus += sign * 250;
+    } else if (bomb.turnsLeft === 2 && dist <= 1) {
+      bonus -= sign * 200;
+    }
+  }
+
+  // ── Kamikaze Bombs ────────────────────────────────────────────────────────
+  for (const bomb of kamikazeBombs) {
+    const dist    = Math.max(Math.abs(tx - bomb.x), Math.abs(ty - bomb.y));
+    const srcDist = Math.max(Math.abs(fx - bomb.x), Math.abs(fy - bomb.y));
+    if (bomb.turnsLeft <= 1) {
+      if (dist <= 1) bonus -= sign * 500;
+      if (srcDist <= 1 && dist > 1) bonus += sign * 200;
+    }
+  }
+
+  // ── Nuclear Zones ─────────────────────────────────────────────────────────
+  for (const zone of nuclearZones) {
+    const dist = Math.max(Math.abs(tx - zone.x), Math.abs(ty - zone.y));
+    if (zone.turnsLeft <= 1 && dist <= 1) bonus -= sign * 700;
+    else if (zone.turnsLeft <= 2 && dist <= 1) bonus -= sign * 250;
+  }
+
+  // ── Duck (D) — blocks sliding pieces ─────────────────────────────────────
+  if (modifiers.includes('Duck of Eternal Blocking')) {
+    let duckX = -1, duckY = -1;
+    outer: for (let dy = 0; dy < 8; dy++)
+      for (let dx = 0; dx < 8; dx++)
+        if (board[dy][dx] === 'D') { duckX = dx; duckY = dy; break outer; }
+
+    if (duckX >= 0) {
+      // Penalise moving a sliding piece into a line already blocked by the duck
+      const collinearFile = (tx === duckX);
+      const collinearRank = (ty === duckY);
+      const collinearDiag = Math.abs(tx - duckX) === Math.abs(ty - duckY);
+      if (['r','q'].includes(pt) && (collinearFile || collinearRank)) bonus -= sign * 50;
+      if (['b','q'].includes(pt) && collinearDiag)                     bonus -= sign * 50;
+      // Reward moving TO a square where duck shields us from an enemy slider
+      // (simplified: reward if duck sits between destination and an enemy Q/R/B)
+      for (let ey = 0; ey < 8; ey++) {
+        for (let ex = 0; ex < 8; ex++) {
+          const ep = board[ey][ex];
+          if (!ep || isWhite(ep) === aiIsWhite) continue;
+          const ept = ep.toLowerCase();
+          if (!['q','r','b'].includes(ept)) continue;
+          // Check if duck is between (ex,ey) and (tx,ty)
+          const ddx = Math.sign(tx - ex), ddy = Math.sign(ty - ey);
+          if (ddx === 0 && ddy === 0) continue;
+          let cx = ex + ddx, cy = ey + ddy;
+          let duckBetween = false;
+          while (cx !== tx || cy !== ty) {
+            if (cx < 0 || cx > 7 || cy < 0 || cy > 7) break;
+            if (cx === duckX && cy === duckY) { duckBetween = true; break; }
+            cx += ddx; cy += ddy;
+          }
+          if (duckBetween) bonus += sign * 60;
+        }
+      }
+    }
+  }
+
+  // ── Pawn Bayonet / Evolved: reward pawns that can stab the square ahead ──
+  if ((modifiers.includes('Pawn Bayonet') || modifiers.includes('Pawn Bayonet (Evolved)')) && pt === 'p') {
+    const dir = isWhite(piece) ? -1 : 1;
+    const stabY = ty + dir;
+    if (stabY >= 0 && stabY <= 7) {
+      const target = board[stabY][tx];
+      if (target && isWhite(target) !== isWhite(piece)) {
+        const vals = { q:900, r:500, b:330, n:320, p:100, k:10000 };
+        bonus += sign * Math.min((vals[target.toLowerCase()] || 100) * 0.4, 300);
+      }
+    }
+  }
+
+  // ── Nuclear Queen / Evolved: reward queen standing adjacent to clustered enemies ──
+  if ((modifiers.includes('Nuclear Queen') || modifiers.includes('Nuclear Queen (Evolved)')) && pt === 'q') {
+    let adj = 0;
+    for (let dy2 = -1; dy2 <= 1; dy2++)
+      for (let dx2 = -1; dx2 <= 1; dx2++) {
+        if (!dx2 && !dy2) continue;
+        const ny = ty + dy2, nx = tx + dx2;
+        if (ny < 0 || ny > 7 || nx < 0 || nx > 7) continue;
+        const t = board[ny][nx];
+        if (t && isWhite(t) !== isWhite(piece)) adj++;
+      }
+    bonus += sign * adj * 60;
+  }
+
+  // ── Sprinting King: reward the 2-square dash ─────────────────────────────
+  if (modifiers.includes('Sprinting King') && pt === 'k' && !moveObj?.castle) {
+    if (Math.abs(tx - fx) === 2 || Math.abs(ty - fy) === 2) bonus += sign * 80;
+  }
+
+  // ── Railgun Rook: moving through enemies = extra value ───────────────────
+  if (moveObj && moveObj.railgun) bonus += sign * 150;
+
+  // ── Phase Bishop / Rook: phasing through a blocker gains tempo ───────────
+  if (moveObj && (modifiers.includes('Phase Bishop') || modifiers.includes('Phase Rook'))) {
+    const ddx = tx === fx ? 0 : (tx > fx ? 1 : -1);
+    const ddy = ty === fy ? 0 : (ty > fy ? 1 : -1);
+    let cx = fx + ddx, cy = fy + ddy;
+    while (cx !== tx || cy !== ty) {
+      if (board[cy][cx]) { bonus += sign * 60; break; }
+      cx += ddx; cy += ddy;
+    }
+  }
+
+  // ── Kamikaze Pawn: penalise bad kamikaze trades ───────────────────────────
+  if (modifiers.includes('Kamikaze Pawn') && pt === 'p' && board[ty][tx]) {
+    const vals = { q:900, r:500, b:330, n:320, p:100, k:10000 };
+    const targetVal = vals[board[ty][tx].toLowerCase()] || 100;
+    if (targetVal < 150) bonus -= sign * 120;
+    else bonus += sign * (targetVal - 100) * 0.3;
+  }
+
+  // ── Bounty Hunter Pawn: reward captures with stacked bounty ──────────────
+  if (modifiers.includes('Bounty Hunter Pawn') && pt === 'p' && board[ty][tx]) {
+    const kills = getPieceData(fx, fy).bountyKills || 0;
+    bonus += sign * (kills + 1) * 30;
+  }
+
+  // ── Boomerang Bishop: return path hitting something is a bonus ───────────
+  if (moveObj && moveObj.boomerang) bonus += sign * 80;
+
+  // ── Tornado: penalise landing adjacent to active tornadoes ───────────────
+  for (const tornado of tornadoes) {
+    if (Math.abs(tx - tornado.x) + Math.abs(ty - tornado.y) <= 1) bonus -= sign * 120;
+  }
+
+  return bonus;
+}
+
 async function requestAiMove() {
   if (!aiActive || !stockfishWorker) return;
   if (turn !== aiColor) return;
@@ -23284,7 +23467,7 @@ async function requestAiMove() {
     );
     const s = await stockfishEvalFen(baseFen, probeMs);
     if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: stockfishBestMove, score: s });
+    scoredMoves.push({ move: stockfishBestMove, score: s + chaosBonusScore(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove) });
     stockfishBestScore = s;
   }
 
@@ -23309,7 +23492,7 @@ async function requestAiMove() {
     const simFen = simulateMoveToFen(mm.fx, mm.fy, mm.tx, mm.ty, mm.castle);
     const s = await stockfishEvalFen(simFen, probeMs);
     if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: mm, score: s });
+    scoredMoves.push({ move: mm, score: s + chaosBonusScore(mm.fx, mm.fy, mm.tx, mm.ty, mm) });
   }
 
   // Also score a sample of regular moves so the weak pool is meaningful
@@ -23326,7 +23509,7 @@ async function requestAiMove() {
     const simFen = simulateMoveToFen(rm.fx, rm.fy, rm.tx, rm.ty, rm.castle);
     const s = await stockfishEvalFen(simFen, probeMs);
     if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: rm, score: s });
+    scoredMoves.push({ move: rm, score: s + chaosBonusScore(rm.fx, rm.fy, rm.tx, rm.ty, rm) });
   }
 
   if (!aiActive || turn !== aiColor) return;
