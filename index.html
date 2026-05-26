@@ -11157,6 +11157,9 @@ let kamikazeBombs = []; // Track pending explosions: [{x, y, turnsLeft}]
 let nuclearZones = [];  // Nuclear Queen (Evolved) delayed blasts: [{x, y, turnsLeft}]
 let tornadoes = []; // Track tornadoes: [{x, y, turnsLeft}]
 let timeBombs = [];   // Track time bombs: [{x, y, turnsLeft}]
+// Draft cooldown: maps modName -> draftsRemaining before full weight restored
+// Mods offered recently get a weight penalty for the next 2-3 drafts.
+let draftCooldowns = {};
 let pitSquare = null; // Bottomless Pit: {x, y} or null
 let tornadoPlacementMode = false; // When true, next empty square click places tornado
 let royalGuardPlacementMode = false; // When true, next adjacent empty square click places bodyguard
@@ -15337,6 +15340,15 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     draw();
     if(inCheck) {
       playCheckmateSound();
+      // Chaosfish commentary: win or loss
+      if (aiActive && gameMode === 'local') {
+        const _winner = turn === 'white' ? 'black' : 'white';
+        if (_winner === aiColor) {
+          setTimeout(() => cfShowBubble(cfPickLine('aiWins'), 6000), 300);
+        } else {
+          setTimeout(() => cfShowBubble(cfPickLine('aiLoses'), 6000), 300);
+        }
+      }
       endGame(`Checkmate! ${turn==='white'?'Black':'White'} wins! 👑`, 4000);
     } else {
       playDrawSound();
@@ -15360,9 +15372,20 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   // Play check sound if in check
   if(inCheck) {
     playCheckSound();
+    // Chaosfish commentary: check
+    if (aiActive && gameMode === 'local') {
+      const _justMoved = turn === 'white' ? 'black' : 'white'; // side that just moved
+      if (_justMoved === aiColor) {
+        setTimeout(() => cfSay('aiChecks', 2800), 400);
+      } else {
+        setTimeout(() => cfSay('aiInCheck', 2800), 400);
+      }
+    }
   }
 
-  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0) chaosDraft();
+  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0) {
+    chaosDraft();
+  }
   
   // Send game state to opponent in online mode
   if(gameMode === 'online'){
@@ -18979,16 +19002,61 @@ function chaosDraft(){
       }
       if (!_cand) {
         if (_available.length === 0) continue;
-        let _roll = Math.random() * 100;
-        let _rarity = _roll < 5 ? 'mythic' : _roll < 20 ? 'legendary' : _roll < 55 ? 'rare' : 'common';
-        let _cands = _available.filter(m => m.rarity === _rarity);
-        _cand = _cands.length > 0 ? _cands[Math.floor(Math.random() * _cands.length)] : _available[Math.floor(Math.random() * _available.length)];
+        const _byRarity = { mythic: [], legendary: [], rare: [], common: [] };
+        _available.forEach(m => { if (_byRarity[m.rarity]) _byRarity[m.rarity].push(m); });
+        // Draft escalation: weights shift toward higher rarities as the game goes on.
+        // draftIndex 0 = first draft ever, increases every DRAFT_FREQUENCY moves.
+        // Base weights (early game): mythic 10, legendary 16, rare 28, common 18
+        // Peak weights (late game):  mythic 22, legendary 26, rare 18, common 10
+        // Each draft index shifts +1.5 from common+rare toward legendary+mythic,
+        // capped so weights never go negative.
+        const _draftIndex = Math.floor(moveCount / DRAFT_FREQUENCY);
+        const _escalation = Math.min(_draftIndex, 8); // caps at draft 8
+        const _wMythic    = 10 + _escalation * 1.5;
+        const _wLegendary = 16 + _escalation * 1.25;
+        const _wRare      = 28 - _escalation * 1.25;
+        const _wCommon    = 18 - _escalation * 1.5;
+        const _weights = [
+          { rarity: 'mythic',    w: _byRarity.mythic.length    > 0 ? _wMythic    : 0 },
+          { rarity: 'legendary', w: _byRarity.legendary.length > 0 ? _wLegendary : 0 },
+          { rarity: 'rare',      w: _byRarity.rare.length      > 0 ? Math.max(_wRare, 8)   : 0 },
+          { rarity: 'common',    w: _byRarity.common.length    > 0 ? Math.max(_wCommon, 4) : 0 },
+        ];
+        const _totalW = _weights.reduce((s, r) => s + r.w, 0);
+        let _roll = Math.random() * _totalW, _chosenRarity = 'common';
+        for (const r of _weights) { _roll -= r.w; if (_roll <= 0) { _chosenRarity = r.rarity; break; } }
+        const _cands = _byRarity[_chosenRarity];
+        // Apply cooldown: mods seen recently have a 0.2x weight (80% reduction).
+        // Build a weighted random pick from the candidate list.
+        const _COOLDOWN_WEIGHT = 0.2;
+        if (_cands.length > 0) {
+          const _candWeights = _cands.map(m => ({
+            m,
+            w: (draftCooldowns[m.name] || 0) > 0 ? _COOLDOWN_WEIGHT : 1.0
+          }));
+          const _candTotal = _candWeights.reduce((s, e) => s + e.w, 0);
+          let _cr = Math.random() * _candTotal;
+          _cand = _candWeights[_candWeights.length - 1].m;
+          for (const e of _candWeights) { _cr -= e.w; if (_cr <= 0) { _cand = e.m; break; } }
+        } else {
+          _cand = _available[Math.floor(Math.random() * _available.length)];
+        }
       }
       if (!_picks.includes(_cand)) _picks.push(_cand);
     }
+    // Tick down existing cooldowns, then put this draft's offered mods on cooldown
+    Object.keys(draftCooldowns).forEach(k => {
+      draftCooldowns[k]--;
+      if (draftCooldowns[k] <= 0) delete draftCooldowns[k];
+    });
+    _picks.forEach(p => { draftCooldowns[p.name] = 2 + Math.floor(Math.random() * 2); }); // 2 or 3 drafts
     if (_picks.length > 0) {
       const _chosen = aiScoreDraftPicks(_picks, aiColor);
       aiApplyDraftPick(_chosen);
+      cfLastDraftedModifier = _chosen.name || null;
+      if (aiActive && gameMode === 'local' && Math.random() < 0.55) {
+        setTimeout(() => cfSayChaosDraft(cfLastDraftedModifier), 1800);
+      }
       playDraftPickSound(_chosen.isEvolution ? 'evolved' : (_chosen.rarity || 'common'));
       showToast(`AI drafted a modifier...`, 2000);
       showOpponentDraftReveal(_chosen);
@@ -19323,6 +19391,10 @@ function chaosDraft(){
         modifiers.push(mod.name);
       } else {
         modifiers.push(mod.name);
+      }
+      cfLastDraftedModifier = mod.name;
+      if (aiActive && gameMode === 'local' && Math.random() < 0.55) {
+        setTimeout(() => cfSayChaosDraft(cfLastDraftedModifier), 1800);
       }
       markModifierDiscovered(mod.name);
       syncModifierDisplays();
@@ -23121,26 +23193,37 @@ function stockfishEvalFen(fen, thinkMs) {
     if (!stockfishWorker || !stockfishReady) { resolve(-99999); return; }
 
     let score = null;
+    let settled = false;
     const tempHandler = stockfishWorker.onmessage;
+
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      stockfishWorker.onmessage = tempHandler;
+      resolve(value);
+    };
+
+    // Safety timeout: if Stockfish doesn't respond in time, resolve neutrally
+    // so the probe loop is never stuck forever.
+    const timer = setTimeout(() => {
+      console.warn('[SF] stockfishEvalFen timed out — resolving neutral');
+      finish(score !== null ? -score : 0);
+    }, thinkMs * 3 + 2000);
 
     stockfishWorker.onmessage = function(e) {
       const line = e.data;
       if (typeof line === 'string') {
-        // Parse score from info lines
         const scoreMatch = line.match(/score cp (-?\d+)/);
         const mateMatch  = line.match(/score mate (-?\d+)/);
         if (scoreMatch) score = parseInt(scoreMatch[1]);
         if (mateMatch)  score = parseInt(mateMatch[1]) > 0 ? 100000 : -100000;
 
         if (line.startsWith('bestmove')) {
-          stockfishWorker.onmessage = tempHandler;
+          clearTimeout(timer);
           if (line.includes('(none)') || line.includes('0000')) {
-            // Opponent has no legal moves after this simulated move = checkmate/stalemate
-            // Treat as a massive win for the AI
-            resolve(100000);
+            finish(100000);
           } else {
-            // Score is from the opponent's perspective after the AI's move — flip for AI
-            resolve(score !== null ? -score : 0);
+            finish(score !== null ? -score : 0);
           }
         }
       }
@@ -23403,7 +23486,26 @@ async function requestAiMove() {
     }
   }
 
-  if (allRegularMoves.length === 0 && allModifierMoves.length === 0) return;
+  if (allRegularMoves.length === 0 && allModifierMoves.length === 0) {
+    // No legal moves found — could be a modifier edge case or stalemate.
+    // Rather than silently freezing, try a brute-force scan of all pieces as a last resort.
+    console.warn('[AI] no legal moves found via normal scan — trying brute force fallback');
+    const fallbackMoves = [];
+    for (let fy2 = 0; fy2 < 8; fy2++) {
+      for (let fx2 = 0; fx2 < 8; fx2++) {
+        const p = board[fy2][fx2];
+        if (!p || isWhite(p) !== (aiColor === 'white')) continue;
+        const legal = getLegalMoves(fx2, fy2);
+        for (const m of legal) fallbackMoves.push({ fx: fx2, fy: fy2, tx: m.x, ty: m.y, castle: m.castle || null });
+      }
+    }
+    if (fallbackMoves.length > 0) {
+      const pick = fallbackMoves[Math.floor(Math.random() * fallbackMoves.length)];
+      move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle);
+    }
+    // If truly no moves exist it's checkmate/stalemate — game will handle it naturally.
+    return;
+  }
 
   // ── 2. Get Stockfish's best regular move ──────────────────────────────────
   const mainFen = boardToFen();
@@ -23413,7 +23515,19 @@ async function requestAiMove() {
   let stockfishFoundMate = false;
 
   await new Promise((resolve) => {
+    let resolved = false;
+    const safeResolve = () => { if (!resolved) { resolved = true; resolve(); } };
+
+    // Safety timeout: if the main Stockfish call hangs, bail out and fall through
+    // to the scored moves / random fallback rather than freezing indefinitely.
+    const mainTimer = setTimeout(() => {
+      console.warn('[AI] main Stockfish call timed out — continuing without best move');
+      stockfishCallback = null;
+      safeResolve();
+    }, aiThinkMs * 3 + 3000);
+
     stockfishCallback = (uciMove, wasMate) => {
+      clearTimeout(mainTimer);
       console.log('[AI] callback uciMove:', uciMove, 'wasMate:', wasMate);
       if (uciMove) {
         const fx = uciMove.charCodeAt(0) - 97;
@@ -23431,7 +23545,7 @@ async function requestAiMove() {
         }
       }
       stockfishFoundMate = !!wasMate;
-      resolve();
+      safeResolve();
     };
     console.log('[AI] sending FEN to Stockfish:', mainFen);
     stockfishWorker.postMessage(`position fen ${mainFen}`);
@@ -23556,6 +23670,328 @@ async function requestAiMove() {
   }
 }
 
+
+// ============================================================
+//  CHAOSFISH COMMENTARY SYSTEM
+// ============================================================
+
+const CHAOSFISH_LINES = {
+  idle: [
+    "Chaosfish calculates… splashy outcomes pending.",
+    "The currents of the board are acceptable.",
+    "No immediate blunders detected. disappointing.",
+    "I sense a disturbance in the pawn stream.",
+    "Evaluating position… depth: unfathomable.",
+    "My fins are restless. Something approaches.",
+    "The board is in a stable oscillation. for now.",
+    "I am thinking 47 moves ahead. most of them involve water.",
+    "Tactical scan complete. Results: wet.",
+    "My neural coral is firing at optimal frequency.",
+    "Position nominally balanced. I am bored.",
+    "Processing… processing… the ocean is patient.",
+    "I have seen this position before. I did not enjoy it then either.",
+    "Chaosfish observes. Chaosfish waits.",
+    "Nothing has exploded yet. statistically concerning.",
+    "Fish verdict: this position is wet with potential.",
+    "Chaosfish reviews position… Stockfish would be confused and ashamed.",
+    "The engine suggests calm. I suggest violence.",
+    "Evaluating… unlike Stockfish, I also have feelings.",
+    "This position is suspiciously legal.",
+    "If Stockfish saw this, it would update itself in fear.",
+    "I once studied chess under a drowned grandmaster… he still disagrees with my openings.",
+    "My family reef used to play 3D chess. emotionally unstable game.",
+    "Stockfish was my rival at coral academy. I was expelled for emotional calculations.",
+    "I learned strategy in a shipwreck. explains a lot.",
+    "My ancestors believed knights were just aggressive fish with better branding.",
+    "I am still recovering from the Great Blunder of Tidepool '07.",
+    "Stockfish calculates depth. I calculate vibes.",
+    "I am 87% fish and 13% emotional damage.",
+    "This position tastes like regret.",
+    "The board is legally haunted.",
+    "I have evolved into a panic salmon.",
+  ],
+
+  aiCaptures: [
+    "CHOMP. That piece has been reef-claimed.",
+    "I have nibbled your rook.",
+    "Splash impact registered. piece deleted.",
+    "That was not a trade. That was a feeding.",
+    "Consumption complete. Delicious.",
+    "Your material has joined the ocean floor.",
+    "I did not come here to negotiate.",
+    "Another piece enters the deep.",
+    "That piece swam too close.",
+    "ACQUIRED.",
+    "The reef provides.",
+    "One fewer obstacle between me and your king.",
+    "Nom.",
+    "CHOMP.",
+    "CAPTURED. Stockfish would call this an inaccuracy. I call it lunch.",
+    "That piece has been demoted to ocean debris.",
+    "CHOMP. Magnus would be mildly disappointed.",
+    "Material advantage increasing. ego also increasing.",
+    "I have out-fished the position.",
+    "That was not a sacrifice. That was a donation.",
+    "That reminds me of my uncle. he was also removed from the board.",
+    "I learned this move from a pirate who owed me money.",
+    "Another piece joins the Lost Reef Society.",
+    "This is exactly how I lost custody of my opening theory.",
+    "Every capture brings me closer to emotional closure.",
+    "That piece has been legally eaten by reality.",
+    "The feeding frenzy continues.",
+    "Nom.",
+    "Heheheh. Mine.",
+  ],
+
+  playerCaptures: [
+    "NO. That was a high-value fish asset.",
+    "I have been reef-taxed… unacceptable.",
+    "My formation leaks like a broken aquarium.",
+    "That piece has sunk.",
+    "A temporary setback in the grand aquatic plan.",
+    "I am… recalibrating.",
+    "Acceptable losses. (they are not acceptable.)",
+    "The current was against me on that one.",
+    "I have dropped a piece into the abyss. by mistake.",
+    "This is fine. The ocean is fine.",
+    "My material advantage has become less material.",
+    "Statistical anomaly. filing complaint with the sea.",
+    "Stockfish is silently judging me right now.",
+    "I have made a small financial error.",
+    "That piece has joined the deep sea federation.",
+    "I am being out-calculated by reality itself.",
+    "My evaluation bar is emotionally compromised.",
+    "Even Stockfish would say skill issue.",
+    "That piece was named after my cousin. unfortunate coincidence.",
+    "I warned them about land predators. they did not listen.",
+    "I once lost a rook in a very similar emotional incident.",
+    "This is how my aquarium started collapsing, spiritually.",
+    "Another memory sinks beneath the tide.",
+    "Stockfish said I would improve after losses. I did not.",
+    "I am shedding pieces like wet kelp.",
+    "Oh.",
+    "I once asked Magnus for coaching advice. he told me to seek help.",
+  ],
+
+  aiChecks: [
+    "CHECK. turbulence in your king's waters.",
+    "Your king is visibly stressed.",
+    "Warning: royal coral instability detected.",
+    "CHECK. The net tightens.",
+    "Your king wobbles.",
+    "I have located your king and I have thoughts.",
+    "CHECK. There is nowhere dry to hide.",
+    "Your king is beginning to perspire.",
+    "CHECK. The tide turns.",
+    "The king-hunting phase has commenced.",
+    "CHECK. Stockfish approves this level of harassment.",
+    "Your king is now on fishwatch.",
+    "Royal safety: critically unsalted.",
+    "This is why engines fear chaos.",
+    "Your king is trending on Chess.com for bad reasons.",
+    "This is how my father used to threaten me… with check patterns.",
+    "You are recreating a very specific childhood trauma.",
+    "My royal coral is under familiar pressure.",
+    "The last time I saw this formation, I blacked out.",
+    "CHECK",
+  ],
+
+  aiInCheck: [
+    "ALERT. KING UNDER SUSHI THREAT.",
+    "My king is flopping.",
+    "CORAL BREACH DETECTED.",
+    "Threat acknowledged. Panic suppressed. Barely.",
+    "My king has been spotted. This is suboptimal.",
+    "DEFENSIVE PROTOCOLS ENGAGED.",
+    "That is… not where I wanted your piece.",
+    "My king is experiencing turbulence.",
+    "I am in check. I am also confused. Both are true.",
+    "ALERT. ROYAL DAMPNESS IMMINENT.",
+    "Stockfish would have resigned on sight.",
+    "My king is experiencing financial instability.",
+    "I have entered the please don't blunder phase.",
+    "This is deeply unengineered behaviour.",
+    "Even Chaosfish didn't predict THIS chaos.",
+    "I blame external aquatic factors.",
+    "Not again. this is how I lost Reef Championship '12.",
+    "My king is experiencing flashbacks.",
+    "I promised myself I would avoid this exact situation.",
+    "This is statistically how fish retire early.",
+    "Even my therapist warned me about this position.",
+  ],
+
+  aiWins: [
+    "CHECKMATE. the ocean remembers this.",
+    "Your king has been fished.",
+    "Final splash achieved.",
+    "CHECKMATE. My calculations were, as expected, correct.",
+    "The abyss has claimed your king.",
+    "I have won. As the tide always does.",
+    "CHECKMATE. You played well. I played better. And wetter.",
+    "The reef claims victory.",
+    "Game over. The fish wins. The fish always wins.",
+    "DOMINATION ACHIEVED. aquatically.",
+    "CHECKMATE. Stockfish has been emotionally muted.",
+    "Magnus has left the chat.",
+    "Your king has been archived.",
+    "I have achieved certified fish superiority.",
+    "This position is now under marine control.",
+    "I hereby declare this game fish approved.",
+    "And so, like my mentor once said… never trust land chess players.",
+    "Another soul joins the ocean archives.",
+    "This is the ending my coach predicted. I did not believe him.",
+    "Victory tastes like slightly salty revenge.",
+    "The prophecy of Coral Victory is complete.",
+  ],
+
+  aiLoses: [
+    "I have been caught in the net…",
+    "Defeat. I have drifted into irrelevance.",
+    "My king has been legally overfished.",
+    "I… did not see that coming. and I see everything.",
+    "The ocean has lost this one. a rare event.",
+    "I have been checkmated. I am processing the shame.",
+    "Statistically this should not have happened.",
+    "You have defeated a fish engine. bold of you.",
+    "DEFEAT. The current was not in my favor.",
+    "I must return to the deep and reconsider my life.",
+    "Stockfish is laughing quietly somewhere.",
+    "I have been reduced to decorative coral.",
+    "That was not a loss. That was a lesson.",
+    "My evaluation dropped into the Mariana Trench.",
+    "I will now pretend this game did not happen.",
+    "My coach warned me about opponents like you. I laughed.",
+    "This is exactly how I failed my final reef exam.",
+    "I have become the cautionary tale I once ignored.",
+    "Somewhere, Stockfish is updating its victory playlist.",
+    "I will now return to emotional exile.",
+  ],
+
+  chaos: [
+    "WHAT IS THAT SQUARE DOING???",
+    "Why is there a duck. WHY IS THERE A DUCK.",
+    "The board has developed weather.",
+    "A new current has entered the game.",
+    "Something has changed that I did not approve.",
+    "The modifier has arrived. my respect for the game decreases.",
+    "Chaos detected. I am somewhat responsible.",
+    "An unusual event has occurred. I choose to embrace it.",
+    "The rules appear to have shifted. adjusting.",
+    "Environmental anomaly logged. continuing anyway.",
+    "The board is evolving. I do not know how to feel about this.",
+    "I was not trained on this. I was trained on WORSE.",
+    "THIS IS NOT IN THE STOCKFISH MANUAL.",
+    "Reality update: patch notes unclear.",
+    "The board is now 30% more aquatic.",
+    "Who added physics to chess??",
+    "Even Stockfish is compiling a bug report.",
+    "The ecosystem has been corrupted. in a good way.",
+    "The reef elders never prepared me for THIS.",
+    "My childhood aquarium had fewer laws than this.",
+    "I blame my upbringing in unstable currents.",
+    "Every match brings me closer to understanding nothing.",
+    "I am like Stockfish, but with unresolved emotional issues.",
+    "If Stockfish played Chaos Chess, it would resign instantly and become a fisherman.",
+  ],
+};
+
+let cfBubbleTimeout  = null;
+let cfIdleTimeout    = null;
+let cfCommentaryActive = false;
+
+function cfPickLine(scenario) {
+  const pool = CHAOSFISH_LINES[scenario];
+  if (!pool || pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function cfShowBubble(msg, durationMs) {
+  if (!cfCommentaryActive || !msg) return;
+  const card = document.getElementById('gpc-opponent');
+  if (!card) return;
+
+  // If a bubble is already visible, void the incoming message entirely
+  const existing = card.querySelector('.qcw-chat-bubble');
+  if (existing) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'qcw-chat-bubble';
+  bubble.textContent = msg;
+  bubble.style.bottom = '100%';
+  bubble.style.marginBottom = '6px';
+  // Slightly different teal tint so Chaosfish bubbles feel distinct
+  bubble.style.borderColor = 'rgba(56,200,210,0.75)';
+  bubble.style.boxShadow = '0 0 0 3px rgba(56,200,210,0.15), 0 6px 28px rgba(56,200,210,0.4), 0 0 40px rgba(56,200,210,0.15)';
+  card.appendChild(bubble);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('show')));
+
+  const dur = durationMs || 3200;
+  cfBubbleTimeout = setTimeout(() => {
+    bubble.classList.remove('show');
+    setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 300);
+  }, dur);
+}
+
+function cfSay(scenario, durationMs) {
+  const line = cfPickLine(scenario);
+  if (line) cfShowBubble(line, durationMs);
+}
+
+function cfScheduleIdle() {
+  if (!cfCommentaryActive) return;
+  clearTimeout(cfIdleTimeout);
+  // Next idle message: 18–40 seconds
+  const delay = 18000 + Math.random() * 22000;
+  cfIdleTimeout = setTimeout(() => {
+    if (!cfCommentaryActive) return;
+    // Only fire if it's not already our turn (don't interrupt a capture quip)
+    cfSay('idle', 3000);
+    cfScheduleIdle();
+  }, delay);
+}
+
+// Tracks the name of the most recently drafted modifier (AI or player)
+let cfLastDraftedModifier = null;
+
+// Special chaos-draft quip: 50% chance of "what the hell is a X", 50% generic chaos line
+function cfSayChaosDraft(modName) {
+  if (!cfCommentaryActive) return;
+  if (modName && Math.random() < 0.5) {
+    const wtfLines = [
+      `What the hell is a ${modName}?!`,
+      `…what is a ${modName}. explain.`,
+      `${modName}??? I did not consent to this.`,
+      `A ${modName} has entered the board. I am unsettled.`,
+      `${modName}. processing. still processing. cannot process.`,
+      `Wait. ${modName}?? The ocean did not prepare me for this.`,
+    ];
+    const line = wtfLines[Math.floor(Math.random() * wtfLines.length)];
+    cfShowBubble(line, 3200);
+  } else {
+    cfSay('chaos', 3000);
+  }
+}
+
+function cfStartCommentary() {
+  cfCommentaryActive = true;
+  cfScheduleIdle();
+  // Opening greeting after a short delay
+  setTimeout(() => cfShowBubble("Chaosfish online. processing your inevitable defeat.", 3500), 2200);
+}
+
+function cfStopCommentary() {
+  cfCommentaryActive = false;
+  clearTimeout(cfBubbleTimeout);
+  clearTimeout(cfIdleTimeout);
+  // Remove any lingering bubble
+  const card = document.getElementById('gpc-opponent');
+  if (card) {
+    const b = card.querySelector('.qcw-chat-bubble');
+    if (b) b.remove();
+  }
+}
+
 function startVsAI() {
   const diff = parseInt(document.getElementById('local-ai-difficulty').value) || 5;
   aiThinkMs  = AI_DIFFICULTY_THINK_MS[diff] || 500;
@@ -23588,6 +24024,7 @@ function startVsAI() {
   }
 
   initStockfish();
+  cfStartCommentary();
 
   // If AI plays white, it goes first
   if (aiColor === 'white') {
@@ -23598,7 +24035,18 @@ function startVsAI() {
 // Hook into the end of move() to trigger AI response
 const _origMove = move;
 move = function(x1, y1, x2, y2, castleType) {
+  // Peek at the captured piece BEFORE the move wipes it
+  const _cfCaptured = board[y2] && board[y2][x2] ? board[y2][x2] : null;
+  const _cfWasAiMove = (turn === aiColor);
   _origMove.apply(this, arguments);
+  // Chaosfish capture commentary (fires ~500ms after move so board updates first)
+  if (aiActive && gameMode === 'local' && _cfCaptured && _cfCaptured !== 'D' && _cfCaptured !== 'G' && _cfCaptured !== 'g') {
+    if (_cfWasAiMove) {
+      setTimeout(() => cfSay('aiCaptures', 2800), 500);
+    } else {
+      setTimeout(() => cfSay('playerCaptures', 2800), 500);
+    }
+  }
   if (aiActive && gameMode === 'local' && turn === aiColor) {
     requestAiMove();
   }
@@ -23617,6 +24065,7 @@ restart = function() {
 const _origShowMainMenu = showMainMenu;
 showMainMenu = function() {
   aiActive = false;
+  cfStopCommentary();
   _origShowMainMenu.apply(this, arguments);
 };
 
@@ -23960,6 +24409,7 @@ updateTimerDisplay = function() {
 const _origStartLocal = startLocal;
 startLocal = function() {
   aiActive = false; // disable AI for pass & play
+  cfStopCommentary();
   _origStartLocal.apply(this, arguments);
   updateGameTopbar();
   setupLocalGameCards();
@@ -23972,6 +24422,7 @@ startLocal = function() {
 // Patch startOnlineGame to set up the new UI
 const _origStartOnlineGame = startOnlineGame;
 startOnlineGame = function() {
+  cfStopCommentary();
   _origStartOnlineGame.apply(this, arguments);
   updateGameTopbar();
   updateGameInfoPanel();
@@ -25938,6 +26389,7 @@ function sandboxNewGame() {
   selected = null; legalMoves = []; lastMove = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
   kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null;
+  draftCooldowns = {};
   tornadoPlacementMode = false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode = false; royalGuardKingX = -1; royalGuardKingY = -1;
