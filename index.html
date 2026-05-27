@@ -15240,14 +15240,25 @@ function move(x1,y1,x2,y2,castleType){
     // No empty adjacent squares — fall through normally
   }
 
-  // Record move in history
+  // Check for pawn promotion — recordMove is deferred until piece is chosen
+  if(piece.toLowerCase()==='p'){
+    let promotionRow = isWhite(piece) ? 0 : 7;
+    if(y2 === promotionRow){
+      // Don't recordMove yet — promotePawn will do it once the piece is known
+      finishTurn(piece, x1, y1, x2, y2, captured, castleMove, /*skipRecord*/true);
+      return;
+    }
+  }
+
+  // Record move in history (non-promotion)
   recordMove(piece, x1, y1, x2, y2, captured, castleMove ? castleMove.castle : null);
   finishTurn(piece, x1, y1, x2, y2, captured, castleMove);
 }
 
 // Called after recordMove — handles turn switching, timer, check, draft, draw.
 // Also used by Royal Guard to resume after guard placement.
-function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
+// skipRecord: true when called for a pawn promotion (recordMove deferred until piece chosen)
+function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
   // Kamikaze Pawn: countdown and explode bombs (BEFORE turn switch)
   processKamikazeBombs();
 
@@ -15394,6 +15405,11 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
   
   // Force redraw to recalculate legal moves
   draw();
+
+  // Trigger AI move if it's now the AI's turn (covers post-promotion cases too)
+  if(typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && turn === aiColor){
+    setTimeout(requestAiMove, 150);
+  }
   };
   
   // Check for pawn promotion BEFORE completing turn
@@ -15402,7 +15418,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove){
     if(y2 === promotionRow){
       // Show promotion modal, complete turn AFTER selection
       playPromotionSound();
-      promotePawn(x2, y2, completeTurn);
+      promotePawn(x2, y2, completeTurn, piece, x1, y1, captured, castleMove);
       return; // Don't finish turn yet!
     }
   }
@@ -15783,13 +15799,39 @@ function closeModifierInfo() {
   }, 200); // Match transition time
 }
 
-function promotePawn(x, y, onComplete){
+function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
   let piece = board[y][x];
   let white = isWhite(piece);
+
+  // Helper: record the move now that we know the promoted piece type
+  function recordPromotion(promotedType) {
+    if(origPiece !== undefined) {
+      // Build notation manually so we can append =X
+      let baseNotation = '';
+      if(captured) {
+        baseNotation = fileOf(x1) + 'x' + coordToAlgebraic(x, y);
+      } else {
+        baseNotation = coordToAlgebraic(x, y);
+      }
+      baseNotation += '=' + promotedType.toUpperCase();
+      moveHistory.push({
+        notation: baseNotation,
+        color: white ? 'white' : 'black',
+        moveNumber: Math.floor(moveHistory.length / 2) + 1
+      });
+      updateMoveDisplay();
+    }
+  }
   
   // Auto-queen setting or AI's turn: skip modal
   if(settings.autoQueen || (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && white === (aiColor === 'white'))){
     board[y][x] = white ? 'Q' : 'q';
+    recordPromotion('Q');
+    // Chaosfish promotion commentary
+    if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
+      const _isAiPromotion = white === (aiColor === 'white');
+      setTimeout(() => cfSay(_isAiPromotion ? 'aiPromotes' : 'playerPromotes', 3000), 600);
+    }
     if(onComplete) onComplete();
     return;
   }
@@ -15824,7 +15866,11 @@ function promotePawn(x, y, onComplete){
       let pieceType = choice.dataset.piece;
       board[y][x] = white ? pieceType : pieceType.toLowerCase();
       modal.style.display = 'none';
-      
+      recordPromotion(pieceType);
+      // Chaosfish player promotion commentary
+      if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
+        setTimeout(() => cfSay('playerPromotes', 3000), 600);
+      }
       // Call completion callback to finish the turn (includes draw() and sendGameState())
       if(onComplete) onComplete();
     };
@@ -23868,6 +23914,46 @@ const CHAOSFISH_LINES = {
     "I will now return to emotional exile.",
   ],
 
+  aiPromotes: [
+    "A pawn has ascended. The reef celebrates.",
+    "PROMOTION! Evolution is real!",
+    "A new queen emerges from the tide.",
+    "Stockfish would call this optional. Me? I think its beautiful...",
+    "I raised that pawn myself. emotionally.",
+    "The reef academy would be so proud.",
+    "A humble pawn climbs the food chain.",
+    "I invested heavily in this pawn. Financially. And spiritually.",
+    "The ocean rewards perseverance.",
+    "From shrimp to shark.",
+    "Heheh, that pawn is looking pretty FIN-timidating now.",
+    "The ocean loves an underfish story.",
+    "I'm so proud I could blow bubbles...",
+    "That pawn just got a promotion and im STILL stuck in this aquarium!",
+    "Corporate ladder? no. coral ladder.",
+  ],
+
+  playerPromotes: [
+    "Your pawn has... evolved. deeply concerning.",
+    "From shrimp to shark.",
+    "ALERT. enemy lifeform upgraded.",
+    "That pawn was NOT supposed to survive.",
+    "I should've eaten that pawn earlier.",
+    "The food chain has shifted against me.",
+    "A dangerous creature emerges from the back rank...",
+    "Stockfish warned me about positions like these.",
+    "I watched that pawn grow up... tragic.",
+    "Suddenly I'm a lot less comfortable with this position.",
+    "I blame myself. and possibly the tides.",
+    "I should've dealt with that little shrimp way earlier.",
+    "This is why I don't trust low-value fish.",
+    "The tides have promoted this idiot.",
+    "This promotion smells... heheh... fishy...",
+    "That pawn has become too powerful for maritime law.",
+    "The reef will sing songs about this promotion. annoying songs.",
+    "That pawn just hit puberty and chose violence.",
+    "I'm getting outscaled by SEAFOOD.",
+  ],
+
   chaos: [
     "WHAT IS THAT SQUARE DOING???",
     "Why is there a duck. WHY IS THERE A DUCK.",
@@ -24048,9 +24134,7 @@ move = function(x1, y1, x2, y2, castleType) {
       setTimeout(() => cfSay('playerCaptures', 2800), 500);
     }
   }
-  if (aiActive && gameMode === 'local' && turn === aiColor) {
-    requestAiMove();
-  }
+  // Note: requestAiMove is now triggered inside completeTurn, so no need to call it here.
 };
 
 // Reset AI state when game restarts or mode changes
