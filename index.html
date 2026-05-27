@@ -4955,6 +4955,7 @@ button:active {
   display: flex; align-items: center; justify-content: center;
   font-size: 25px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
+.gpc-avatar.gpc-avatar-chaosfish { background: transparent; border: none; padding: 0; overflow: hidden; }
 .gpc-avatar.white-side { background: rgba(255,255,255,0.9); color: #1a1d2e; }
 .gpc-avatar.black-side { background: rgba(30,30,60,0.9); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 .gpc-name { font-size: 22px; font-weight: 700; color: #f5f7ff; }
@@ -24618,7 +24619,11 @@ function setupLocalGameCards() {
     if (selfRatingEl) selfRatingEl.textContent = userRating ? '⚡ ' + userRating : '';
     if (selfLbl) selfLbl.textContent = bottomColor + ' (You)';
 
-    if (oppAvatar) { oppAvatar.textContent = '🐟'; oppAvatar.className = 'gpc-avatar ' + topAvatarClass; }
+    if (oppAvatar) {
+      oppAvatar.textContent = '';
+      oppAvatar.className = 'gpc-avatar gpc-avatar-chaosfish ' + topAvatarClass;
+      oppAvatar.innerHTML = '<img src="chaosfish.png" alt="Chaosfish" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    }
     if (oppNameEl) oppNameEl.textContent = opponentName;
     if (oppRatingEl) oppRatingEl.textContent = opponentRating;
     if (oppLbl) oppLbl.textContent = topColor + ' (AI)';
