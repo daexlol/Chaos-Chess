@@ -9355,6 +9355,45 @@ button:active {
     drop-shadow(0 0 40px #fbbf24);
   animation: glow-pulse-mythic 1.5s ease-in-out infinite;
 }
+.portal-square {
+  box-shadow: inset 0 0 0 3px rgba(34,211,238,0.7), inset 0 0 24px rgba(14,165,233,0.35) !important;
+}
+.portal-square.portal-b {
+  box-shadow: inset 0 0 0 3px rgba(244,114,182,0.7), inset 0 0 24px rgba(236,72,153,0.35) !important;
+}
+.portal-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 56px;
+  z-index: 4;
+  opacity: 0.72;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(34,211,238,0.9));
+  animation: glow-pulse-rare 1.7s ease-in-out infinite;
+}
+.portal-square.portal-b .portal-glyph {
+  filter: drop-shadow(0 0 10px rgba(244,114,182,0.9));
+}
+.sleeper-pawn-icon {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  z-index: 32;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fef3c7;
+  background: rgba(15,23,42,0.82);
+  border: 1px solid rgba(251,191,36,0.85);
+  box-shadow: 0 0 10px rgba(251,191,36,0.55);
+  pointer-events: none;
+}
 </style>
 </head>
 <body>
@@ -11161,6 +11200,7 @@ let timeBombs = [];   // Track time bombs: [{x, y, turnsLeft}]
 // Mods offered recently get a weight penalty for the next 2-3 drafts.
 let draftCooldowns = {};
 let pitSquare = null; // Bottomless Pit: {x, y} or null
+let portalPair = null; // Portal Pair: {a:{x,y}, b:{x,y}} or null
 let tornadoPlacementMode = false; // When true, next empty square click places tornado
 let royalGuardPlacementMode = false; // When true, next adjacent empty square click places bodyguard
 let royalGuardKingX = -1, royalGuardKingY = -1; // King's new position awaiting guard placement
@@ -11170,6 +11210,8 @@ let whiteCaptured = [];
 let blackCaptured = [];
 let doubleStrikeActive = false; // Track if we're in a double strike second move
 let doubleStrikeRookX = -1, doubleStrikeRookY = -1; // Position of the rook that must move
+let berserkerQueenActive = false; // Track if we're in a Berserker Queen second move
+let berserkerQueenX = -1, berserkerQueenY = -1; // Position of the queen that must move
 let cowardRetreatActive = false; // Track if we're in a coward knight retreat step
 let cowardKnightX = -1, cowardKnightY = -1; // Position of the knight that must retreat
 
@@ -12003,15 +12045,15 @@ function draw(){
       }
 
       // Highlight legal moves FIRST (goes over right-click highlight)
-      if(settings.showLegal && legalMoves.some(m => m.x === x && m.y === y)) {
+      if(settings.showLegal && legalMoves.some(m => (m.x === x && m.y === y) || (m.portalEntry && m.portalEntry.x === x && m.portalEntry.y === y))) {
         const legalStyle = settings.legalStyle || 'dots';
-        const matchedMove = legalMoves.find(m => m.x === x && m.y === y);
+        const matchedMove = legalMoves.find(m => (m.x === x && m.y === y) || (m.portalEntry && m.portalEntry.x === x && m.portalEntry.y === y));
         const isModOnly = matchedMove && matchedMove.modifierOnly;
         if(legalStyle === 'dots') {
           sq.classList.add(isModOnly ? 'highlight-dot-mod' : 'highlight-dot');
           const dot = document.createElement('div');
           // Use a ring-style dot for capture squares, filled dot for empty
-          dot.className = board[y][x] ? 'legal-dot legal-dot-capture' : 'legal-dot';
+          dot.className = board[matchedMove?.y ?? y]?.[matchedMove?.x ?? x] ? 'legal-dot legal-dot-capture' : 'legal-dot';
           sq.appendChild(dot);
         } else {
           sq.classList.add(isModOnly ? 'highlight-mod' : 'highlight');
@@ -12059,6 +12101,19 @@ function draw(){
         pitEl.className = 'pit-emoji';
         pitEl.textContent = '🕳️';
         sq.appendChild(pitEl);
+      }
+
+      if(portalPair && modifiers.includes('Portal Pair')){
+        let portalSide = null;
+        if(portalPair.a && portalPair.a.x === x && portalPair.a.y === y) portalSide = 'a';
+        if(portalPair.b && portalPair.b.x === x && portalPair.b.y === y) portalSide = 'b';
+        if(portalSide){
+          sq.classList.add('portal-square', portalSide === 'a' ? 'portal-a' : 'portal-b');
+          let portalEl = document.createElement('div');
+          portalEl.className = 'portal-glyph';
+          portalEl.textContent = 'O';
+          sq.appendChild(portalEl);
+        }
       }
 
       // Time Bomb overlay — number displayed exactly like Kamikaze bomb
@@ -12181,6 +12236,8 @@ function draw(){
           else if((activeMods.has('Nuclear Queen') && pieceType==='q') ||
              (activeMods.has('Duck of Eternal Blocking') && piece === 'D') ||
              (activeMods.has('Hive Mind Pawns') && pieceType==='p') ||
+             (activeMods.has('The Impawnster') && pieceType==='p') ||
+             (activeMods.has('Berserker Queen') && pieceType==='q') ||
              (activeMods.has('Pegasus') && pieceType==='n')) {
             sq.classList.add('glow-mythic');
             if(pieceType === 'p') {
@@ -12192,6 +12249,7 @@ function draw(){
           else if((activeMods.has('Phantom Knight') && pieceType==='n') ||
 		              (activeMods.has('Jester Knight') && pieceType==='n') ||
                   (activeMods.has('Necromancer Knight') && pieceType==='n') ||
+                  (activeMods.has('Sanctuary Bishop') && pieceType==='b') ||
                   (activeMods.has('Storm Rook') && pieceType==='r') ||
                   (activeMods.has('Railgun Rook') && pieceType==='r') ||
                   (activeMods.has('Decoy Rook') && pieceType==='r') ||
@@ -12214,6 +12272,8 @@ function draw(){
               (activeMods.has('Pinballing Bishop') && pieceType==='b') ||
               (activeMods.has('Sprinting King') && pieceType==='k') ||
               (activeMods.has("Sovereign's Blessing") && pieceType==='k') ||
+              (activeMods.has('Longbow Knight') && pieceType==='n') ||
+              (activeMods.has('Heavy Rook') && pieceType==='r') ||
               (activeMods.has('Bounty Hunter Pawn') && pieceType==='p') ||
               (activeMods.has('Tectonic Rook') && pieceType==='r')) {
             sq.classList.add('glow-rare');
@@ -12224,6 +12284,8 @@ function draw(){
                   (activeMods.has('Trench Pawn') && pieceType==='p') ||
                   (activeMods.has('Pawn Bayonet') && pieceType==='p') ||
                   (activeMods.has('Reinforced Pawn') && pieceType==='p') ||
+                  (activeMods.has('Crab Pawn') && pieceType==='p') ||
+                  (activeMods.has('Grey Bishop') && pieceType==='b') ||
                   (activeMods.has('Dragon Rook') && pieceType==='r')) {
             sq.classList.add('glow-common');
             if(pieceType === 'p') sq.classList.add('pawn-glow');
@@ -12241,6 +12303,13 @@ function draw(){
             iconEl.className = 'copycat-evolved-icon';
             sq.appendChild(iconEl);
           }
+        }
+
+        if(activeMods.has('The Impawnster') && pieceType === 'p' && data.sleeperPawn && canViewerSeeSleeperPawn(piece)) {
+          let sleeperIcon = document.createElement('div');
+          sleeperIcon.className = 'sleeper-pawn-icon';
+          sleeperIcon.textContent = 'Q';
+          sq.appendChild(sleeperIcon);
         }
 
         // Viral Pawn: show 🦠 badge on pawns that can still duplicate (not on duplicates themselves)
@@ -12694,6 +12763,9 @@ function applyPuzzlePosition(puzzle){
   doubleStrikeActive = false;
   doubleStrikeRookX = -1;
   doubleStrikeRookY = -1;
+  berserkerQueenActive = false;
+  berserkerQueenX = -1;
+  berserkerQueenY = -1;
   cowardRetreatActive = false;
   cowardKnightX = -1;
   cowardKnightY = -1;
@@ -13077,6 +13149,116 @@ function movePieceData(x1,y1,x2,y2){
 
 function clearPieceData(x,y){ delete pieceData[getPieceKey(x,y)]; }
 
+function isOrthogonallyAdjacent(x1,y1,x2,y2){
+  return Math.abs(x1 - x2) + Math.abs(y1 - y2) === 1;
+}
+
+function isSanctuaryBishopAt(x,y){
+  const piece = board[y]?.[x];
+  return modifiers.includes('Sanctuary Bishop') && piece && piece.toLowerCase() === 'b';
+}
+
+function canCaptureTargetFrom(x1,y1,x2,y2){
+  if(isSanctuaryBishopAt(x2,y2) && !isOrthogonallyAdjacent(x1,y1,x2,y2)) return false;
+  return true;
+}
+
+function isHeavyRookAt(x,y){
+  const piece = board[y]?.[x];
+  return modifiers.includes('Heavy Rook') && piece && piece.toLowerCase() === 'r';
+}
+
+function canViewerSeeSleeperPawn(piece){
+  if(!piece || piece.toLowerCase() !== 'p') return false;
+  if(gameMode === 'online' && myColor) return isWhite(piece) === (myColor === 'white');
+  let aiIsActive = false;
+  try { aiIsActive = !!aiActive; } catch(e) {}
+  if(gameMode === 'local' && aiIsActive) return isWhite(piece) !== (aiColor === 'white');
+  let sandboxIsActive = false;
+  try { sandboxIsActive = !!sandboxMode; } catch(e) {}
+  if(sandboxIsActive) return true;
+  return isWhite(piece) === (turn === 'white');
+}
+
+function ensureSleeperPawns(){
+  if(!modifiers.includes('The Impawnster')) return;
+  ['white','black'].forEach(color => {
+    let hasSleeper = false;
+    let candidates = [];
+    for(let y=0; y<8; y++){
+      for(let x=0; x<8; x++){
+        const piece = board[y][x];
+        if(!piece || piece.toLowerCase() !== 'p') continue;
+        if((color === 'white') !== isWhite(piece)) continue;
+        const data = getPieceData(x,y);
+        if(data.sleeperPawn) hasSleeper = true;
+        else candidates.push({x,y});
+      }
+    }
+    if(!hasSleeper && candidates.length){
+      const spot = candidates[Math.floor(Math.random() * candidates.length)];
+      setPieceData(spot.x, spot.y, { sleeperPawn: true });
+    }
+  });
+}
+
+function spawnPortalPair(){
+  if(puzzleModeActive) return;
+  let emptySquares = [];
+  for(let y=0; y<8; y++){
+    for(let x=0; x<8; x++){
+      if(!board[y][x] && !(pitSquare && pitSquare.x === x && pitSquare.y === y)) emptySquares.push({x,y});
+    }
+  }
+  if(emptySquares.length < 2){ showToast('No room for Portal Pair!'); return; }
+  emptySquares.sort(() => Math.random() - 0.5);
+  portalPair = { a: emptySquares[0], b: emptySquares[1] };
+  logChaos('sys', 'ability', `Portal Pair linked ${sqNotation(portalPair.a.x, portalPair.a.y)} and ${sqNotation(portalPair.b.x, portalPair.b.y)}!`);
+}
+
+function ensurePortalPair(){
+  if(!modifiers.includes('Portal Pair')) return;
+  if(!portalPair) spawnPortalPair();
+}
+
+function getPortalExit(x,y){
+  if(!portalPair) return null;
+  if(portalPair.a.x === x && portalPair.a.y === y) return {x: portalPair.b.x, y: portalPair.b.y};
+  if(portalPair.b.x === x && portalPair.b.y === y) return {x: portalPair.a.x, y: portalPair.a.y};
+  return null;
+}
+
+function applyPortalMoveTransforms(fromX, fromY, piece, moves){
+  if(!modifiers.includes('Portal Pair') || !portalPair) return moves;
+  const mapped = [];
+  const seen = new Set();
+  moves.forEach(move => {
+    const exit = getPortalExit(move.x, move.y);
+    let finalMove = move;
+    if(exit && board[move.y][move.x] === ''){
+      const target = board[exit.y][exit.x];
+      if(exit.x === fromX && exit.y === fromY) return;
+      if(target && isWhite(target) === isWhite(piece)) return;
+      if(target === 'D') return;
+      if(target && target.toLowerCase() === 'n' && getPieceData(exit.x, exit.y).phantom) return;
+      if(target && !canCaptureTargetFrom(fromX, fromY, exit.x, exit.y)) return;
+      finalMove = Object.assign({}, move, {
+        x: exit.x,
+        y: exit.y,
+        portal: true,
+        portalEntry: {x: move.x, y: move.y},
+        portalExit: {x: exit.x, y: exit.y}
+      });
+    }
+    const key = `${finalMove.x},${finalMove.y},${finalMove.castle || ''},${finalMove.portal ? 'p' : ''}`;
+    if(!seen.has(key)){
+      seen.add(key);
+      mapped.push(finalMove);
+    }
+  });
+  return mapped;
+}
+
 /**
  * Fog of War Bishop — returns true if the square (bx, by) is reachable
  * as a capture by ANY enemy piece (i.e. the bishop is "seen").
@@ -13120,6 +13302,10 @@ function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
         // Sniper Pawn: 2-diagonal capture (jumps)
         if(modifiers.includes('Sniper Pawn')
            && (sx-2===bx || sx+2===bx) && sy+2*dir===by) return true;
+        if(modifiers.includes('The Impawnster') && getPieceData(sx,sy).sleeperPawn){
+          let dirs = [[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+          if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy,false))) return true;
+        }
         continue;
       }
 
@@ -13162,6 +13348,10 @@ function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
 
         // Standard knight jump
         if(knightOffsets.some(([dx,dy]) => sx+dx===bx && sy+dy===by)) return true;
+        if(modifiers.includes('Longbow Knight')){
+          const longbowOffsets = [[3,1],[3,-1],[-3,1],[-3,-1],[1,3],[1,-3],[-1,3],[-1,-3]];
+          if(longbowOffsets.some(([dx,dy]) => sx+dx===bx && sy+dy===by)) return true;
+        }
 
         // Pegasus / Evolved: second L-jump
         let hasPegasus = modifiers.includes('Pegasus') || modifiers.includes('Pegasus (Evolved)');
@@ -13220,6 +13410,7 @@ function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
       if(pt==='b' || pt==='q'){
         let dirs = [[1,1],[1,-1],[-1,1],[-1,-1]];
         if(dirs.some(([dx,dy]) => rayReaches(sx,sy,dx,dy, canPhaseB))) return true;
+        if(pt==='b' && modifiers.includes('Grey Bishop') && Math.abs(sx-bx)+Math.abs(sy-by)===1) return true;
 
         // Pinballing Bishop: bounce off edges
         if(pt==='b' && modifiers.includes('Pinballing Bishop')){
@@ -13384,22 +13575,24 @@ function clickSquare(x,y){
   let piece = board[y][x];
 
   if(selected){
-    if(legalMoves.some(m=>m.x===x && m.y===y)){
+    const clickedMove = legalMoves.find(m => (m.x===x && m.y===y) || (m.portalEntry && m.portalEntry.x===x && m.portalEntry.y===y));
+    if(clickedMove){
       let movingPiece = board[selected.y][selected.x];
       // Capture coords and castle type NOW before clearing state
       let fromX = selected.x, fromY = selected.y;
-      let castleType = (legalMoves.find(m=>m.x===x && m.y===y && m.castle) || {}).castle || null;
+      let toX = clickedMove.x, toY = clickedMove.y;
+      let castleType = clickedMove.castle || null;
       selected = null;
       legalMoves = [];
-      lastMove = { fromX, fromY, toX: x, toY: y };
+      lastMove = { fromX, fromY, toX, toY };
       animating = true;
       // Hide the piece on the source square while animation plays
       let fromSq = document.querySelector(`[data-x="${fromX}"][data-y="${fromY}"]`);
       let srcImg = fromSq ? fromSq.querySelector('img') : null;
       if(srcImg) srcImg.style.visibility = 'hidden';
-      animatePieceMove(fromX, fromY, x, y, movingPiece, () => {
+      animatePieceMove(fromX, fromY, toX, toY, movingPiece, () => {
         animating = false;
-        move(fromX, fromY, x, y, castleType);
+        move(fromX, fromY, toX, toY, castleType);
       });
     } else {
       selected = null;
@@ -13410,6 +13603,11 @@ function clickSquare(x,y){
       // During double strike, can ONLY select the specific rook that just captured
       if(doubleStrikeActive && !(x === doubleStrikeRookX && y === doubleStrikeRookY)){
         showToast('You must move the rook again! (Double Strike)', 1500);
+        return;
+      }
+
+      if(berserkerQueenActive && !(x === berserkerQueenX && y === berserkerQueenY)){
+        showToast('You must move the queen again! (Berserker Queen)', 1500);
         return;
       }
 
@@ -13467,6 +13665,7 @@ function getLegalMoves(x,y){
       let targetData = getPieceData(move.x, move.y);
       if(targetData.phantom) return false; // Can't target phantom knights
     }
+    if(targetPiece && !canCaptureTargetFrom(x, y, move.x, move.y)) return false;
     return true;
   });
   
@@ -13574,6 +13773,12 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
           moves.push({x, y: yBack});
         }
       }
+      // Crab Pawn: can move 1 square sideways without capturing
+      if(modifiers.includes('Crab Pawn')){
+        [x-1, x+1].forEach(nx => {
+          if(board[y]?.[nx] === '') moves.push({x:nx, y, crabPawn:true});
+        });
+      }
       // Diagonal captures - filter out phantom knights, ducks
       [[x-1,y+dir],[x+1,y+dir]].forEach(([nx,ny])=>{
         let target = board[ny]?.[nx];
@@ -13607,6 +13812,11 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
             }
           }
         });
+      }
+      // The Impawnster: one hidden pawn per side moves like a queen
+      if(modifiers.includes('The Impawnster') && getPieceData(x,y).sleeperPawn) {
+        addSlides(x,y,piece,moves,[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]);
+        moves.forEach(m => { if(Math.abs(m.x-x) > 1 || Math.abs(m.y-y) > 1 || m.x === x || m.y === y) m.sleeperQueen = true; });
       }
       break;
 
@@ -13680,6 +13890,20 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
         });
       }
       
+      // Longbow Knight: extended 3-1 L-shape jumps
+      if(modifiers.includes('Longbow Knight')) {
+        [[3,1],[3,-1],[-3,1],[-3,-1],[1,3],[1,-3],[-1,3],[-1,-3]].forEach(([dx,dy])=>{
+          let nx=x+dx, ny=y+dy;
+          if(board[ny]?.[nx]===undefined) return;
+          let target = board[ny][nx];
+          if(!target || isWhite(target)!==isWhite(piece)) {
+            if(target && target.toLowerCase()==='n' && getPieceData(nx,ny).phantom) return;
+            if(target === 'D') return;
+            moves.push({x:nx,y:ny,longbowKnight:true});
+          }
+        });
+      }
+      
       knightMoves.forEach(([dx,dy])=>{
         let nx=x+dx, ny=y+dy;
         if(board[ny]?.[nx]===undefined) return;
@@ -13722,6 +13946,18 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
 
     case 'b': 
       addSlides(x,y,piece,moves,[[1,1],[-1,1],[1,-1],[-1,-1]]);
+      if(modifiers.includes('Grey Bishop')) {
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+          let nx=x+dx, ny=y+dy;
+          if(board[ny]?.[nx]===undefined) return;
+          let target = board[ny][nx];
+          if(!target || isWhite(target)!==isWhite(piece)) {
+            if(target && target.toLowerCase()==='n' && getPieceData(nx,ny).phantom) return;
+            if(target === 'D') return;
+            moves.push({x:nx,y:ny,greyBishop:true});
+          }
+        });
+      }
       
       // Pinballing Bishop: deflect off edges
       if(modifiers.includes('Pinballing Bishop')) {
@@ -13784,6 +14020,7 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
             if(isWhite(target) === isWhite(piece)) return; // friendly — chain broken
             if(target === 'D') return; // duck breaks chain
             if(target.toLowerCase() === 'k') return; // king breaks chain
+            if(isSanctuaryBishopAt(chainX,chainY)) return; // sanctuary bishops cannot be pierced
             // Another enemy in the chain — continue
             chainX+=dx; chainY+=dy;
           }
@@ -13895,6 +14132,7 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
     } catch(e){ console.warn('Sovereign Blessing move calc failed', e); }
   }
 
+  moves = applyPortalMoveTransforms(x, y, piece, moves);
   return moves;
 }
 
@@ -13913,9 +14151,26 @@ function isSquareUnderAttackSimple(x, y, byWhite) {
       if(pt === 'p') {
         let dir = byWhite ? -1 : 1;
         if(sy+dir === y && (sx-1 === x || sx+1 === x)) return true;
+        if(modifiers.includes('Pawn Bayonet') || modifiers.includes('Pawn Bayonet (Evolved)') || (modifiers.includes('The Impawnster') && getPieceData(sx,sy).sleeperPawn)){
+          if(sy+dir === y && sx === x) return true;
+        }
+        if(modifiers.includes('Sniper Pawn') && sy+2*dir === y && (sx-2 === x || sx+2 === x)) return true;
+        if(modifiers.includes('The Impawnster') && getPieceData(sx,sy).sleeperPawn){
+          let dx = x-sx, dy = y-sy;
+          if((Math.abs(dx) === Math.abs(dy) && dx !== 0) || sx === x || sy === y) {
+            let stepX = Math.sign(dx), stepY = Math.sign(dy);
+            let cx = sx + stepX, cy = sy + stepY, blocked = false;
+            while(cx !== x || cy !== y) {
+              if(board[cy][cx]) { blocked = true; break; }
+              cx += stepX; cy += stepY;
+            }
+            if(!blocked) return true;
+          }
+        }
       } else if(pt === 'n') {
         let dx = Math.abs(sx-x), dy = Math.abs(sy-y);
         if((dx===1 && dy===2) || (dx===2 && dy===1)) return true;
+        if(modifiers.includes('Longbow Knight') && ((dx===3 && dy===1) || (dx===1 && dy===3))) return true;
         // Pegasus / Pegasus (Evolved): double-knight-jump reach
         // A Pegasus knight can reach squares two knight-jumps away.
         // Check if (x,y) is reachable as a second L-jump from this knight.
@@ -13957,6 +14212,10 @@ function isSquareUnderAttackSimple(x, y, byWhite) {
           if(!board[midY][midX]) return true;
         }
       } else if(pt === 'b' || pt === 'q') {
+        if(pt === 'b' && modifiers.includes('Grey Bishop')){
+          let dx = Math.abs(sx-x), dy = Math.abs(sy-y);
+          if(dx + dy === 1) return true;
+        }
         // Diagonal check
         let dx = x-sx, dy = y-sy;
         if(Math.abs(dx) === Math.abs(dy) && dx !== 0) {
@@ -14073,7 +14332,7 @@ function addSlides(x,y,piece,moves,dirs){
         // Don't allow capturing phantom knights or ducks
         let target = board[ny][nx];
         if(target === 'D') break; // Duck blocks sliding pieces
-        if(!(target.toLowerCase()==='n' && getPieceData(nx,ny).phantom)) {
+        if(!(target.toLowerCase()==='n' && getPieceData(nx,ny).phantom) && canCaptureTargetFrom(x,y,nx,ny)) {
           moves.push({x:nx,y:ny});
         }
         break;
@@ -14583,6 +14842,13 @@ function move(x1,y1,x2,y2,castleType){
   const _selectedMoveMeta = legalMoves.find(m => m.x===x2 && m.y===y2) || {};
   const _moverWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
 
+  if(_selectedMoveMeta.portal) {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Portal Pair — entered ${sqNotation(_selectedMoveMeta.portalEntry.x,_selectedMoveMeta.portalEntry.y)} and emerged at ${sqNotation(x2,y2)}!`);
+  }
+  if(_selectedMoveMeta.sleeperQueen && piece.toLowerCase()==='p') {
+    logChaos(_moverWho, 'ability', (_moverWho==='you'?'Your':'Opponent\'s') + ` The Impawnster awakened at ${sqNotation(x2,y2)}!`);
+  }
+
   // Log Pinballing Bishop bounce
   if(_selectedMoveMeta.pinball && piece.toLowerCase()==='b') {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Pinballing Bishop — bounced to ${sqNotation(x2,y2)}!`);
@@ -14689,6 +14955,14 @@ function move(x1,y1,x2,y2,castleType){
   // Block captures during Double Strike second move
   if(doubleStrikeActive && captured){
     showToast('Double Strike cannot capture!', 1500);
+    return;
+  }
+  if(berserkerQueenActive && captured){
+    showToast('Berserker Queen cannot capture on the bonus move!', 1500);
+    return;
+  }
+  if(captured && !canCaptureTargetFrom(x1, y1, x2, y2)){
+    showToast('Sanctuary Bishop can only be captured orthogonally!', 1700);
     return;
   }
   
@@ -15019,7 +15293,7 @@ function move(x1,y1,x2,y2,castleType){
       let railgunFired = false;
       while(!(sx===x1 && sy===y1) && sx>=0 && sx<8 && sy>=0 && sy<8){
         let target = board[sy][sx];
-        if(target && isWhite(target) !== isWhite(piece) && target !== 'D' && target.toLowerCase() !== 'k'){
+        if(target && isWhite(target) !== isWhite(piece) && target !== 'D' && target.toLowerCase() !== 'k' && !isSanctuaryBishopAt(sx,sy)){
           board[sy][sx] = '';
           clearPieceData(sx, sy);
           if(isWhite(target)) blackCaptured.push(target); else whiteCaptured.push(target);
@@ -15066,6 +15340,28 @@ function move(x1,y1,x2,y2,castleType){
     doubleStrikeActive = false;
     doubleStrikeRookX = -1;
     doubleStrikeRookY = -1;
+  }
+
+  // Berserker Queen: queen version of Double Strike Rook
+  if(piece.toLowerCase()==='q' && captured && modifiers.includes('Berserker Queen') && !mindControlled && !berserkerQueenActive){
+    berserkerQueenActive = true;
+    berserkerQueenX = x2;
+    berserkerQueenY = y2;
+    const _bqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    logChaos(_bqWho, 'ability', (_bqWho==='you'?'You':'Opponent') + ' used Berserker Queen — move again!');
+    setTimeout(()=>{
+      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
+      selected = {x:x2, y:y2};
+      legalMoves = getLegalMoves(x2,y2).filter(m=>!board[m.y][m.x]);
+      draw();
+    }, 300);
+    return;
+  }
+
+  if(berserkerQueenActive){
+    berserkerQueenActive = false;
+    berserkerQueenX = -1;
+    berserkerQueenY = -1;
   }
   
 
@@ -15166,6 +15462,7 @@ function move(x1,y1,x2,y2,castleType){
       if(isWhite(target) === isWhite(piece)) break; // friendly — stop
       if(target.toLowerCase() === 'k') break; // can't capture kings
       if(target === 'D') break; // ducks are immune
+      if(isSanctuaryBishopAt(x2, pierceY)) break; // sanctuary blocks non-orthogonal effect captures
       // Destroy this enemy piece
       board[pierceY][x2] = '';
       clearPieceData(x2, pierceY);
@@ -15433,7 +15730,7 @@ function explode(x,y){
     for(let dy=-1;dy<=1;dy++){
       let piece = board[y+dy]?.[x+dx];
       // Kings and ducks are immune to explosions
-      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D') {
+      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D' && !isSanctuaryBishopAt(x+dx,y+dy)) {
         // Track captured piece from explosion
         let explodingPiece = board[y][x]; // The queen that caused the explosion
         if(isWhite(explodingPiece)){
@@ -15515,7 +15812,7 @@ function processKamikazeBombs(){
       let piece = board[bomb.y][bomb.x];
       console.log(`💥 Bomb exploding at (${bomb.x},${bomb.y}), piece:`, piece);
       
-      if(piece && piece !== 'D' && piece !== ''){ // If there's still a piece on the bomb square (and not a duck or empty)
+      if(piece && piece !== 'D' && piece !== '' && !isSanctuaryBishopAt(bomb.x,bomb.y)){ // If there's still a piece on the bomb square (and not a duck or empty)
         board[bomb.y][bomb.x] = ''; // Destroy the piece (set to empty string, not null)
         clearPieceData(bomb.x, bomb.y);
         incrementEffectsTriggered(1);
@@ -15545,7 +15842,7 @@ function processNuclearZones(){
       playExplosionSound();
       showExplosion(zone.x, zone.y);
       let piece = board[zone.y][zone.x];
-      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D' && piece !== ''){
+      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D' && piece !== '' && !isSanctuaryBishopAt(zone.x,zone.y)){
         if(isWhite(piece)){
           blackCaptured.push(piece);
         } else {
@@ -15571,6 +15868,7 @@ function applyMagneticDrift(){
     for(let x = 0; x < 8; x++){
       let piece = board[y][x];
       if(!piece || piece === 'D' || piece === '') continue; // Skip empty, ducks
+      if(isHeavyRookAt(x,y)) continue;
       
       let data = getPieceData(x, y);
       if(data.decoy) continue; // Decoys don't drift
@@ -15670,7 +15968,7 @@ function stormRookStrike(rx,ry){
     // Update board IMMEDIATELY (synchronously) for multiplayer sync
     let hitPiece = board[target.y][target.x];
     // Kings are immune to Storm Rook lightning
-    if(hitPiece && hitPiece.toLowerCase() !== 'k'){
+    if(hitPiece && hitPiece.toLowerCase() !== 'k' && !isSanctuaryBishopAt(target.x,target.y)){
       board[target.y][target.x] = '';
       clearPieceData(target.x, target.y);
       incrementEffectsTriggered(1);
@@ -15687,17 +15985,22 @@ const MODIFIER_LORE = {
   'Pawn Bayonet':       'Pawns learned that the shortest path forward is not always the safest. They no longer wait to be approached. If they see a target ahead, they strike without hesitation. It’s a bold, aggressive stance that changes the way they move across the board.',
   'Reinforced Pawn':    'It doesn’t stand taller than the others, but it refuses to fall like them. There’s something quietly stubborn about it, as if it remembers being pushed before and decided it wouldn’t happen again.',
   'Phase Bishop':       'It moves with a kind of calm detachment, like the board doesn’t fully apply to it. The bishop doesn’t rush or force—it simply arrives where others cannot follow, as if it’s slipping through a version of the board no one else sees. It’s not invincible, but it’s elusive.',
+  'Grey Bishop':        'It learned the one step most bishops are never allowed to take. Not far, not flashy—just enough to become something less predictable.',
   'Sidestep Knight':    'It pauses before moving, almost like it’s considering the moment itself. Then it leaps—not with randomness, but with intention that feels just slightly… off. Like it’s testing what the rules are allowed to be.',
   'Fast Pawn':          'It doesn’t look at where it came from. It just keeps moving forward, impatient and a little reckless, like it doesn’t believe in waiting. If the world slows down, it won’t. It’s a rush of momentum that can be thrilling or dangerous.',
   'Phase Rook':         'It doesn’t acknowledge obstacles the way others do. Instead, it moves as if space itself is something that can be… stepped around. Not broken—just politely ignored.',
   'Sniper Pawn':        'It watches longer than it should. There’s a quiet focus to it, like it’s counting something unseen. When it moves, it feels less like an action and more like a decision that was made long ago.',
+  'Crab Pawn':          'Forward is still the point, but sometimes survival means shuffling sideways first. It moves like a pawn that has learned to be inconvenient.',
+  'The Impawnster':     'One pawn is not what it seems. It waits inside the formation with a larger shape folded into it, hidden until the board gives it room to wake.',
   'Mind Control Bishop':'It doesn’t rush to act. Instead, it lingers—like it’s listening. And when it moves, it feels less like influence and more like someone else finally agreeing to it.',
   'Pegasus':            'The knight remembers how to leap beyond expectation. Its path bends, then bends again, as if the board itself gives way. It moves like a story told in two parts.',
   'Magnetic Queen':     'She doesn’t chase control. Pieces lean toward her naturally, as if they’ve already accepted the outcome. Her presence doesn’t force the board—it reorganizes it.',
   'Magnetic Queen (Evolved)': 'Something shifted. The pull reversed. Now pieces don’t lean toward her—they scatter. As if whatever she captured disturbed something fundamental, and the board is still trying to recover.',
   'Double Strike Rook': 'It doesn’t stop after contact. There’s a sense of follow-through, like once it commits, it refuses to let go. Momentum isn’t just power—it’s identity.',
+  'Berserker Queen':    'The first capture is not the end of the thought. She lands, sees the next square, and the board briefly has to keep up with her appetite.',
   'Coward Knight':      'It leaps with conviction, then immediately looks for the exit. Not cowardice exactly — more like a very strong instinct for self-preservation. It knows what it did. It just doesn’t want to be there when someone notices.',
   'Copycat Knight':     'It watches carefully before acting, almost curious. When it moves, there’s a hint of something borrowed in its motion. Not imitation—understanding, taken just far enough. It’s like it’s saying, “I see you, and I can be like you too.”',
+  'Longbow Knight':     'Its leap stretches a little too far, like someone pulled the old pattern taut until it found a new corner of the board.',
   'Copycat Knight (Evolved)': 'It no longer borrows. It keeps. Every capture leaves a mark on how it moves—not a memory, but a replacement. It doesn’t remember what it was before. It only knows what it took last.',
   'Boomerang Bishop':   'It moves forward like any other bishop… but there’s a subtle pull, like something about its path doesn’t want to be left behind. Its return isn’t a surprise—it’s part of the movement.',
   'Pinballing Bishop':  'It doesn’t resist impact—it uses it. Each bounce feels like a reaction it anticipated, turning collisions into direction. It never truly loses control, even when it looks chaotic.',
@@ -15706,7 +16009,10 @@ const MODIFIER_LORE = {
   'Phantom Knight':     'It’s there… and then it isn’t, but somehow, you still feel it. Its presence lingers in the space it occupied, like the idea of it matters more than the moment it moved. It’s a ghost story told in chess form.',
   'Jester Knight':      'It moves like it’s performing. Every leap has flair, every step feels like part of a trick. It wants you to watch it—only to leave you unsure if what you saw was the truth or the joke.',
   'Storm Rook':         'It doesn’t just move—it disrupts. There’s energy in its path, like the air itself can’t decide how to react. It feels less like a piece and more like an event.',
+  'Heavy Rook':         'Some pieces move. Some pieces are moved. This one decided it would rather be a wall with opinions.',
+  'Sanctuary Bishop':   'It is not unreachable, exactly. It simply insists that anyone trying must come close enough to mean it.',
   'Magnetic Poles':     'The board is no longer neutral ground. Forces pull and push from unseen anchors. Every piece feels the tug of something greater.',
+  'Portal Pair':        'Two squares start sharing a secret. Step into one and the board answers from somewhere else entirely.',
   'Nuclear Queen':      'She doesn’t hesitate. When she acts, everything around her is affected—not as an accident, but as a consequence. Power at this level doesn’t ask for permission. It simply takes its place in the world.',
   'Nuclear Queen (Evolved)': 'The first explosion was expected. The second one wasn’t. The board remembers where she landed, and for three turns it holds that memory like a wound that hasn’t finished opening.',
   'Duck of Eternal Blocking': 'Something small watches over the board, refusing to move. It does not fight, it does not leave. It simply exists—and that is enough to matter.',
@@ -16034,7 +16340,7 @@ function magneticPull(qx,qy,queenPiece){
       let checkY = qy+dy;
       let piece = board[checkY]?.[checkX];
       
-      if(piece && isWhite(piece)!==isWhite(queenPiece)){
+      if(piece && isWhite(piece)!==isWhite(queenPiece) && !isHeavyRookAt(checkX,checkY)){
         // Calculate direction to pull (one square toward queen)
         let pullDx = 0;
         let pullDy = 0;
@@ -16087,7 +16393,7 @@ function magneticPush(qx,qy,queenPiece){
       let checkY = qy+dy;
       let piece = board[checkY]?.[checkX];
 
-      if(piece && isWhite(piece)!==isWhite(queenPiece)){
+      if(piece && isWhite(piece)!==isWhite(queenPiece) && !isHeavyRookAt(checkX,checkY)){
         // Direction away from queen (opposite of pull)
         let pushDx = 0;
         let pushDy = 0;
@@ -16144,7 +16450,7 @@ function tectonicPush(rx,ry,rookPiece){
   for(let x=0; x<8; x++){
     if(x === rx) continue;
     let piece = board[ry][x];
-    if(piece && isWhite(piece) !== isWhite(rookPiece)){
+    if(piece && isWhite(piece) !== isWhite(rookPiece) && !isHeavyRookAt(x,ry)){
       // Determine push direction (away from rook)
       let pushDx = x < rx ? -1 : 1;
       let newX = x + pushDx;
@@ -16160,7 +16466,7 @@ function tectonicPush(rx,ry,rookPiece){
   for(let y=0; y<8; y++){
     if(y === ry) continue;
     let piece = board[y][rx];
-    if(piece && isWhite(piece) !== isWhite(rookPiece)){
+    if(piece && isWhite(piece) !== isWhite(rookPiece) && !isHeavyRookAt(rx,y)){
       // Determine push direction (away from rook)
       let pushDy = y < ry ? -1 : 1;
       let newY = y + pushDy;
@@ -16263,6 +16569,7 @@ function applyTornadoPull(tx, ty, owner){
       
       let piece = board[cy][cx];
       if(!piece) continue;
+      if(isHeavyRookAt(cx,cy)) continue;
       
       // Kings are immune to tornado pulls
       if(piece.toLowerCase() === 'k') continue;
@@ -16459,15 +16766,20 @@ const allMods=[
   {name:'Pawn Bayonet',rarity:'common',desc:'Pawns can capture directly forward',icon:'♟',evolvesTo:'Pawn Bayonet (Evolved)'},
   {name:'Reinforced Pawn',rarity:'common',desc:'Pawns have 50% chance to survive first capture attempt',icon:'♟'},
   {name:'Phase Bishop',rarity:'common',desc:'Bishops can move through one piece',icon:'♗'},
+  {name:'Grey Bishop',rarity:'common',desc:'Bishops can move 1 square orthogonally onto the opposite square colour',icon:'♗'},
   {name:'Sidestep Knight',rarity:'common',desc:'Knights can also move 1 square in any direction',icon:'♞'},
   {name:'Fast Pawn',rarity:'common',desc:'Pawns can always move 2 squares forward',icon:'♟',evolvesTo:'Fast Pawn (Evolved)'},
   {name:'Phase Rook',rarity:'common',desc:'Rooks can move through one piece',icon:'♜'},
   {name:'Dragon Rook',rarity:'common',desc:'Rooks can also move one square diagonally',icon:'♜'},
+  {name:'Crab Pawn',rarity:'common',desc:'Pawns can move 1 square sideways without capturing',icon:'♟'},
   {name:'Sniper Pawn',rarity:'rare',desc:'Pawns can capture 2 tiles diagonally (jumping over pieces)',icon:'♟'},
   {name:'Mind Control Bishop',rarity:'rare',desc:'25% chance captured piece joins your side instead',icon:'♗'},
   {name:'Pegasus',rarity:'mythic',desc:'Knights leap twice, second jump must move closer to enemy king',icon:'♞',evolvesTo:'Pegasus (Evolved)'},
   {name:'Magnetic Queen',rarity:'rare',desc:'Queen captures pull all enemy pieces within 5x5 area 1 square closer',icon:'♛',evolvesTo:'Magnetic Queen (Evolved)'},
   {name:'Double Strike Rook',rarity:'rare',desc:'Rook can move again immediately after capturing (no second capture)',icon:'♜'},
+  {name:'Longbow Knight',rarity:'rare',desc:'Knights can also move in a 3-1 L shape',icon:'♞'},
+  {name:'Heavy Rook',rarity:'rare',desc:'Rooks cannot be pushed, pulled, or displaced by modifier effects',icon:'♜'},
+  {name:'Portal Pair',rarity:'rare',desc:'Two random squares become linked portals. Entering one exits the other, capturing enemies on the exit',icon:'🌀'},
   {name:'Coward Knight',rarity:'rare',desc:'After every move, the knight takes one free step away from the nearest enemy piece',icon:'♞'},
   {name:'Copycat Knight',rarity:'rare',desc:'After capturing, knight can move like captured piece for 1 turn',icon:'♞',evolvesTo:'Copycat Knight (Evolved)'},
   {name:'Boomerang Bishop',rarity:'rare',desc:'Bishop can return to its starting square at any point if free',icon:'♗'},
@@ -16477,15 +16789,18 @@ const allMods=[
   {name:'Phantom Knight',rarity:'legendary',desc:'Knights become untargetable for 1 turn after capturing',icon:'♞'},
   {name:'Jester Knight',rarity:'legendary',desc:'Knights spawn a fake decoy knight on a random legal move square',icon:'♞'},
   {name:'Storm Rook',rarity:'legendary',desc:'Rooks strike lightning on random square in their row/column when moving',icon:'♜'},
+  {name:'Sanctuary Bishop',rarity:'legendary',desc:'Bishops can only be captured from an orthogonally adjacent square; Bottomless Pit still destroys them',icon:'♗'},
   {name:'Magnetic Poles',rarity:'legendary',desc:'a8/h1 attract pieces, a1/h8 repel pieces',icon:'🧲'},
   {name:'Fog of War Bishop',rarity:'legendary',desc:'Bishops are completely invisible to the enemy unless in their capture vision',icon:'♗'},
   {name:'Nuclear Queen',rarity:'mythic',desc:'Queen captures destroy all adjacent pieces (except kings), including the Queen itself',icon:'♛',evolvesTo:'Nuclear Queen (Evolved)'},
+  {name:'Berserker Queen',rarity:'mythic',desc:'After capturing, queens may immediately make one non-capturing move',icon:'♛'},
   {name:'Duck of Eternal Blocking',rarity:'mythic',desc:'Summons an uncapturable duck on a random empty square',icon:'🦆'},
   {name:'Phoenix Pawn',rarity:'legendary',desc:'Captured pawns respawn on random square (once per pawn)',icon:'♟'},
   {name:'Decoy Rook',rarity:'legendary',desc:'Rook leaves immobile decoy on previous square when moving',icon:'♜'},
   {name:'Kamikaze Pawn',rarity:'legendary',desc:'Captured pawns explode after 1 turn, destroying any piece on the armed square',icon:'♟'},
   {name:'Viral Pawn',rarity:'rare',desc:'When a pawn captures, a duplicate spawns on its original square. Duplicates cannot duplicate again',icon:'♟',evolvesTo:'Viral Pawn (Evolved)'},
   {name:'Hive Mind Pawns',rarity:'mythic',desc:'When you move a pawn, ALL your pawns move the same direction if legal',icon:'♟'},
+  {name:'The Impawnster',rarity:'mythic',desc:'One pawn per side secretly moves like a queen. Only its owner sees the hidden queen marker',icon:'♟'},
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
   {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️'},
@@ -16587,6 +16902,7 @@ const CODEX_ENVIRONMENTAL_MODS = new Set([
   'Magnetic Poles',
   'Duck of Eternal Blocking',
   'Tornado de Caballos',
+  'Portal Pair',
   'Cookie',
   'Time Bomb',
   'Bottomless Pit'
@@ -16594,6 +16910,8 @@ const CODEX_ENVIRONMENTAL_MODS = new Set([
 const CODEX_EXAMPLES = {
   'Pawn Bayonet': 'A pawn can turn a blocked file into a direct capture threat, especially when an enemy pawn sits immediately ahead.',
   'Pawn Bayonet (Evolved)': 'A forward pawn capture can clear a connected stack on that same file until the first empty square breaks the chain.',
+  'Crab Pawn': 'A pawn can sidestep a blocked file without needing a capture.',
+  'The Impawnster': 'A hidden pawn can suddenly reveal queen movement when a line opens.',
   'Reinforced Pawn': 'Use shielded pawns as anchors in cramped positions where the opponent wants a clean capture.',
   'Fast Pawn': 'Passed pawns become urgent because the two-square push is always available, even after leaving the starting rank.',
   'Fast Pawn (Evolved)': 'A pawn can suddenly cross three squares to reach a promotion race or tactical square.',
@@ -16603,6 +16921,8 @@ const CODEX_EXAMPLES = {
   'Hive Mind Pawns': 'A single pawn push can move an entire pawn front if the formation has legal space.',
   'Trench Pawn': 'Backwards pawn movement lets you repair overextended pawn chains.',
   'Bounty Hunter Pawn': 'A pawn that captures early can become a long-range promotion threat.',
+  'Grey Bishop': 'A bishop can step sideways onto the opposite square colour to escape colour-lock.',
+  'Sanctuary Bishop': 'A bishop can sit on a dangerous diagonal because most captures cannot touch it directly.',
   'Pegasus': 'A knight can make a two-hop attack that bends toward the enemy king.',
   'Pegasus (Evolved)': 'The second hop becomes a flexible repositioning tool rather than only a king-hunt tool.',
   'Copycat Knight': 'Capture a bishop or rook to give a knight one unexpected turn of line-piece movement.',
@@ -16611,6 +16931,7 @@ const CODEX_EXAMPLES = {
   'Phantom Knight': 'A capturing knight can jump into danger and survive the immediate reply.',
   'Jester Knight': 'A decoy can muddy tactics by forcing the opponent to verify which knight is real.',
   'Coward Knight': 'A knight can poke and then drift away from danger automatically.',
+  'Longbow Knight': 'A knight can hit targets that are one square beyond the usual L-shape.',
   'Phase Bishop': 'A bishop can use one occupied square as cover while still attacking beyond it.',
   'Mind Control Bishop': 'A bishop capture can flip material instead of merely removing it.',
   'Boomerang Bishop': 'A bishop can launch from its home square and still keep a return route in reserve.',
@@ -16621,17 +16942,20 @@ const CODEX_EXAMPLES = {
   'Tectonic Rook': 'A rook capture can shove pieces off a defended file or rank.',
   'Storm Rook': 'A rook move can threaten a random strike along its own line.',
   'Railgun Rook': 'A rook can punch through a connected line of enemy pieces and land after the chain.',
+  'Heavy Rook': 'A rook can anchor a file without being dragged around by board effects.',
   'Decoy Rook': 'A moving rook leaves a false body behind to clutter the enemy calculation.',
   'Magnetic Queen': 'A queen capture can pull nearby enemies toward the impact square.',
   'Magnetic Queen (Evolved)': 'A queen capture can push nearby enemies away, breaking clusters instead of forming them.',
   'Nuclear Queen': 'A queen can trade herself for an area wipe around the captured piece.',
   'Nuclear Queen (Evolved)': 'The blast leaves delayed danger zones that punish pieces staying nearby.',
+  'Berserker Queen': 'A queen capture can turn into a quiet reposition before the opponent responds.',
   'Sprinting King': 'A king can escape or centralize by moving two squares when not in check.',
   'Royal Guard': 'After the king moves, a bodyguard can seal a nearby escape or block a line.',
   'Royal Guard (Evolved)': 'The bodyguard becomes a mobile escort as long as it remains near the king.',
   'Magnetic Poles': 'Corner forces reshape the whole board over time, especially near a1, a8, h1, and h8.',
   'Duck of Eternal Blocking': 'The duck creates a permanent obstacle that can break lines and escape routes.',
   'Tornado de Caballos': 'A placed tornado can drag enemy pieces into an awkward cluster over three turns.',
+  'Portal Pair': 'Linked squares can turn a quiet entry square into a surprise capture on the exit.',
   'Time Bomb': 'The marked square becomes a countdown threat that both players must route around.',
   'Bottomless Pit': 'A single forbidden square can decide whether a path is safe at all.',
   'Cookie': 'Sometimes the strongest statement is refusing to help.'
@@ -16645,15 +16969,23 @@ const CODEX_COMBOS = {
   king: 'Pairs well with defensive modifier sets that reward surviving pressure and controlling escape squares.',
   environmental: 'Pairs well with any modifier that manipulates movement, because terrain changes what counts as safe.',
   'Pawn Bayonet': 'Especially sharp with Fast Pawn, Trench Pawn, and anything that forces enemies onto the same file.',
+  'Crab Pawn': 'Combines with Pawn Bayonet and Trench Pawn by letting pawns change files without capturing.',
+  'The Impawnster': 'Combines with Crab Pawn or Fast Pawn because the hidden queen gets better launch squares.',
   'Fast Pawn': 'Combines naturally with Viral Pawn, Bounty Hunter Pawn, and promotion-focused endgames.',
   'Viral Pawn': 'Combines with Bayonet-style capture lanes and Hive Mind pawn waves.',
   'Pegasus': 'Combines with Phantom Knight or Copycat Knight to make every capture threat harder to answer.',
+  'Longbow Knight': 'Combines with Sidestep Knight and Pegasus to create layered knight geometry.',
   'Phase Bishop': 'Combines with Fog of War Bishop and Pinballing Bishop for strange diagonal pressure.',
+  'Grey Bishop': 'Combines with Sanctuary Bishop by letting protected bishops escape their original colour complex.',
+  'Sanctuary Bishop': 'Combines with Fog of War Bishop and Phase Bishop because safe bishops can hold awkward diagonals.',
   'Tectonic Rook': 'Combines with Storm Rook or Railgun Rook when the opponent stacks pieces on lines.',
+  'Heavy Rook': 'Combines with Magnetic Poles or Tornado de Caballos because it ignores displacement chaos.',
   'Magnetic Queen': 'Combines with Nuclear Queen by clustering pieces before an explosive capture.',
   'Nuclear Queen': 'Combines with Magnetic Queen or Tornado effects that gather targets together.',
+  'Berserker Queen': 'Combines with Magnetic Queen by capturing, reshaping the cluster, then stepping to safety.',
   'Royal Guard': 'Combines with Sprinting King because the king can move aggressively and still leave protection behind.',
-  'Tornado de Caballos': 'Combines with queen and rook area effects that punish clustered pieces.'
+  'Tornado de Caballos': 'Combines with queen and rook area effects that punish clustered pieces.',
+  'Portal Pair': 'Combines with line pieces and Longbow Knight because distant exit squares become tactical targets.'
 };
 let codexActiveCategory = 'all';
 let codexSelectedModifier = null;
@@ -18796,19 +19128,22 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
         } else {
           // Apply modifier-based glows
           if((modSet.has('Nuclear Queen')||modSet.has('Nuclear Queen (Evolved)')) && pt==='q') sq.classList.add('glow-mythic');
-          else if(modSet.has('Hive Mind Pawns') && pt==='p') sq.classList.add('glow-mythic');
+          else if((modSet.has('Hive Mind Pawns')||modSet.has('The Impawnster')) && pt==='p') sq.classList.add('glow-mythic');
+          else if(modSet.has('Berserker Queen') && pt==='q') sq.classList.add('glow-mythic');
           else if(modSet.has('Pegasus') && pt==='n') sq.classList.add('glow-mythic');
           else if((modSet.has('Phantom Knight')||modSet.has('Jester Knight')||modSet.has('Storm Rook')||
                    modSet.has('Magnetic Poles')||modSet.has('Fog of War Bishop')||modSet.has('Phoenix Pawn')||
                    modSet.has('Decoy Rook')||modSet.has('Kamikaze Pawn')||modSet.has('Railgun Rook')||
                    modSet.has('Time Bomb')||modSet.has('Royal Guard')||modSet.has('Tornado de Caballos')||
+                   modSet.has('Sanctuary Bishop')||
                    modSet.has('Sprinting King')) &&
                   (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='k'||pt==='p'||pt==='g')) sq.classList.add('glow-legendary');
           else if((modSet.has('Magnetic Queen')||modSet.has('Double Strike Rook')||modSet.has('Coward Knight')||
                    modSet.has('Copycat Knight')||modSet.has('Boomerang Bishop')||modSet.has('Pinballing Bishop')||
                    modSet.has('Sniper Pawn')||modSet.has('Mind Control Bishop')||modSet.has('Viral Pawn')||
-                   modSet.has('Tectonic Rook')) &&
+                   modSet.has('Tectonic Rook')||modSet.has('Longbow Knight')||modSet.has('Heavy Rook')) &&
                   (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='p')) sq.classList.add('glow-rare');
+          else if((modSet.has('Crab Pawn') && pt==='p') || (modSet.has('Grey Bishop') && pt==='b')) sq.classList.add('glow-common');
         }
       }
 
@@ -19370,16 +19705,16 @@ function chaosDraft(){
         'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
         'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
         'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
-        'Trench Pawn':'p', 'Bounty Hunter Pawn':'p',
-        'Phase Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
-        'Pinballing Bishop':'b', 'Fog of War Bishop':'b',
-        'Sidestep Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n', 'Necromancer Knight':'n',
+        'Trench Pawn':'p', 'Bounty Hunter Pawn':'p', 'Crab Pawn':'p', 'The Impawnster':'p',
+        'Phase Bishop':'b', 'Grey Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
+        'Pinballing Bishop':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
+        'Sidestep Knight':'n', 'Longbow Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n', 'Necromancer Knight':'n',
         'Copycat Knight (Evolved)':'n', 'Phantom Knight':'n', 'Jester Knight':'n',
         'Pegasus':'n', 'Pegasus (Evolved)':'n',
-        'Phase Rook':'r', 'Double Strike Rook':'r', 'Tectonic Rook':'r',
+        'Phase Rook':'r', 'Double Strike Rook':'r', 'Heavy Rook':'r', 'Tectonic Rook':'r',
         'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
         'Dragon Rook':'r',
-        'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q',
+        'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
         'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
         'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
         "Sovereign's Blessing":'k',
@@ -19454,6 +19789,8 @@ function chaosDraft(){
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
       if(mod.name === 'Time Bomb') spawnTimeBomb();
       if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
+      if(mod.name === 'Portal Pair') spawnPortalPair();
+      if(mod.name === 'The Impawnster') ensureSleeperPawns();
 
       if(mod.name === 'Tornado de Caballos') {
         draft.classList.remove('active');
@@ -19645,11 +19982,15 @@ function restart(){
   tornadoes=[];
   timeBombs=[];
   pitSquare=null;
+  portalPair=null;
   tornadoPlacementMode=false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode=false;
   royalGuardKingX=-1; royalGuardKingY=-1;
   royalGuardPendingCallback=null;
+  doubleStrikeActive=false; doubleStrikeRookX=-1; doubleStrikeRookY=-1;
+  berserkerQueenActive=false; berserkerQueenX=-1; berserkerQueenY=-1;
+  cowardRetreatActive=false; cowardKnightX=-1; cowardKnightY=-1;
   positionHistory=[];
   currentDrafter = 'white';
   // Reset per-game stat counters
@@ -20190,6 +20531,7 @@ function handleRemoteData(data){
   if(data.castleRights) castleRights = data.castleRights;
   if(data.timeBombs !== undefined) timeBombs = data.timeBombs;
   if(data.pitSquare !== undefined) pitSquare = data.pitSquare;
+  if(data.portalPair !== undefined) portalPair = data.portalPair;
   whiteTime = data.whiteTime || whiteTime;
   blackTime = data.blackTime || blackTime;
   if(data.increment !== undefined) increment = data.increment;
@@ -20307,6 +20649,7 @@ function sendGameState(){
       castleRights: castleRights,
       timeBombs: timeBombs,
       pitSquare: pitSquare,
+      portalPair: portalPair,
       whiteTime: whiteTime,
       blackTime: blackTime,
       increment: increment,
@@ -22582,6 +22925,7 @@ clickSquare = function(x, y) {
 
       // During special modes, only allow the designated piece
       if (doubleStrikeActive && !(x === doubleStrikeRookX && y === doubleStrikeRookY)) return;
+      if (berserkerQueenActive && !(x === berserkerQueenX && y === berserkerQueenY)) return;
       if (cowardRetreatActive && !(x === cowardKnightX && y === cowardKnightY)) return;
 
       const srcImg = sq.querySelector('img');
@@ -22670,14 +23014,14 @@ clickSquare = function(x, y) {
     if (boardDom.classList.contains('flipped')) { gx = 7 - gx; gy = 7 - gy; }
 
     const overValidDest = gx >= 0 && gx <= 7 && gy >= 0 && gy <= 7 &&
-      dragState.legalMoves && dragState.legalMoves.some(m => m.x === gx && m.y === gy);
+      dragState.legalMoves && dragState.legalMoves.some(m => (m.x === gx && m.y === gy) || (m.portalEntry && m.portalEntry.x === gx && m.portalEntry.y === gy));
 
     if (dragHoverSquare && (dragHoverSquare.x !== gx || dragHoverSquare.y !== gy)) {
       removeDragHoverClass();
     }
     if (overValidDest && !(dragHoverSquare && dragHoverSquare.x === gx && dragHoverSquare.y === gy)) {
       const targetSq = document.querySelector(`[data-x="${gx}"][data-y="${gy}"]`);
-      if (targetSq) { const hoverCls = (settings.legalStyle || 'dots') === 'dots' ? 'drag-hover-dots' : 'drag-hover-ring'; targetSq.classList.add(hoverCls); const hoverMove = dragState.legalMoves && dragState.legalMoves.find(m => m.x === gx && m.y === gy); if(hoverMove && hoverMove.modifierOnly) targetSq.classList.add('drag-hover-mod'); dragHoverSquare = { x: gx, y: gy }; }
+      if (targetSq) { const hoverCls = (settings.legalStyle || 'dots') === 'dots' ? 'drag-hover-dots' : 'drag-hover-ring'; targetSq.classList.add(hoverCls); const hoverMove = dragState.legalMoves && dragState.legalMoves.find(m => (m.x === gx && m.y === gy) || (m.portalEntry && m.portalEntry.x === gx && m.portalEntry.y === gy)); if(hoverMove && hoverMove.modifierOnly) targetSq.classList.add('drag-hover-mod'); dragHoverSquare = { x: gx, y: gy }; }
     }
   });
 
@@ -22701,8 +23045,10 @@ clickSquare = function(x, y) {
 
     const fromX = dragState.fromX, fromY = dragState.fromY;
     const lm = dragState.legalMoves || [];
-    const isValidDest = toX >= 0 && toX <= 7 && toY >= 0 && toY <= 7 &&
-      lm.some(m => m.x === toX && m.y === toY);
+    const dropMove = toX >= 0 && toX <= 7 && toY >= 0 && toY <= 7
+      ? lm.find(m => (m.x === toX && m.y === toY) || (m.portalEntry && m.portalEntry.x === toX && m.portalEntry.y === toY))
+      : null;
+    const isValidDest = !!dropMove;
 
     // Clean up ghost + hover
     if (dragState.ghost) dragState.ghost.remove();
@@ -22719,16 +23065,17 @@ clickSquare = function(x, y) {
     }
 
     // Valid drop — execute move immediately with no animation
-    const castleType = (lm.find(m => m.x === toX && m.y === toY && m.castle) || {}).castle || null;
+    const finalX = dropMove.x, finalY = dropMove.y;
+    const castleType = dropMove.castle || null;
     clearArrows();
     rightClickHighlight = [];
     selected = null;
     legalMoves = [];
-    lastMove = { fromX, fromY, toX, toY };
+    lastMove = { fromX, fromY, toX: finalX, toY: finalY };
     // Suppress the wrapper mouseup's extra draw() since move() will call draw()
     clearedHighlightsOnClick = false;
     // Execute the move instantly (bypassing animatePieceMove entirely)
-    move(fromX, fromY, toX, toY, castleType);
+    move(fromX, fromY, finalX, finalY, castleType);
   });
 
   // If mouse leaves window during drag, cancel
@@ -22784,16 +23131,16 @@ const MOD_PIECE_TYPE = {
   'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
   'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
   'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
-  'Trench Pawn':'p', 'Bounty Hunter Pawn':'p',
-  'Phase Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
-  'Pinballing Bishop':'b', 'Fog of War Bishop':'b',
-  'Sidestep Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n',
+  'Trench Pawn':'p', 'Bounty Hunter Pawn':'p', 'Crab Pawn':'p', 'The Impawnster':'p',
+  'Phase Bishop':'b', 'Grey Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
+  'Pinballing Bishop':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
+  'Sidestep Knight':'n', 'Longbow Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n',
   'Necromancer Knight':'n', 'Copycat Knight (Evolved)':'n',
   'Phantom Knight':'n', 'Jester Knight':'n',
   'Pegasus':'n', 'Pegasus (Evolved)':'n',
-  'Phase Rook':'r', 'Double Strike Rook':'r', 'Tectonic Rook':'r',
+  'Phase Rook':'r', 'Double Strike Rook':'r', 'Heavy Rook':'r', 'Tectonic Rook':'r',
   'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r', 'Dragon Rook':'r',
-  'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q',
+  'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
   'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
   'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
   "Sovereign's Blessing":'k',
@@ -22803,13 +23150,19 @@ const MOD_PIECE_TYPE = {
 const MOD_SYNERGIES = {
   'Railgun Rook':     ['Double Strike Rook', 'Phase Rook', 'Tectonic Rook', 'Storm Rook'],
   'Double Strike Rook': ['Railgun Rook', 'Phase Rook'],
+  'Heavy Rook':       ['Magnetic Poles', 'Tornado de Caballos', 'Tectonic Rook'],
   'Nuclear Queen':    ['Magnetic Queen'],
+  'Berserker Queen':  ['Magnetic Queen', 'Nuclear Queen'],
   'Magnetic Queen':   ['Nuclear Queen'],
   'Fast Pawn':        ['Pawn Bayonet', 'Viral Pawn', 'Hive Mind Pawns', 'Sniper Pawn'],
+  'Crab Pawn':        ['Pawn Bayonet', 'Trench Pawn', 'The Impawnster'],
+  'The Impawnster':   ['Crab Pawn', 'Fast Pawn', 'Sniper Pawn'],
   'Hive Mind Pawns':  ['Fast Pawn', 'Pawn Bayonet', 'Trench Pawn'],
   'Viral Pawn':       ['Fast Pawn', 'Kamikaze Pawn', 'Bounty Hunter Pawn'],
   'Pegasus':          ['Sidestep Knight', 'Copycat Knight', 'Phantom Knight'],
+  'Longbow Knight':   ['Sidestep Knight', 'Pegasus', 'Copycat Knight'],
   'Necromancer Knight': ['Phantom Knight', 'Copycat Knight'],
+  'Sanctuary Bishop': ['Grey Bishop', 'Fog of War Bishop', 'Phase Bishop'],
   'Royal Guard':      ["Sovereign's Blessing", 'Sprinting King'],
   "Sovereign's Blessing": ['Royal Guard', 'Sprinting King'],
   'Kamikaze Pawn':    ['Viral Pawn', 'Fast Pawn'],
@@ -22820,10 +23173,11 @@ const MOD_SYNERGIES = {
 const MOD_AGGRESSION = {
   'Nuclear Queen': 3, 'Railgun Rook': 3, 'Kamikaze Pawn': 2, 'Pegasus': 2,
   'Hive Mind Pawns': 2, 'Magnetic Queen': 2, 'Sniper Pawn': 2, 'Viral Pawn': 2,
+  'Berserker Queen': 2, 'The Impawnster': 2, 'Longbow Knight': 1,
   'Necromancer Knight': 2, 'Storm Rook': 2, 'Bounty Hunter Pawn': 1,
-  'Double Strike Rook': 1, 'Fast Pawn': 1, 'Pawn Bayonet': 1, 'Mind Control Bishop': 1,
+  'Double Strike Rook': 1, 'Fast Pawn': 1, 'Pawn Bayonet': 1, 'Crab Pawn': 1, 'Mind Control Bishop': 1,
   'Copycat Knight': 1, 'Phantom Knight': 0, 'Fog of War Bishop': 0,
-  'Reinforced Pawn': -1, 'Royal Guard': -2, "Sovereign's Blessing": -2,
+  'Reinforced Pawn': -1, 'Sanctuary Bishop': -2, 'Heavy Rook': -1, 'Royal Guard': -2, "Sovereign's Blessing": -2,
   'Sprinting King': -1, 'Coward Knight': -2, 'Decoy Rook': -1,
   'Phoenix Pawn': -1, 'Boomerang Bishop': 0, 'Phase Rook': 0, 'Phase Bishop': 0,
 };
@@ -22949,6 +23303,8 @@ function aiApplyDraftPick(mod) {
   if (mod.name === 'Duck of Eternal Blocking') spawnDuck();
   if (mod.name === 'Time Bomb') spawnTimeBomb();
   if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
+  if (mod.name === 'Portal Pair') spawnPortalPair();
+  if (mod.name === 'The Impawnster') ensureSleeperPawns();
   if (mod.name === 'Tornado de Caballos') {
     // Place tornado on a random empty square
     tornadoPlacementMode = false;
@@ -23154,6 +23510,7 @@ function isModifierMove(fx, fy, tx, ty, moveObj) {
   if (pt === 'p' && tx === fx && board[ty][tx] && isWhite(board[ty][tx]) !== isWhite(piece)) return true;
   // Sidestep Knight: non-standard L moves tagged
   if (moveObj && moveObj.sidestep) return true;
+  if (moveObj && (moveObj.crabPawn || moveObj.longbowKnight || moveObj.greyBishop || moveObj.sleeperQueen || moveObj.portal)) return true;
   // Fast Pawn / Evolved: 2 or 3 square advance beyond normal
   if (pt === 'p' && Math.abs(ty - fy) >= 2) {
     // Standard pawns can move 2 from starting rank — only flag if >2 or if not from start
@@ -23465,6 +23822,28 @@ async function requestAiMove() {
       doubleStrikeActive = false;
       doubleStrikeRookX = -1;
       doubleStrikeRookY = -1;
+    }
+    return;
+  }
+
+  if (berserkerQueenActive) {
+    const secondMoves = getLegalMoves(berserkerQueenX, berserkerQueenY)
+      .filter(m => !board[m.y][m.x]);
+    if (secondMoves.length > 0) {
+      const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
+      let bestMove = secondMoves[0], bestScore = -Infinity;
+      for (const m of secondMoves) {
+        if (!aiActive || turn !== aiColor) return;
+        const simFen = simulateMoveToFen(berserkerQueenX, berserkerQueenY, m.x, m.y, m.castle || null);
+        const s = await stockfishEvalFen(simFen, probeMs);
+        if (s > bestScore) { bestScore = s; bestMove = m; }
+      }
+      if (!aiActive || turn !== aiColor) return;
+      move(berserkerQueenX, berserkerQueenY, bestMove.x, bestMove.y, bestMove.castle || null);
+    } else {
+      berserkerQueenActive = false;
+      berserkerQueenX = -1;
+      berserkerQueenY = -1;
     }
     return;
   }
@@ -26337,8 +26716,13 @@ function sbxToggleModifier(name, on) {
     if (!modifiers.includes(name)) modifiers.push(name);
     markModifierDiscovered(name);
     if (name === 'Duck of Eternal Blocking') spawnDuck();
+    if (name === 'Time Bomb') spawnTimeBomb();
+    if (name === 'Bottomless Pit') spawnBottomlessPit();
+    if (name === 'Portal Pair') spawnPortalPair();
+    if (name === 'The Impawnster') ensureSleeperPawns();
   } else {
     modifiers = modifiers.filter(m => m !== name);
+    if (name === 'Portal Pair') portalPair = null;
   }
   syncModifierDisplays();
   draw();
@@ -26473,12 +26857,15 @@ function sandboxNewGame() {
   if(_clPanel) _clPanel.style.display = 'none';
   selected = null; legalMoves = []; lastMove = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
-  kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null;
+  kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null; portalPair = null;
   draftCooldowns = {};
   tornadoPlacementMode = false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode = false; royalGuardKingX = -1; royalGuardKingY = -1;
   royalGuardPendingCallback = null; positionHistory = [];
+  doubleStrikeActive = false; doubleStrikeRookX = -1; doubleStrikeRookY = -1;
+  berserkerQueenActive = false; berserkerQueenX = -1; berserkerQueenY = -1;
+  cowardRetreatActive = false; cowardKnightX = -1; cowardKnightY = -1;
   sbxSelectedPiece = null; sbxBoardFlipped = false;
 
   document.getElementById('board').classList.remove('flipped');
@@ -26510,6 +26897,8 @@ function sbxCreateSaveEntry(name, existingId) {
     timestamp,
     board: board.map(r => r.slice()),
     modifiers: modifiers.slice(),
+    pieceData: JSON.parse(JSON.stringify(pieceData || {})),
+    portalPair: portalPair ? JSON.parse(JSON.stringify(portalPair)) : null,
     turn,
     moveCount,
     castleRights: Object.assign({}, castleRights)
@@ -26568,7 +26957,11 @@ function sbxLoad(id) {
   turn = entry.turn || 'white';
   moveCount = entry.moveCount || 0;
   castleRights = Object.assign({ whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true }, entry.castleRights);
-  pieceData = {}; selected = null; legalMoves = []; moveHistory = [];
+  pieceData = entry.pieceData ? JSON.parse(JSON.stringify(entry.pieceData)) : {};
+  portalPair = entry.portalPair || null;
+  selected = null; legalMoves = []; moveHistory = [];
+  ensureSleeperPawns();
+  ensurePortalPair();
   settings.draftFreq = DRAFT_FREQUENCY;
   sbxBuildModList(); sbxRefreshTurnButtons(); sbxRefreshTurnDisplay();
   sbxSyncCastlingCheckboxes(); syncModifierDisplays(); sbxSyncMoveHistory();
