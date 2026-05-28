@@ -12265,6 +12265,7 @@ function draw(){
               (activeMods.has('Sniper Pawn') && pieceType==='p') ||
               (activeMods.has('Viral Pawn') && pieceType==='p') ||
               (activeMods.has('Magnetic Queen') && pieceType==='q') ||
+              (activeMods.has('The Amazon') && pieceType==='q') ||
               (activeMods.has('Double Strike Rook') && pieceType==='r') ||
               (activeMods.has('Copycat Knight') && pieceType==='n') ||
               (activeMods.has('Coward Knight') && pieceType==='n') ||
@@ -14028,7 +14029,22 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
         });
       }
       break;
-    case 'q': addSlides(x,y,piece,moves,[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]); break;
+    case 'q':
+      addSlides(x,y,piece,moves,[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]);
+      // The Amazon: queen also moves like a knight
+      if(modifiers.includes('The Amazon')){
+        [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].forEach(([dx,dy])=>{
+          let nx=x+dx, ny=y+dy;
+          if(board[ny]?.[nx]===undefined) return;
+          let target=board[ny][nx];
+          if(!target || isWhite(target)!==isWhite(piece)){
+            if(target && target.toLowerCase()==='n' && getPieceData(nx,ny).phantom) return;
+            if(target==='D') return;
+            moves.push({x:nx,y:ny});
+          }
+        });
+      }
+      break;
 
     case 'g': // Royal Guard (Evolved) bodyguard — moves like a king but must stay adjacent to own king
       if(modifiers.includes('Royal Guard (Evolved)')){
@@ -15996,6 +16012,7 @@ const MODIFIER_LORE = {
   'Mind Control Bishop':'It doesn’t rush to act. Instead, it lingers—like it’s listening. And when it moves, it feels less like influence and more like someone else finally agreeing to it.',
   'Pegasus':            'The knight remembers how to leap beyond expectation. Its path bends, then bends again, as if the board itself gives way. It moves like a story told in two parts.',
   'Magnetic Queen':     'She doesn’t chase control. Pieces lean toward her naturally, as if they’ve already accepted the outcome. Her presence doesn’t force the board—it reorganizes it.',
+  'The Amazon':         'She was never just a queen. The leap was always in her — held back by convention, not capability. Now it is released, and the board has no answer for a piece that slides and jumps at once.',
   'Magnetic Queen (Evolved)': 'Something shifted. The pull reversed. Now pieces don’t lean toward her—they scatter. As if whatever she captured disturbed something fundamental, and the board is still trying to recover.',
   'Double Strike Rook': 'It doesn’t stop after contact. There’s a sense of follow-through, like once it commits, it refuses to let go. Momentum isn’t just power—it’s identity.',
   'Berserker Queen':    'The first capture is not the end of the thought. She lands, sees the next square, and the board briefly has to keep up with her appetite.',
@@ -16777,6 +16794,7 @@ const allMods=[
   {name:'Mind Control Bishop',rarity:'rare',desc:'25% chance captured piece joins your side instead',icon:'♗'},
   {name:'Pegasus',rarity:'mythic',desc:'Knights leap twice, second jump must move closer to enemy king',icon:'♞',evolvesTo:'Pegasus (Evolved)'},
   {name:'Magnetic Queen',rarity:'rare',desc:'Queen captures pull all enemy pieces within 5x5 area 1 square closer',icon:'♛',evolvesTo:'Magnetic Queen (Evolved)'},
+  {name:'The Amazon',rarity:'rare',desc:'Queens can also move like a knight',icon:'♛'},
   {name:'Double Strike Rook',rarity:'rare',desc:'Rook can move again immediately after capturing (no second capture)',icon:'♜'},
   {name:'Longbow Knight',rarity:'rare',desc:'Knights can also move in a 3-1 L shape',icon:'♞'},
   {name:'Heavy Rook',rarity:'rare',desc:'Rooks cannot be pushed, pulled, or displaced by modifier effects',icon:'♜'},
@@ -16946,6 +16964,7 @@ const CODEX_EXAMPLES = {
   'Heavy Rook': 'A rook can anchor a file without being dragged around by board effects.',
   'Decoy Rook': 'A moving rook leaves a false body behind to clutter the enemy calculation.',
   'Magnetic Queen': 'A queen capture can pull nearby enemies toward the impact square.',
+  'The Amazon': 'Queens can jump like knights, bypassing pieces and threatening squares no normal queen can reach.',
   'Magnetic Queen (Evolved)': 'A queen capture can push nearby enemies away, breaking clusters instead of forming them.',
   'Nuclear Queen': 'A queen can trade herself for an area wipe around the captured piece.',
   'Nuclear Queen (Evolved)': 'The blast leaves delayed danger zones that punish pieces staying nearby.',
@@ -16982,6 +17001,7 @@ const CODEX_COMBOS = {
   'Tectonic Rook': 'Combines with Storm Rook or Railgun Rook when the opponent stacks pieces on lines.',
   'Heavy Rook': 'Combines with Magnetic Poles or Tornado de Caballos because it ignores displacement chaos.',
   'Magnetic Queen': 'Combines with Nuclear Queen by clustering pieces before an explosive capture.',
+  'The Amazon': 'Combines with Berserker Queen to chain captures from knight-jump angles no normal queen could reach.',
   'Nuclear Queen': 'Combines with Magnetic Queen or Tornado effects that gather targets together.',
   'Berserker Queen': 'Combines with Magnetic Queen by capturing, reshaping the cluster, then stepping to safety.',
   'Royal Guard': 'Combines with Sprinting King because the king can move aggressively and still leave protection behind.',
@@ -17082,7 +17102,7 @@ function getCodexCategory(mod){
   if(lower.includes('knight') || lower.includes('pegasus')) return 'knight';
   if(lower.includes('bishop')) return 'bishop';
   if(lower.includes('rook')) return 'rook';
-  if(lower.includes('queen')) return 'queen';
+  if(lower.includes('queen') || name === 'The Amazon') return 'queen';
   if(lower.includes('king') || lower.includes('royal guard') || lower.includes('sovereign') || lower.includes('blessing')) return 'king';
   return 'environmental';
 }
@@ -19716,7 +19736,7 @@ function chaosDraft(){
         'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
         'Dragon Rook':'r',
         'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
-        'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
+        'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
         'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
         "Sovereign's Blessing":'k',
       };
@@ -23142,7 +23162,7 @@ const MOD_PIECE_TYPE = {
   'Phase Rook':'r', 'Double Strike Rook':'r', 'Heavy Rook':'r', 'Tectonic Rook':'r',
   'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r', 'Dragon Rook':'r',
   'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
-  'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q',
+  'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
   'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
   "Sovereign's Blessing":'k',
 };
@@ -23155,6 +23175,7 @@ const MOD_SYNERGIES = {
   'Nuclear Queen':    ['Magnetic Queen'],
   'Berserker Queen':  ['Magnetic Queen', 'Nuclear Queen'],
   'Magnetic Queen':   ['Nuclear Queen'],
+  'The Amazon':       ['Berserker Queen', 'Magnetic Queen'],
   'Fast Pawn':        ['Pawn Bayonet', 'Viral Pawn', 'Hive Mind Pawns', 'Sniper Pawn'],
   'Crab Pawn':        ['Pawn Bayonet', 'Trench Pawn', 'The Impawnster'],
   'The Impawnster':   ['Crab Pawn', 'Fast Pawn', 'Sniper Pawn'],
@@ -23174,7 +23195,7 @@ const MOD_SYNERGIES = {
 const MOD_AGGRESSION = {
   'Nuclear Queen': 3, 'Railgun Rook': 3, 'Kamikaze Pawn': 2, 'Pegasus': 2,
   'Hive Mind Pawns': 2, 'Magnetic Queen': 2, 'Sniper Pawn': 2, 'Viral Pawn': 2,
-  'Berserker Queen': 2, 'The Impawnster': 2, 'Longbow Knight': 1,
+  'Berserker Queen': 2, 'The Impawnster': 2, 'Longbow Knight': 1, 'The Amazon': 2,
   'Necromancer Knight': 2, 'Storm Rook': 2, 'Bounty Hunter Pawn': 1,
   'Double Strike Rook': 1, 'Fast Pawn': 1, 'Pawn Bayonet': 1, 'Crab Pawn': 1, 'Mind Control Bishop': 1,
   'Copycat Knight': 1, 'Phantom Knight': 0, 'Fog of War Bishop': 0,
@@ -23240,7 +23261,12 @@ function aiScoreDraftPicks(picks, color) {
       const myCount  = countPiecesOnBoard(pt, isAiWhite);
       const oppCount = countPiecesOnBoard(pt, !isAiWhite);
 
-      score += myCount * 1.5;
+      // Presence bonus: flat reward for having at least one of that piece.
+      // Cap at 2 so having 8 pawns vs 1 queen doesn't dominate — a small
+      // extra bump for having more (log-scaled so it tapers off quickly).
+      if (myCount > 0) {
+        score += 2.0 + Math.log2(myCount) * 0.4;
+      }
 
       // Hard penalty if AI has none of those pieces — mod is almost useless
       if (myCount === 0) {
@@ -23252,7 +23278,7 @@ function aiScoreDraftPicks(picks, color) {
       }
 
       // Bonus if AI has more of that piece than the opponent (better leverage)
-      if (myCount > oppCount) score += 1;
+      if (myCount > oppCount) score += 0.5;
     } else {
       // Global modifier — works regardless of pieces, modest neutral bonus
       score += 1.5;
