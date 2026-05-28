@@ -4921,23 +4921,23 @@ button:active {
 
 /* LEFT PANEL */
 #game-left-panel {
-  width: 312px;
+  width: 380px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 11px;
   justify-content: center;
-  padding-right: 20px;
+  padding-right: 24px;
   align-self: stretch;
 }
 .game-player-card {
   background: #232744;
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: 20px 22px;
+  border-radius: 20px;
+  padding: 26px 28px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 16px;
   transition: border-color 0.3s;
 }
 .game-player-card.active-turn {
@@ -4948,32 +4948,33 @@ button:active {
   color: #c4b5fd;
 }
 .gpc-header {
-  display: flex; align-items: center; gap: 18px;
+  display: flex; align-items: center; gap: 22px;
 }
 .gpc-avatar {
-  width: 62px; height: 62px; border-radius: 50%;
+  width: 82px; height: 82px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 25px; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-size: 33px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
 .gpc-avatar.gpc-avatar-chaosfish { background: transparent; border: none; padding: 0; overflow: hidden; }
+.gpc-avatar.gpc-avatar-chaosfish img { transition: opacity 0.35s ease; }
 .gpc-avatar.white-side { background: rgba(255,255,255,0.9); color: #1a1d2e; }
 .gpc-avatar.black-side { background: rgba(30,30,60,0.9); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-.gpc-name { font-size: 22px; font-weight: 700; color: #f5f7ff; }
-.gpc-rating { font-size: 18px; color: #a78bfa; font-weight: 600; }
+.gpc-name { font-size: 26px; font-weight: 700; color: #f5f7ff; }
+.gpc-rating { font-size: 20px; color: #a78bfa; font-weight: 600; }
 .gpc-label {
-  font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 14px; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; color: #aab0d6; opacity: 0.5;
 }
 .gpc-turn-badge {
   display: none;
-  align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 700; color: #7c5cff;
+  align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 700; color: #7c5cff;
   background: rgba(124,92,255,0.1); border: 1px solid rgba(124,92,255,0.25);
-  border-radius: 20px; padding: 4px 12px;
+  border-radius: 20px; padding: 6px 16px;
 }
 .game-player-card.active-turn .gpc-turn-badge { display: flex; }
 .gpc-turn-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: #7c5cff;
+  width: 8px; height: 8px; border-radius: 50%; background: #7c5cff;
   animation: turn-pulse 1.2s ease-in-out infinite;
 }
 @keyframes turn-pulse {
@@ -4990,17 +4991,17 @@ button:active {
 #game-turn-info {
   background: #232744;
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-radius: 14px;
+  padding: 12px 16px;
   text-align: center;
-  font-size: 12px; color: #aab0d6;
+  font-size: 13px; color: #aab0d6;
   width: 100%;
 }
 #game-turn-info .gti-main {
-  font-size: 15px; font-weight: 700; color: #f5f7ff; margin-bottom: 3px;
+  font-size: 18px; font-weight: 700; color: #f5f7ff; margin-bottom: 3px;
 }
 #game-turn-info .gti-moves {
-  font-size: 11px; color: rgba(255,255,255,0.4);
+  font-size: 12px; color: rgba(255,255,255,0.4);
 }
 
 /* CENTER BOARD AREA */
@@ -5137,8 +5138,8 @@ button:active {
 .game-timer-box {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 10px 15px;
+  border-radius: 12px;
+  padding: 12px 18px;
   display: flex; align-items: center; justify-content: space-between;
   transition: all 0.3s;
 }
@@ -5178,20 +5179,20 @@ button:active {
   background: rgba(239,68,68,0.1);
   animation: pulse-danger 0.5s ease-in-out infinite;
 }
-.gtb-label { font-size: 16px; color: #aab0d6; font-weight: 600; }
-.gtb-value { font-size: 35px; font-weight: 900; font-variant-numeric: tabular-nums; color: #f5f7ff; }
+.gtb-label { font-size: 18px; color: #aab0d6; font-weight: 600; }
+.gtb-value { font-size: 40px; font-weight: 900; font-variant-numeric: tabular-nums; color: #f5f7ff; }
 
 /* Captured pieces strip (separate card below/above player cards) */
 .gpc-captured-strip {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  padding: 8px 15px;
+  border-radius: 12px;
+  padding: 10px 18px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  min-height: 45px;
+  min-height: 52px;
 }
 .gpc-captured-strip .cap-pieces {
   display: flex;
@@ -5201,18 +5202,18 @@ button:active {
   align-items: center;
 }
 .gpc-captured-strip .cap-pieces img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   opacity: 0.85;
 }
 .gpc-captured-strip .cap-advantage {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: #10b981;
   white-space: nowrap;
 }
 .gpc-captured-strip .cap-empty {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255,255,255,0.2);
   font-style: italic;
 }
@@ -12215,15 +12216,23 @@ function draw(){
           img.style.filter = 'drop-shadow(0 0 8px rgba(100, 116, 139, 0.5))';
         } 
         else if(data.jesterDecoy) {
-          sq.classList.add('glow-legendary');
+          if(activeMods.has('Jester Knight (Evolved)')){
+            sq.classList.add('glow-evolved');
+          } else {
+            sq.classList.add('glow-legendary');
+          }
         } 
         else {
           // Evolved glows (rainbow — highest priority after phantom/decoy/jesterDecoy)
           if((activeMods.has('Fast Pawn (Evolved)') && pieceType==='p') ||
              (activeMods.has('Viral Pawn (Evolved)') && pieceType==='p') ||
+             (activeMods.has('Hive Mind Pawns (Evolved)') && pieceType==='p') ||
              (activeMods.has('Pawn Bayonet (Evolved)') && pieceType==='p') ||
              (activeMods.has('Pegasus (Evolved)') && pieceType==='n') ||
+             (activeMods.has('Jester Knight (Evolved)') && pieceType==='n') ||
              (activeMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
+             (activeMods.has('Pinballing Bishop (Evolved)') && pieceType==='b') ||
+             (activeMods.has('Storm Rook (Evolved)') && pieceType==='b') ||
              (activeMods.has('Royal Guard (Evolved)') && pieceType==='k') ||
              (activeMods.has('Magnetic Queen (Evolved)') && pieceType==='q') ||
              (activeMods.has('Nuclear Queen (Evolved)') && pieceType==='q')) {
@@ -13161,7 +13170,7 @@ function isSanctuaryBishopAt(x,y){
 }
 
 function canCaptureTargetFrom(x1,y1,x2,y2){
-  if(isSanctuaryBishopAt(x2,y2) && !isOrthogonallyAdjacent(x1,y1,x2,y2)) return false;
+  if(isSanctuaryBishopAt(x2,y2) && !(x1===x2 || y1===y2)) return false;
   return true;
 }
 
@@ -13415,7 +13424,7 @@ function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
         if(pt==='b' && modifiers.includes('Grey Bishop') && Math.abs(sx-bx)+Math.abs(sy-by)===1) return true;
 
         // Pinballing Bishop: bounce off edges
-        if(pt==='b' && modifiers.includes('Pinballing Bishop')){
+        if(pt==='b' && (modifiers.includes('Pinballing Bishop') || modifiers.includes('Pinballing Bishop (Evolved)'))){
           const pinDirs = [[1,1],[-1,1],[1,-1],[-1,-1]];
           for(let [dx,dy] of pinDirs){
             let nx=sx+dx, ny=sy+dy;
@@ -13599,6 +13608,29 @@ function clickSquare(x,y){
     } else {
       selected = null;
       legalMoves = [];
+      // If deselecting during coward retreat, re-select the knight with retreat moves
+      if(cowardRetreatActive){
+        const kx = cowardKnightX, ky = cowardKnightY;
+        const kp = board[ky][kx];
+        const enemyIsWhite = !isWhite(kp);
+        let nearest = null, nearestDist = Infinity;
+        for(let ey=0;ey<8;ey++) for(let ex=0;ex<8;ex++){
+          const ep = board[ey][ex];
+          if(!ep || isWhite(ep)!==enemyIsWhite) continue;
+          const d = Math.abs(ex-kx)+Math.abs(ey-ky);
+          if(d<nearestDist){nearestDist=d; nearest={x:ex,y:ey};}
+        }
+        const retreatMoves = [];
+        if(nearest){
+          [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx,dy])=>{
+            const rx=kx+dx, ry=ky+dy;
+            if(rx<0||rx>7||ry<0||ry>7||board[ry][rx]) return;
+            if(Math.abs(rx-nearest.x)+Math.abs(ry-nearest.y) > nearestDist) retreatMoves.push({x:rx,y:ry});
+          });
+        }
+        selected = {x:kx, y:ky};
+        legalMoves = retreatMoves;
+      }
     }
   } else {
     if(piece && isWhite(piece)===(turn==='white')){
@@ -13965,6 +13997,12 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
       if(modifiers.includes('Pinballing Bishop')) {
         addPinballMoves(x, y, piece, moves);
       }
+
+      // Pinballing Bishop (Evolved): deflect off edges AND pieces
+      if(modifiers.includes('Pinballing Bishop (Evolved)')) {
+        addPinballMoves(x, y, piece, moves);          // keeps edge bounces
+        addPinballEvolvedMoves(x, y, piece, moves);   // adds piece bounces
+      }
       
       // Boomerang Bishop: can return to starting square
       if(modifiers.includes('Boomerang Bishop')) {
@@ -14328,6 +14366,88 @@ function addPinballMoves(x, y, piece, moves) {
       bx += bounceDx;
       by += bounceDy;
     }
+  });
+}
+
+// Pinballing Bishop (Evolved): also bounce off any piece (friendly or enemy) the ray would otherwise stop at.
+// The bishop deflects off the blocker rather than being stopped by it; it can only capture the square
+// it finally lands on, not pieces it bounced off.
+// Max 2 bounces per ray to prevent infinite loops.
+function addPinballEvolvedMoves(x, y, piece, moves) {
+  const MAX_BOUNCES = 2;
+
+  function traceRay(startX, startY, dx, dy, bouncesLeft, visitedStr) {
+    let nx = startX + dx;
+    let ny = startY + dy;
+
+    while(nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+      const sq = board[ny][nx];
+
+      if(!sq) {
+        // Empty — valid landing square (if not already in moves)
+        const key = `${nx},${ny}`;
+        if(!visitedStr.has(key)){
+          visitedStr.add(key);
+          moves.push({x: nx, y: ny, pinball: true});
+        }
+      } else {
+        // Hit something
+        const isEnemy = isWhite(sq) !== isWhite(piece);
+        const isDuck = sq === 'D';
+        const isPhantomKnight = sq.toLowerCase() === 'n' && getPieceData(nx, ny).phantom;
+
+        if(isEnemy && !isDuck && !isPhantomKnight && canCaptureTargetFrom(x, y, nx, ny)){
+          // Can capture here — add as landing square
+          const key = `${nx},${ny}`;
+          if(!visitedStr.has(key)){
+            visitedStr.add(key);
+            moves.push({x: nx, y: ny, pinball: true});
+          }
+        }
+
+        if(bouncesLeft > 0){
+          // Bounce off this piece — reflect the incoming direction
+          // Try both possible reflections (horizontal flip, vertical flip)
+          // Pick the one that doesn't come back the way we came
+          const candidates = [[-dx, dy], [dx, -dy]];
+          for(const [ndx, ndy] of candidates){
+            if(ndx === -dx && ndy === -dy) continue; // don't reverse back on same ray
+            const bounceKey = `${nx},${ny}:${ndx},${ndy}`;
+            if(!visitedStr.has(bounceKey)){
+              visitedStr.add(bounceKey);
+              traceRay(nx, ny, ndx, ndy, bouncesLeft - 1, visitedStr);
+            }
+          }
+        }
+        return; // Stop this segment regardless
+      }
+
+      // Also bounce off board edge mid-trace
+      const nextX = nx + dx;
+      const nextY = ny + dy;
+      if((nextX < 0 || nextX > 7 || nextY < 0 || nextY > 7) && bouncesLeft > 0){
+        // About to go off-edge — bounce from current square
+        let bdx = dx, bdy = dy;
+        if(nextX < 0 || nextX > 7) bdx = -dx;
+        if(nextY < 0 || nextY > 7) bdy = -dy;
+        if(bdx !== dx || bdy !== dy){
+          const bounceKey = `${nx},${ny}:${bdx},${bdy}`;
+          if(!visitedStr.has(bounceKey)){
+            visitedStr.add(bounceKey);
+            traceRay(nx, ny, bdx, bdy, bouncesLeft - 1, visitedStr);
+          }
+        }
+        return;
+      }
+
+      nx += dx;
+      ny += dy;
+    }
+  }
+
+  const visited = new Set();
+  [[1,1],[-1,1],[1,-1],[-1,-1]].forEach(([dx, dy]) => {
+    traceRay(x, y, dx, dy, MAX_BOUNCES, visited);
   });
 }
 
@@ -15102,7 +15222,10 @@ function move(x1,y1,x2,y2,castleType){
   } else {
     // JESTER KNIGHT: Calculate decoy position BEFORE moving the knight!
     let jesterDecoyMove = null;
-    if(!puzzleModeActive && piece.toLowerCase()==='n' && modifiers.includes('Jester Knight') && !mindControlled){
+    let jesterDecoyMove2 = null;
+    const hasJester = modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)');
+    const jesterEvolved = modifiers.includes('Jester Knight (Evolved)');
+    if(!puzzleModeActive && piece.toLowerCase()==='n' && hasJester && !mindControlled){
       console.log(`[Jester] Knight about to move ${x1},${y1} → ${x2},${y2}`);
       
       // Get legal moves from the CURRENT position (before moving)
@@ -15114,8 +15237,17 @@ function move(x1,y1,x2,y2,castleType){
       console.log(`[Jester] Found ${potentialMoves.length} possible decoy spots from old position`);
       
       if(potentialMoves.length > 0){
-        jesterDecoyMove = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+        // Pick first decoy
+        const idx1 = Math.floor(Math.random() * potentialMoves.length);
+        jesterDecoyMove = potentialMoves[idx1];
         console.log(`[Jester] Will place decoy at ${jesterDecoyMove.x},${jesterDecoyMove.y} after move`);
+
+        // Evolved: pick a second distinct decoy
+        if(jesterEvolved && potentialMoves.length > 1){
+          const remaining = potentialMoves.filter((_,i) => i !== idx1);
+          jesterDecoyMove2 = remaining[Math.floor(Math.random() * remaining.length)];
+          console.log(`[Jester Evolved] Will place 2nd decoy at ${jesterDecoyMove2.x},${jesterDecoyMove2.y}`);
+        }
       }
     }
     
@@ -15176,11 +15308,22 @@ function move(x1,y1,x2,y2,castleType){
         jesterDecoy: true, 
         realKnightPos: {x: x2, y: y2} 
       });
+
+      // Jester Knight (Evolved): place second decoy
+      if(jesterDecoyMove2 && board[jesterDecoyMove2.y][jesterDecoyMove2.x] === ''){
+        board[jesterDecoyMove2.y][jesterDecoyMove2.x] = isWhite(piece) ? 'N' : 'n';
+        setPieceData(jesterDecoyMove2.x, jesterDecoyMove2.y, {
+          jesterDecoy: true,
+          realKnightPos: {x: x2, y: y2}
+        });
+      }
+
       // Include the decoy square in the last-move highlight
       if(lastMove) lastMove.decoyX = jesterDecoyMove.x, lastMove.decoyY = jesterDecoyMove.y;
       // Chaos Log — don't reveal which knight is real
       const _jWho = (gameMode === 'online') ? (isWhite(piece) === (myColor === 'white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
-      logChaos(_jWho, 'ability', (_jWho === 'you' ? 'You' : 'Opponent') + ' used Jester Knight — a decoy appeared somewhere...');
+      const _jEvoSuffix = jesterEvolved ? ' Two decoys...' : '';
+      logChaos(_jWho, 'ability', (_jWho === 'you' ? 'You' : 'Opponent') + ' used Jester Knight — a decoy appeared somewhere...' + _jEvoSuffix);
     }
   }
   
@@ -15328,12 +15471,14 @@ function move(x1,y1,x2,y2,castleType){
     }
   }
 
-  // Storm Rook: lightning strike
-  if(piece.toLowerCase()==='r' && modifiers.includes('Storm Rook') && !mindControlled){
-    stormRookStrike(x2,y2);
+  // Storm Rook / Storm Rook (Evolved): lightning strike(s)
+  if(piece.toLowerCase()==='r' && (modifiers.includes('Storm Rook') || modifiers.includes('Storm Rook (Evolved)')) && !mindControlled){
+    const stormStrikes = modifiers.includes('Storm Rook (Evolved)') ? 3 : 1;
+    stormRookStrike(x2, y2, stormStrikes);
     playLightningSound();
     const _srWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
-    logChaos(_srWho, 'ability', (_srWho==='you'?'You':'Opponent') + ` used Storm Rook — lightning struck around ${sqNotation(x2,y2)}!`);
+    const _srSuffix = stormStrikes > 1 ? ` (${stormStrikes} bolts!)` : '';
+    logChaos(_srWho, 'ability', (_srWho==='you'?'You':'Opponent') + ` used Storm Rook — lightning struck around ${sqNotation(x2,y2)}!` + _srSuffix);
   }
   
   // Double Strike Rook: move again after capturing
@@ -15494,8 +15639,10 @@ function move(x1,y1,x2,y2,castleType){
     }
   }
 
-  // Hive Mind Pawns: when a pawn moves, move all other pawns in the same direction
-  if(piece.toLowerCase()==='p' && modifiers.includes('Hive Mind Pawns')){
+  // Hive Mind Pawns / Hive Mind Pawns (Evolved): when a pawn moves, move all other pawns in the same direction
+  const hasHiveMind = modifiers.includes('Hive Mind Pawns') || modifiers.includes('Hive Mind Pawns (Evolved)');
+  const hiveEvolved = modifiers.includes('Hive Mind Pawns (Evolved)');
+  if(piece.toLowerCase()==='p' && hasHiveMind){
     let dx = x2 - x1;
     let dy = y2 - y1;
     let hiveMoves = [];
@@ -15505,13 +15652,22 @@ function move(x1,y1,x2,y2,castleType){
       for(let x=0; x<8; x++){
         let otherPiece = board[y][x];
         if(otherPiece && otherPiece.toLowerCase() === 'p' && isWhite(otherPiece) === isWhite(piece) && !(x===x2 && y===y2)){
-          // Try to move this pawn in the same direction
           let newX = x + dx;
           let newY = y + dy;
-          
-          // Check if the move is legal (destination is empty and on board)
-          if(board[newY]?.[newX] !== undefined && board[newY][newX] === ''){
-            hiveMoves.push({fromX: x, fromY: y, toX: newX, toY: newY, piece: otherPiece});
+          if(newX < 0 || newX > 7 || newY < 0 || newY > 7) continue;
+          let targetSquare = board[newY][newX];
+
+          if(targetSquare === ''){
+            // Normal empty-square move — always allowed
+            hiveMoves.push({fromX: x, fromY: y, toX: newX, toY: newY, piece: otherPiece, capture: null});
+          } else if(hiveEvolved && targetSquare && isWhite(targetSquare) !== isWhite(piece)){
+            // Evolved: also share captures — if this pawn is moving diagonally and there's an enemy
+            let isPawnDiag = (dx !== 0 && dy !== 0); // diagonal pawn move = capture intent
+            if(isPawnDiag && targetSquare !== 'D' &&
+               !(targetSquare.toLowerCase() === 'k') &&
+               !(targetSquare.toLowerCase() === 'n' && getPieceData(newX, newY).phantom)){
+              hiveMoves.push({fromX: x, fromY: y, toX: newX, toY: newY, piece: otherPiece, capture: targetSquare});
+            }
           }
         }
       }
@@ -15519,10 +15675,19 @@ function move(x1,y1,x2,y2,castleType){
     
     // Execute all hive moves
     hiveMoves.forEach(m => {
+      if(m.capture){
+        clearPieceData(m.toX, m.toY);
+        incrementEffectsTriggered(1);
+      }
       board[m.toY][m.toX] = m.piece;
       board[m.fromY][m.fromX] = '';
       movePieceData(m.fromX, m.fromY, m.toX, m.toY);
     });
+
+    if(hiveEvolved && hiveMoves.some(m => m.capture)){
+      const _hmWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      logChaos(_hmWho, 'ability', (_hmWho==='you'?'Your':'Opponent\'s') + ' Hive Mind Pawns (Evolved) — simultaneous captures!');
+    }
     autoPromotePassivePawns();
   }
   
@@ -15669,8 +15834,10 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
       if (aiActive && gameMode === 'local') {
         const _winner = turn === 'white' ? 'black' : 'white';
         if (_winner === aiColor) {
+          cfPushEmotion('aiWins');
           setTimeout(() => cfShowBubble(cfPickLine('aiWins'), 6000), 300);
         } else {
+          cfPushEmotion('aiLoses');
           setTimeout(() => cfShowBubble(cfPickLine('aiLoses'), 6000), 300);
         }
       }
@@ -15701,8 +15868,10 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
     if (aiActive && gameMode === 'local') {
       const _justMoved = turn === 'white' ? 'black' : 'white'; // side that just moved
       if (_justMoved === aiColor) {
+        cfPushEmotion('aiChecks');
         setTimeout(() => cfSay('aiChecks', 2800), 400);
       } else {
+        cfPushEmotion('aiInCheck');
         setTimeout(() => cfSay('aiInCheck', 2800), 400);
       }
     }
@@ -15972,29 +16141,34 @@ function applyMagneticDrift(){
   autoPromotePassivePawns();
 }
 
-function stormRookStrike(rx,ry){
+function stormRookStrike(rx, ry, strikeCount){
   if(puzzleModeActive) return;
-  // Pick random non-king square in same row or column
-  let targets = [];
-  for(let x=0;x<8;x++) if(x!==rx) targets.push({x,y:ry});
-  for(let y=0;y<8;y++) if(y!==ry) targets.push({x:rx,y});
-  
-  if(targets.length > 0){
-    let target = targets[Math.floor(Math.random()*targets.length)];
-    
-    // Update board IMMEDIATELY (synchronously) for multiplayer sync
+  strikeCount = strikeCount || 1;
+
+  // Build pool of all non-rook squares in same row or column
+  let pool = [];
+  for(let x=0;x<8;x++) if(x!==rx) pool.push({x,y:ry});
+  for(let y=0;y<8;y++) if(y!==ry) pool.push({x:rx,y});
+
+  // Shuffle pool so we can pick up to strikeCount distinct targets
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+
+  const targets = pool.slice(0, Math.min(strikeCount, pool.length));
+
+  targets.forEach(target => {
     let hitPiece = board[target.y][target.x];
-    // Kings are immune to Storm Rook lightning
-    if(hitPiece && hitPiece.toLowerCase() !== 'k' && !isSanctuaryBishopAt(target.x,target.y)){
+    // Kings immune; Sanctuary Bishops immune
+    if(hitPiece && hitPiece.toLowerCase() !== 'k' && !isSanctuaryBishopAt(target.x, target.y)){
       board[target.y][target.x] = '';
       clearPieceData(target.x, target.y);
       incrementEffectsTriggered(1);
     }
-    
-    // Play explosion sound and show visual effect
     playExplosionSound();
     showExplosion(target.x, target.y);
-  }
+  });
 }
 
 const MODIFIER_LORE = {
@@ -16021,12 +16195,15 @@ const MODIFIER_LORE = {
   'Longbow Knight':     'Its leap stretches a little too far, like someone pulled the old pattern taut until it found a new corner of the board.',
   'Copycat Knight (Evolved)': 'It no longer borrows. It keeps. Every capture leaves a mark on how it moves—not a memory, but a replacement. It doesn’t remember what it was before. It only knows what it took last.',
   'Boomerang Bishop':   'It moves forward like any other bishop… but there’s a subtle pull, like something about its path doesn’t want to be left behind. Its return isn’t a surprise—it’s part of the movement.',
-  'Pinballing Bishop':  'It doesn’t resist impact—it uses it. Each bounce feels like a reaction it anticipated, turning collisions into direction. It never truly loses control, even when it looks chaotic.',
+  'Pinballing Bishop':  "It doesn’t resist impact—it uses it. Each bounce feels like a reaction it anticipated, turning collisions into direction. It never truly loses control, even when it looks chaotic.",
+  'Pinballing Bishop (Evolved)': "The edges were just the beginning. Now every piece is a surface, every formation a new angle. It doesn’t look for a path — it makes one, off whatever’s in the way.",
   'Tectonic Rook':      'It moves slowly, deliberately—like it’s aware of the weight it carries. When it acts, the board feels it. Not in pieces, but in structure. Each move is a shift in the ground beneath everyone’s feet.',
   'Necromancer Knight': 'It doesn’t destroy — it converts. What it touches doesn’t disappear so much as change sides, rising from the capture square to stand behind your lines. There’s something deeply unsettling about watching your own piece blink into existence on the back rank, wearing your colours.',
   'Phantom Knight':     'It’s there… and then it isn’t, but somehow, you still feel it. Its presence lingers in the space it occupied, like the idea of it matters more than the moment it moved. It’s a ghost story told in chess form.',
-  'Jester Knight':      'It moves like it’s performing. Every leap has flair, every step feels like part of a trick. It wants you to watch it—only to leave you unsure if what you saw was the truth or the joke.',
-  'Storm Rook':         'It doesn’t just move—it disrupts. There’s energy in its path, like the air itself can’t decide how to react. It feels less like a piece and more like an event.',
+  'Jester Knight':      "It moves like it’s performing. Every leap has flair, every step feels like part of a trick. It wants you to watch it—only to leave you unsure if what you saw was the truth or the joke.",
+  'Jester Knight (Evolved)': "One ghost was a trick. Two is a crisis. The board fills with versions of it, and none of them are obviously the right one. It plays the room now, not just the opponent.",
+  'Storm Rook':         "It doesn’t just move—it disrupts. There’s energy in its path, like the air itself can’t decide how to react. It feels less like a piece and more like an event.",
+  'Storm Rook (Evolved)': "Three bolts. Three chances. The rook no longer disrupts a line — it erases it. Whatever was standing there simply isn’t, and the board has to figure out what it’s become.",
   'Heavy Rook':         'Some pieces move. Some pieces are moved. This one decided it would rather be a wall with opinions.',
   'Sanctuary Bishop':   'It is not unreachable, exactly. It simply insists that anyone trying must come close enough to mean it.',
   'Magnetic Poles':     'The board is no longer neutral ground. Forces pull and push from unseen anchors. Every piece feels the tug of something greater.',
@@ -16040,7 +16217,8 @@ const MODIFIER_LORE = {
   'Kamikaze Pawn':      'It moves with purpose that doesn’t feel uncertain. There’s a quiet acceptance in its action—like it’s already decided what it’s here to do, even if it won’t be around after.',
   'Viral Pawn':         'It doesn’t leave a gap. Where it stood, something remains—identical, patient, ready. It’s not a copy in any cheap sense. It just refuses to let forward motion mean abandonment.',
   'Viral Pawn (Evolved)': 'The copies forgot they were copies. Now they replicate too—filling squares, multiplying pressure, turning every capture into a quiet takeover. It started as one thing refusing to leave. Now it’s something that can’t be stopped from spreading.',
-  'Hive Mind Pawns':    'They don’t act alone. There’s a subtle sense of coordination between them, like they’re all responding to something shared. Individually simple—but together, unsettlingly unified.',
+  'Hive Mind Pawns':    "They don’t act alone. There’s a subtle sense of coordination between them, like they’re all responding to something shared. Individually simple—but together, unsettlingly unified.",
+  'Hive Mind Pawns (Evolved)': "It wasn’t enough to move together. Now they strike together. One command, one direction, one moment — and whatever stood in the way of all of them is simply gone.",
   'Sprinting King':     'It moves faster than expected… and that alone feels unusual. There’s a sense of urgency to it, like it’s trying to keep up with something unseen.',
   'Tornado de Caballos':'It feels like motion without structure. Pieces don’t just move—they’re carried. The board itself feels unstable when it appears, like order is briefly forgotten.',
   'Time Bomb':         'It was always counting down. Nobody noticed until it was too late. The board remembers the square. Everything else just waits.',
@@ -16154,6 +16332,7 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
     // Chaosfish promotion commentary
     if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
       const _isAiPromotion = white === (aiColor === 'white');
+      cfPushEmotion(_isAiPromotion ? 'aiPromotes' : 'playerPromotes');
       setTimeout(() => cfSay(_isAiPromotion ? 'aiPromotes' : 'playerPromotes', 3000), 600);
     }
     if(onComplete) onComplete();
@@ -16193,6 +16372,7 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
       recordPromotion(pieceType);
       // Chaosfish player promotion commentary
       if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
+        cfPushEmotion('playerPromotes');
         setTimeout(() => cfSay('playerPromotes', 3000), 600);
       }
       // Call completion callback to finish the turn (includes draw() and sendGameState())
@@ -16802,12 +16982,12 @@ const allMods=[
   {name:'Coward Knight',rarity:'rare',desc:'After every move, the knight takes one free step away from the nearest enemy piece',icon:'♞'},
   {name:'Copycat Knight',rarity:'rare',desc:'After capturing, knight can move like captured piece for 1 turn',icon:'♞',evolvesTo:'Copycat Knight (Evolved)'},
   {name:'Boomerang Bishop',rarity:'rare',desc:'Bishop can return to its starting square at any point if free',icon:'♗'},
-  {name:'Pinballing Bishop',rarity:'rare',desc:'Bishops can deflect off edges of the board',icon:'♗'},
+  {name:'Pinballing Bishop',rarity:'rare',desc:'Bishops can deflect off edges of the board',icon:'♗',evolvesTo:'Pinballing Bishop (Evolved)'},
   {name:'Tectonic Rook',rarity:'rare',desc:'Rook captures push all enemy pieces in same row/column 1 square away',icon:'♜'},
   {name:'Necromancer Knight',rarity:'legendary',desc:'Knight captures resurrect pieces into your own, spawning them on your back rank',icon:'♞'},
   {name:'Phantom Knight',rarity:'legendary',desc:'Knights become untargetable for 1 turn after capturing',icon:'♞'},
-  {name:'Jester Knight',rarity:'legendary',desc:'Knights spawn a fake decoy knight on a random legal move square',icon:'♞'},
-  {name:'Storm Rook',rarity:'legendary',desc:'Rooks strike lightning on random square in their row/column when moving',icon:'♜'},
+  {name:'Jester Knight',rarity:'legendary',desc:'Knights spawn a fake decoy knight on a random legal move square',icon:'♞',evolvesTo:'Jester Knight (Evolved)'},
+  {name:'Storm Rook',rarity:'legendary',desc:'Rooks strike lightning on random square in their row/column when moving',icon:'♜',evolvesTo:'Storm Rook (Evolved)'},
   {name:'Sanctuary Bishop',rarity:'legendary',desc:'Bishops can only be captured from an orthogonally adjacent square; Bottomless Pit still destroys them',icon:'♗'},
   {name:'Magnetic Poles',rarity:'legendary',desc:'a8/h1 attract pieces, a1/h8 repel pieces',icon:'🧲'},
   {name:'Fog of War Bishop',rarity:'legendary',desc:'Bishops are completely invisible to the enemy unless in their capture vision',icon:'♗'},
@@ -16818,7 +16998,7 @@ const allMods=[
   {name:'Decoy Rook',rarity:'legendary',desc:'Rook leaves immobile decoy on previous square when moving',icon:'♜'},
   {name:'Kamikaze Pawn',rarity:'legendary',desc:'Captured pawns explode after 1 turn, destroying any piece on the armed square',icon:'♟'},
   {name:'Viral Pawn',rarity:'rare',desc:'When a pawn captures, a duplicate spawns on its original square. Duplicates cannot duplicate again',icon:'♟',evolvesTo:'Viral Pawn (Evolved)'},
-  {name:'Hive Mind Pawns',rarity:'mythic',desc:'When you move a pawn, ALL your pawns move the same direction if legal',icon:'♟'},
+  {name:'Hive Mind Pawns',rarity:'mythic',desc:'When you move a pawn, ALL your pawns move the same direction if legal',icon:'♟',evolvesTo:'Hive Mind Pawns (Evolved)'},
   {name:'The Impawnster',rarity:'mythic',desc:'One pawn per side secretly moves like a queen. Only its owner sees the hidden queen marker',icon:'♟'},
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
   {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
@@ -16900,6 +17080,38 @@ const evolvedMods = [
     isEvolution: true,
     baseModifier: 'Pawn Bayonet'
   },
+  {
+    name: 'Hive Mind Pawns (Evolved)',
+    rarity: 'mythic',
+    desc: 'When you move a pawn, ALL your pawns move the same direction if legal — and any that can capture in that direction do so simultaneously',
+    icon: '♟',
+    isEvolution: true,
+    baseModifier: 'Hive Mind Pawns'
+  },
+  {
+    name: 'Jester Knight (Evolved)',
+    rarity: 'legendary',
+    desc: 'Knights spawn TWO fake decoy knights on random legal move squares',
+    icon: '♞',
+    isEvolution: true,
+    baseModifier: 'Jester Knight'
+  },
+  {
+    name: 'Storm Rook (Evolved)',
+    rarity: 'legendary',
+    desc: 'Rooks strike lightning on THREE random squares in their row/column when moving',
+    icon: '♜',
+    isEvolution: true,
+    baseModifier: 'Storm Rook'
+  },
+  {
+    name: 'Pinballing Bishop (Evolved)',
+    rarity: 'rare',
+    desc: 'Bishops deflect off edges AND off any piece they would otherwise be blocked by, continuing until they can capture or land',
+    icon: '♗',
+    isEvolution: true,
+    baseModifier: 'Pinballing Bishop'
+  },
 ];
 
 // Convenience lookup
@@ -16978,7 +17190,11 @@ const CODEX_EXAMPLES = {
   'Portal Pair': 'Linked squares can turn a quiet entry square into a surprise capture on the exit.',
   'Time Bomb': 'The marked square becomes a countdown threat that both players must route around.',
   'Bottomless Pit': 'A single forbidden square can decide whether a path is safe at all.',
-  'Cookie': 'Sometimes the strongest statement is refusing to help.'
+  'Cookie': 'Sometimes the strongest statement is refusing to help.',
+  'Hive Mind Pawns (Evolved)': 'A diagonal pawn capture simultaneously captures on every matching diagonal across the whole formation.',
+  'Jester Knight (Evolved)': 'Two decoys spread across the board double the number of squares the opponent must verify before committing.',
+  'Storm Rook (Evolved)': 'Three simultaneous strikes make it nearly impossible to predict which squares are safe when the rook moves.',
+  'Pinballing Bishop (Evolved)': 'A bishop can bounce off friendly pieces to reach squares behind its own formation, creating threats from unexpected angles.'
 };
 const CODEX_COMBOS = {
   pawn: 'Pairs well with board-control effects that create files, blockades, or promotion races.',
@@ -17006,7 +17222,11 @@ const CODEX_COMBOS = {
   'Berserker Queen': 'Combines with Magnetic Queen by capturing, reshaping the cluster, then stepping to safety.',
   'Royal Guard': 'Combines with Sprinting King because the king can move aggressively and still leave protection behind.',
   'Tornado de Caballos': 'Combines with queen and rook area effects that punish clustered pieces.',
-  'Portal Pair': 'Combines with line pieces and Longbow Knight because distant exit squares become tactical targets.'
+  'Portal Pair': 'Combines with line pieces and Longbow Knight because distant exit squares become tactical targets.',
+  'Hive Mind Pawns (Evolved)': 'Combines with Pawn Bayonet and Crab Pawn — a diagonal advance captures on every file simultaneously.',
+  'Jester Knight (Evolved)': 'Combines with Phantom Knight because a phantom and two decoys makes locating the real piece nearly impossible.',
+  'Storm Rook (Evolved)': 'Combines with Tectonic Rook — shockwave pushes pieces onto the rook\'s line, then three bolts follow.',
+  'Pinballing Bishop (Evolved)': 'Combines with Phase Bishop because piece-bounces off the phased blocker open entirely new lines.'
 };
 let codexActiveCategory = 'all';
 let codexSelectedModifier = null;
@@ -18733,6 +18953,154 @@ const CODEX_REPLAYS = {
       ],
       moves: []
     }
+  ],
+
+  'Hive Mind Pawns (Evolved)': [
+    {
+      type: 'good',
+      caption: '😀 Hive Mind (Evolved) — pawn captures diagonally. Every other pawn that has a matching diagonal enemy captures simultaneously.',
+      modifiers: ['Hive Mind Pawns (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','k','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['p','','p','','p','','p',''],
+        ['','P','','P','','P','','P'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:4,toX:0,toY:3}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Pawn moves straight forward — no diagonal, so the evolved shared-capture does nothing.',
+      modifiers: ['Hive Mind Pawns (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','k','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['p','','p','','p','','p',''],
+        ['','P','','P','','P','','P'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:4,toX:1,toY:3}]
+    }
+  ],
+
+  'Jester Knight (Evolved)': [
+    {
+      type: 'good',
+      caption: '😀 Jester (Evolved) — knight moves, spawning two decoys. Opponent must track three possible knights.',
+      modifiers: ['Jester Knight (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','N','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:6,toX:4,toY:5}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Jester knight moved into a position with only one legal jump available — second decoy had nowhere to spawn.',
+      modifiers: ['Jester Knight (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','N','','','','','','']
+      ],
+      moves: [{fromX:1,fromY:7,toX:0,toY:5}]
+    }
+  ],
+
+  'Storm Rook (Evolved)': [
+    {
+      type: 'good',
+      caption: '😀 Storm Rook (Evolved) — rook slides to an open file. Three lightning bolts strike the row and column simultaneously.',
+      modifiers: ['Storm Rook (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','k','','','',''],
+        ['p','','p','','p','','p',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','R','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Rook moves along an empty rank — three bolts have nothing to hit. Evolved power completely wasted.',
+      modifiers: ['Storm Rook (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','k','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['K','','','R','','','','']
+      ],
+      moves: [{fromX:3,fromY:7,toX:3,toY:4}]
+    }
+  ],
+
+  'Pinballing Bishop (Evolved)': [
+    {
+      type: 'good',
+      caption: '😀 Pinballing (Evolved) — bishop bounces off a friendly pawn to reach a square behind its own lines and threaten the enemy king.',
+      modifiers: ['Pinballing Bishop (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['','','B','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:6,toX:5,toY:3}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Bishop used a normal diagonal when the piece-bounce would have reached a far stronger square.',
+      modifiers: ['Pinballing Bishop (Evolved)'],
+      turn: 'white',
+      board: [
+        ['','','','','k','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','P','','','',''],
+        ['','','','','','','',''],
+        ['','','B','','','','',''],
+        ['K','','','','','','','']
+      ],
+      moves: [{fromX:2,fromY:6,toX:1,toY:5}]
+    }
   ]
 
 };
@@ -18888,17 +19256,28 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
     }
   }
 
-  // ── Hive Mind: move all same-color pawns same direction ──
-  if(piece.toLowerCase()==='p' && rModifiers.includes('Hive Mind Pawns') && !captured) {
+  // ── Hive Mind: move all same-color pawns same direction (+ evolved shared captures) ──
+  if(piece.toLowerCase()==='p' && (rModifiers.includes('Hive Mind Pawns') || rModifiers.includes('Hive Mind Pawns (Evolved)')) && !captured) {
+    const hiveEvo = rModifiers.includes('Hive Mind Pawns (Evolved)');
+    const dx2 = toX - fromX;
     const dy2 = toY - fromY;
     for(let r2=0; r2<8; r2++) {
       for(let c=0; c<8; c++) {
         const p2 = rBoard[r2][c];
-        if(p2 && p2.toLowerCase()==='p' && isW(p2)===isW(piece)) {
+        if(p2 && p2.toLowerCase()==='p' && isW(p2)===isW(piece) && !(c===toX && r2===toY)) {
+          const nx2 = c + dx2;
           const ny2 = r2 + dy2;
-          if(ny2>=0 && ny2<8 && !rBoard[ny2][c]) {
-            rBoard[ny2][c] = p2;
+          if(nx2<0||nx2>7||ny2<0||ny2>7) continue;
+          const targetSq = rBoard[ny2][nx2];
+          if(targetSq === ''){
+            rBoard[ny2][nx2] = p2;
             rBoard[r2][c] = '';
+          } else if(hiveEvo && targetSq && isW(targetSq)!==isW(piece)){
+            const isPawnDiag = (dx2 !== 0 && dy2 !== 0);
+            if(isPawnDiag && targetSq.toLowerCase()!=='k' && targetSq!=='D'){
+              rBoard[ny2][nx2] = p2;
+              rBoard[r2][c] = '';
+            }
           }
         }
       }
@@ -18987,17 +19366,26 @@ function replayApplyMove(rBoard, rModifiers, rPieceData, fromX, fromY, toX, toY)
   }
 
   // ── FIX 2+3: Jester Knight — decoy looks like a normal knight, spawns from ORIGINAL position ──
-  if(piece.toLowerCase()==='n' && rModifiers.includes('Jester Knight')) {
+  if(piece.toLowerCase()==='n' && (rModifiers.includes('Jester Knight') || rModifiers.includes('Jester Knight (Evolved)'))) {
+    const jesterEvo2 = rModifiers.includes('Jester Knight (Evolved)');
     const knightOffsets = [[-2,-1],[-2,1],[2,-1],[2,1],[-1,-2],[-1,2],[1,-2],[1,2]];
     // Candidates are knight-jump squares from the ORIGINAL position (fromX, fromY)
     const candidates = knightOffsets
       .map(([dx,dy]) => ({ x: fromX+dx, y: fromY+dy }))
       .filter(m => m.x>=0&&m.x<8&&m.y>=0&&m.y<8&&!rBoard[m.y][m.x]);
     if(candidates.length > 0) {
-      const dc = candidates[Math.floor(Math.random() * candidates.length)];
-      // Decoy looks identical to a real knight — no special pieceData flag
+      const idx1 = Math.floor(Math.random() * candidates.length);
+      const dc = candidates[idx1];
       rBoard[dc.y][dc.x] = isW(piece) ? 'N' : 'n';
       rPieceData[`${dc.x},${dc.y}`] = { jesterDecoy: true };
+
+      // Evolved: place a second decoy
+      if(jesterEvo2 && candidates.length > 1){
+        const remaining = candidates.filter((_,i) => i !== idx1);
+        const dc2 = remaining[Math.floor(Math.random() * remaining.length)];
+        rBoard[dc2.y][dc2.x] = isW(piece) ? 'N' : 'n';
+        rPieceData[`${dc2.x},${dc2.y}`] = { jesterDecoy: true };
+      }
     }
   }
 
@@ -19149,10 +19537,11 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
         } else {
           // Apply modifier-based glows
           if((modSet.has('Nuclear Queen')||modSet.has('Nuclear Queen (Evolved)')) && pt==='q') sq.classList.add('glow-mythic');
-          else if((modSet.has('Hive Mind Pawns')||modSet.has('The Impawnster')) && pt==='p') sq.classList.add('glow-mythic');
+          else if((modSet.has('Hive Mind Pawns')||modSet.has('Hive Mind Pawns (Evolved)')||modSet.has('The Impawnster')) && pt==='p') sq.classList.add('glow-mythic');
           else if(modSet.has('Berserker Queen') && pt==='q') sq.classList.add('glow-mythic');
-          else if(modSet.has('Pegasus') && pt==='n') sq.classList.add('glow-mythic');
-          else if((modSet.has('Phantom Knight')||modSet.has('Jester Knight')||modSet.has('Storm Rook')||
+          else if((modSet.has('Pegasus')||modSet.has('Pegasus (Evolved)')) && pt==='n') sq.classList.add('glow-mythic');
+          else if((modSet.has('Phantom Knight')||modSet.has('Jester Knight')||modSet.has('Jester Knight (Evolved)')||
+                   modSet.has('Storm Rook')||modSet.has('Storm Rook (Evolved)')||
                    modSet.has('Magnetic Poles')||modSet.has('Fog of War Bishop')||modSet.has('Phoenix Pawn')||
                    modSet.has('Decoy Rook')||modSet.has('Kamikaze Pawn')||modSet.has('Railgun Rook')||
                    modSet.has('Time Bomb')||modSet.has('Royal Guard')||modSet.has('Tornado de Caballos')||
@@ -19160,7 +19549,8 @@ function replayRenderBoard(containerId, rBoard, rModifiers, rPieceData, lastFrom
                    modSet.has('Sprinting King')) &&
                   (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='k'||pt==='p'||pt==='g')) sq.classList.add('glow-legendary');
           else if((modSet.has('Magnetic Queen')||modSet.has('Double Strike Rook')||modSet.has('Coward Knight')||
-                   modSet.has('Copycat Knight')||modSet.has('Boomerang Bishop')||modSet.has('Pinballing Bishop')||
+                   modSet.has('Copycat Knight')||modSet.has('Boomerang Bishop')||
+                   modSet.has('Pinballing Bishop')||modSet.has('Pinballing Bishop (Evolved)')||
                    modSet.has('Sniper Pawn')||modSet.has('Mind Control Bishop')||modSet.has('Viral Pawn')||
                    modSet.has('Tectonic Rook')||modSet.has('Longbow Knight')||modSet.has('Heavy Rook')) &&
                   (pt==='n'||pt==='r'||pt==='b'||pt==='q'||pt==='p')) sq.classList.add('glow-rare');
@@ -19725,15 +20115,15 @@ function chaosDraft(){
         'Pawn Bayonet':'p', 'Pawn Bayonet (Evolved)':'p',
         'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
         'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
-        'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
+        'Hive Mind Pawns':'p', 'Hive Mind Pawns (Evolved)':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
         'Trench Pawn':'p', 'Bounty Hunter Pawn':'p', 'Crab Pawn':'p', 'The Impawnster':'p',
         'Phase Bishop':'b', 'Grey Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
-        'Pinballing Bishop':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
+        'Pinballing Bishop':'b', 'Pinballing Bishop (Evolved)':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
         'Sidestep Knight':'n', 'Longbow Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n', 'Necromancer Knight':'n',
-        'Copycat Knight (Evolved)':'n', 'Phantom Knight':'n', 'Jester Knight':'n',
+        'Copycat Knight (Evolved)':'n', 'Phantom Knight':'n', 'Jester Knight':'n', 'Jester Knight (Evolved)':'n',
         'Pegasus':'n', 'Pegasus (Evolved)':'n',
         'Phase Rook':'r', 'Double Strike Rook':'r', 'Heavy Rook':'r', 'Tectonic Rook':'r',
-        'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
+        'Storm Rook':'r', 'Storm Rook (Evolved)':'r', 'Decoy Rook':'r', 'Railgun Rook':'r',
         'Dragon Rook':'r',
         'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
         'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
@@ -23151,16 +23541,16 @@ const MOD_PIECE_TYPE = {
   'Pawn Bayonet':'p', 'Pawn Bayonet (Evolved)':'p',
   'Reinforced Pawn':'p', 'Fast Pawn':'p', 'Fast Pawn (Evolved)':'p',
   'Sniper Pawn':'p', 'Viral Pawn':'p', 'Viral Pawn (Evolved)':'p',
-  'Hive Mind Pawns':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
+  'Hive Mind Pawns':'p', 'Hive Mind Pawns (Evolved)':'p', 'Phoenix Pawn':'p', 'Kamikaze Pawn':'p',
   'Trench Pawn':'p', 'Bounty Hunter Pawn':'p', 'Crab Pawn':'p', 'The Impawnster':'p',
   'Phase Bishop':'b', 'Grey Bishop':'b', 'Mind Control Bishop':'b', 'Boomerang Bishop':'b',
-  'Pinballing Bishop':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
+  'Pinballing Bishop':'b', 'Pinballing Bishop (Evolved)':'b', 'Fog of War Bishop':'b', 'Sanctuary Bishop':'b',
   'Sidestep Knight':'n', 'Longbow Knight':'n', 'Coward Knight':'n', 'Copycat Knight':'n',
   'Necromancer Knight':'n', 'Copycat Knight (Evolved)':'n',
-  'Phantom Knight':'n', 'Jester Knight':'n',
+  'Phantom Knight':'n', 'Jester Knight':'n', 'Jester Knight (Evolved)':'n',
   'Pegasus':'n', 'Pegasus (Evolved)':'n',
   'Phase Rook':'r', 'Double Strike Rook':'r', 'Heavy Rook':'r', 'Tectonic Rook':'r',
-  'Storm Rook':'r', 'Decoy Rook':'r', 'Railgun Rook':'r', 'Dragon Rook':'r',
+  'Storm Rook':'r', 'Storm Rook (Evolved)':'r', 'Decoy Rook':'r', 'Railgun Rook':'r', 'Dragon Rook':'r',
   'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
   'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
   'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
@@ -23169,21 +23559,28 @@ const MOD_PIECE_TYPE = {
 
 // Synergy pairs — if AI already has modA, modB scores higher
 const MOD_SYNERGIES = {
-  'Railgun Rook':     ['Double Strike Rook', 'Phase Rook', 'Tectonic Rook', 'Storm Rook'],
+  'Railgun Rook':     ['Double Strike Rook', 'Phase Rook', 'Tectonic Rook', 'Storm Rook', 'Storm Rook (Evolved)'],
   'Double Strike Rook': ['Railgun Rook', 'Phase Rook'],
   'Heavy Rook':       ['Magnetic Poles', 'Tornado de Caballos', 'Tectonic Rook'],
   'Nuclear Queen':    ['Magnetic Queen'],
   'Berserker Queen':  ['Magnetic Queen', 'Nuclear Queen'],
   'Magnetic Queen':   ['Nuclear Queen'],
   'The Amazon':       ['Berserker Queen', 'Magnetic Queen'],
-  'Fast Pawn':        ['Pawn Bayonet', 'Viral Pawn', 'Hive Mind Pawns', 'Sniper Pawn'],
+  'Fast Pawn':        ['Pawn Bayonet', 'Viral Pawn', 'Hive Mind Pawns', 'Hive Mind Pawns (Evolved)', 'Sniper Pawn'],
   'Crab Pawn':        ['Pawn Bayonet', 'Trench Pawn', 'The Impawnster'],
   'The Impawnster':   ['Crab Pawn', 'Fast Pawn', 'Sniper Pawn'],
-  'Hive Mind Pawns':  ['Fast Pawn', 'Pawn Bayonet', 'Trench Pawn'],
+  'Hive Mind Pawns':  ['Fast Pawn', 'Pawn Bayonet', 'Trench Pawn', 'Crab Pawn'],
+  'Hive Mind Pawns (Evolved)': ['Fast Pawn', 'Pawn Bayonet', 'Crab Pawn', 'Sniper Pawn'],
   'Viral Pawn':       ['Fast Pawn', 'Kamikaze Pawn', 'Bounty Hunter Pawn'],
   'Pegasus':          ['Sidestep Knight', 'Copycat Knight', 'Phantom Knight'],
   'Longbow Knight':   ['Sidestep Knight', 'Pegasus', 'Copycat Knight'],
   'Necromancer Knight': ['Phantom Knight', 'Copycat Knight'],
+  'Jester Knight':    ['Phantom Knight', 'Decoy Rook'],
+  'Jester Knight (Evolved)': ['Phantom Knight', 'Decoy Rook', 'Fog of War Bishop'],
+  'Storm Rook':       ['Railgun Rook', 'Tectonic Rook', 'Double Strike Rook'],
+  'Storm Rook (Evolved)': ['Railgun Rook', 'Tectonic Rook', 'Double Strike Rook'],
+  'Pinballing Bishop': ['Phase Bishop', 'Boomerang Bishop'],
+  'Pinballing Bishop (Evolved)': ['Phase Bishop', 'Boomerang Bishop', 'Fog of War Bishop'],
   'Sanctuary Bishop': ['Grey Bishop', 'Fog of War Bishop', 'Phase Bishop'],
   'Royal Guard':      ["Sovereign's Blessing", 'Sprinting King'],
   "Sovereign's Blessing": ['Royal Guard', 'Sprinting King'],
@@ -23193,13 +23590,26 @@ const MOD_SYNERGIES = {
 
 // Aggressive / defensive bias per modifier (positive = offensive, negative = defensive)
 const MOD_AGGRESSION = {
-  'Nuclear Queen': 3, 'Railgun Rook': 3, 'Kamikaze Pawn': 2, 'Pegasus': 2,
-  'Hive Mind Pawns': 2, 'Magnetic Queen': 2, 'Sniper Pawn': 2, 'Viral Pawn': 2,
+  'Nuclear Queen': 3, 'Nuclear Queen (Evolved)': 3,
+  'Railgun Rook': 3,
+  'Kamikaze Pawn': 2, 'Pegasus': 2, 'Pegasus (Evolved)': 2,
+  'Hive Mind Pawns': 2, 'Hive Mind Pawns (Evolved)': 3,
+  'Magnetic Queen': 2, 'Magnetic Queen (Evolved)': 2,
+  'Sniper Pawn': 2, 'Viral Pawn': 2, 'Viral Pawn (Evolved)': 2,
   'Berserker Queen': 2, 'The Impawnster': 2, 'Longbow Knight': 1, 'The Amazon': 2,
-  'Necromancer Knight': 2, 'Storm Rook': 2, 'Bounty Hunter Pawn': 1,
-  'Double Strike Rook': 1, 'Fast Pawn': 1, 'Pawn Bayonet': 1, 'Crab Pawn': 1, 'Mind Control Bishop': 1,
-  'Copycat Knight': 1, 'Phantom Knight': 0, 'Fog of War Bishop': 0,
-  'Reinforced Pawn': -1, 'Sanctuary Bishop': -2, 'Heavy Rook': -1, 'Royal Guard': -2, "Sovereign's Blessing": -2,
+  'Necromancer Knight': 2,
+  'Storm Rook': 2, 'Storm Rook (Evolved)': 3,
+  'Jester Knight': 1, 'Jester Knight (Evolved)': 2,
+  'Pinballing Bishop': 1, 'Pinballing Bishop (Evolved)': 2,
+  'Bounty Hunter Pawn': 1,
+  'Double Strike Rook': 1, 'Fast Pawn': 1, 'Fast Pawn (Evolved)': 1,
+  'Pawn Bayonet': 1, 'Pawn Bayonet (Evolved)': 2,
+  'Crab Pawn': 1, 'Mind Control Bishop': 1,
+  'Copycat Knight': 1, 'Copycat Knight (Evolved)': 1,
+  'Phantom Knight': 0, 'Fog of War Bishop': 0,
+  'Reinforced Pawn': -1, 'Sanctuary Bishop': -2, 'Heavy Rook': -1,
+  'Royal Guard': -2, 'Royal Guard (Evolved)': -2,
+  "Sovereign's Blessing": -2,
   'Sprinting King': -1, 'Coward Knight': -2, 'Decoy Rook': -1,
   'Phoenix Pawn': -1, 'Boomerang Bishop': 0, 'Phase Rook': 0, 'Phase Bishop': 0,
 };
@@ -24124,6 +24534,253 @@ async function requestAiMove() {
 
 
 // ============================================================
+// ============================================================
+//  CHAOSFISH EMOTIONAL STATE SYSTEM
+// ============================================================
+//
+//  Emotional scale (continuous float, clamped 0–5):
+//    0 = excited   1 = proud   2 = normal   3 = baffled   4 = frustrated   5 = furious
+//
+//  The state drifts back toward 2.0 (normal) over time unless
+//  game events push it. Events fire weighted random nudges so
+//  Chaosfish sometimes barely reacts and sometimes tilts hard.
+// ------------------------------------------------------------
+
+const CF_EMOTION = {
+  EXCITED:    0,
+  PROUD:      1,
+  NORMAL:     2,
+  BAFFLED:    3,
+  FRUSTRATED: 4,
+  FURIOUS:    5,
+};
+
+// Map portrait thresholds: which image file to show per tier
+const CF_PORTRAIT_MAP = [
+  { maxVal: 0.6,  src: 'chaosfish_excited.png'   }, // 0.0 – 0.6  → excited
+  { maxVal: 1.5,  src: 'chaosfish_proud.png'      }, // 0.6 – 1.5  → proud
+  { maxVal: 2.5,  src: 'chaosfish.png'            }, // 1.5 – 2.5  → normal
+  { maxVal: 3.5,  src: 'chaosfish_baffled.png'    }, // 2.5 – 3.5  → baffled
+  { maxVal: 4.5,  src: 'chaosfish_frustrated.png' }, // 3.5 – 4.5  → frustrated
+  { maxVal: 5.0,  src: 'chaosfish_furious.png'    }, // 4.5 – 5.0  → furious
+];
+
+// Current emotional state (float)
+let cfEmotion = CF_EMOTION.NORMAL;
+
+// Minimum ms between portrait switches (prevents rapid flicker)
+const CF_PORTRAIT_SWITCH_COOLDOWN = 2500;
+let   cfLastPortraitSwitch = 0;
+let   cfPortraitDecayTimer = null;
+
+// Which portrait src is currently displayed
+let cfCurrentPortraitSrc = 'chaosfish.png';
+
+// ── Core helpers ─────────────────────────────────────────────
+
+/** Clamp cfEmotion to [0, 5] */
+function cfClampEmotion() {
+  cfEmotion = Math.max(0, Math.min(5, cfEmotion));
+}
+
+/** Return which portrait src corresponds to the current cfEmotion */
+function cfEmotionToPortraitSrc(val) {
+  for (const tier of CF_PORTRAIT_MAP) {
+    if (val <= tier.maxVal) return tier.src;
+  }
+  return 'chaosfish_furious.png';
+}
+
+/**
+ * Update the Chaosfish portrait img wherever it appears.
+ * Respects cooldown to avoid rapid switching.
+ */
+function cfRefreshPortrait(forceInstant) {
+  const targetSrc = cfEmotionToPortraitSrc(cfEmotion);
+  if (targetSrc === cfCurrentPortraitSrc) return; // already correct
+
+  const now = Date.now();
+  if (!forceInstant && (now - cfLastPortraitSwitch) < CF_PORTRAIT_SWITCH_COOLDOWN) return;
+
+  // Update every Chaosfish portrait img in the document
+  const imgEls = document.querySelectorAll('.gpc-avatar-chaosfish img');
+  imgEls.forEach(img => {
+    img.style.transition = 'opacity 0.35s ease';
+    img.style.opacity = '0';
+    setTimeout(() => {
+      img.src = targetSrc;
+      img.style.opacity = '1';
+    }, 350);
+  });
+
+  cfCurrentPortraitSrc = targetSrc;
+  cfLastPortraitSwitch = now;
+}
+
+/** Passive decay: nudge cfEmotion toward 2.0 (normal) every N seconds */
+function cfStartDecay() {
+  cfStopDecay();
+  cfPortraitDecayTimer = setInterval(() => {
+    if (!cfCommentaryActive) return;
+    const decayAmount = 0.08 + Math.random() * 0.07; // 0.08–0.15 per tick
+    if (cfEmotion < CF_EMOTION.NORMAL) {
+      cfEmotion = Math.min(CF_EMOTION.NORMAL, cfEmotion + decayAmount);
+    } else if (cfEmotion > CF_EMOTION.NORMAL) {
+      cfEmotion = Math.max(CF_EMOTION.NORMAL, cfEmotion - decayAmount);
+    }
+    cfClampEmotion();
+    cfRefreshPortrait();
+  }, 4000); // tick every 4s
+}
+
+function cfStopDecay() {
+  if (cfPortraitDecayTimer) { clearInterval(cfPortraitDecayTimer); cfPortraitDecayTimer = null; }
+}
+
+// ── Event push ───────────────────────────────────────────────
+
+/**
+ * EVENT DEFINITIONS
+ * Each event has:
+ *   delta      – base emotional nudge (negative = toward proud, positive = toward furious)
+ *   variance   – random spread applied to the delta (±variance * random)
+ *   tiltChance – probability [0,1] of a rare "extra tilt" (sudden disproportionate reaction)
+ *   tiltBoost  – additional push added when tilt fires
+ *   calmChance – probability [0,1] of barely reacting at all (Chaosfish is unimpressed)
+ */
+const CF_EVENTS = {
+  // AI doing well — pushes toward proud/excited (negative delta)
+  aiCaptures:       { delta: -0.55, variance: 0.5,  tiltChance: 0.08, tiltBoost: -1.0, calmChance: 0.20 },
+  aiCapturesQueen:  { delta: -1.2,  variance: 0.5,  tiltChance: 0.14, tiltBoost: -1.3, calmChance: 0.05 },
+  aiChecks:         { delta: -0.45, variance: 0.35, tiltChance: 0.07, tiltBoost: -0.8, calmChance: 0.15 },
+  aiPromotes:       { delta: -0.9,  variance: 0.4,  tiltChance: 0.12, tiltBoost: -1.1, calmChance: 0.08 },
+  aiWins:           { delta: -2.0,  variance: 0.3,  tiltChance: 0.00, tiltBoost:  0.0, calmChance: 0.00 },
+  aiTactic:         { delta: -0.7,  variance: 0.5,  tiltChance: 0.10, tiltBoost: -1.0, calmChance: 0.18 },
+  aiExcited:        { delta: -1.8,  variance: 0.4,  tiltChance: 0.20, tiltBoost: -1.5, calmChance: 0.00 },
+
+  // AI doing badly — pushes toward baffled/furious (positive delta)
+  playerCaptures:      { delta:  0.55, variance: 0.5,  tiltChance: 0.12, tiltBoost:  1.1, calmChance: 0.22 },
+  playerCapturesQueen: { delta:  1.3,  variance: 0.5,  tiltChance: 0.18, tiltBoost:  1.5, calmChance: 0.04 },
+  aiInCheck:           { delta:  0.65, variance: 0.45, tiltChance: 0.14, tiltBoost:  1.0, calmChance: 0.12 },
+  playerPromotes:      { delta:  0.85, variance: 0.45, tiltChance: 0.15, tiltBoost:  1.2, calmChance: 0.08 },
+  aiLoses:             { delta:  2.0,  variance: 0.3,  tiltChance: 0.00, tiltBoost:  0.0, calmChance: 0.00 },
+
+  // Chaos / modifier events
+  chaosDraft:     { delta:  0.40, variance: 0.7,  tiltChance: 0.10, tiltBoost:  1.2, calmChance: 0.25 },
+  extremeChaos:   { delta:  0.90, variance: 0.6,  tiltChance: 0.18, tiltBoost:  1.5, calmChance: 0.10 },
+};
+
+/**
+ * Push Chaosfish's emotional state based on a named event.
+ * Called from the game hooks below.
+ */
+function cfPushEmotion(eventName) {
+  const def = CF_EVENTS[eventName];
+  if (!def) return;
+
+  // Calm check: sometimes Chaosfish barely reacts
+  if (Math.random() < def.calmChance) {
+    // Tiny bleed of 0–15% of the normal delta
+    cfEmotion += def.delta * 0.15 * Math.random();
+    cfClampEmotion();
+    cfRefreshPortrait();
+    return;
+  }
+
+  // Base delta with variance
+  let push = def.delta + (Math.random() * 2 - 1) * def.variance;
+
+  // Rare tilt: disproportionate reaction
+  if (def.tiltChance > 0 && Math.random() < def.tiltChance) {
+    push += def.tiltBoost;
+  }
+
+  cfEmotion += push;
+  cfClampEmotion();
+  cfRefreshPortrait();
+}
+
+/** Reset emotion to normal and refresh portrait (called on game start/restart) */
+function cfResetEmotion() {
+  cfEmotion = CF_EMOTION.NORMAL;
+  cfCurrentPortraitSrc = 'chaosfish.png';
+  cfLastPortraitSwitch = 0;
+  // Update portrait to normal immediately
+  const imgEls = document.querySelectorAll('.gpc-avatar-chaosfish img');
+  imgEls.forEach(img => { img.src = 'chaosfish.png'; img.style.opacity = '1'; });
+}
+
+// ── Emotion-aware line picking ────────────────────────────────
+
+/**
+ * Emotion bias tags. Lines tagged with a bias keyword will be
+ * preferred (weighted 3×) when cfEmotion is in that zone.
+ * This is opt-in: untagged lines are always eligible.
+ */
+const CF_EMOTION_BIAS = {
+  excited:    { min: 0.0, max: 0.8 },
+  proud:      { min: 0.8, max: 1.8 },
+  baffled:    { min: 2.6, max: 3.4 },
+  frustrated: { min: 3.4, max: 4.2 },
+  furious:    { min: 4.2, max: 5.0 },
+};
+
+// Tag specific lines with emotion bias hints.
+// Format: append a zero-width marker object instead of modifying strings.
+// We store bias metadata separately and let cfPickLineEmotional weight the pool.
+const CF_LINE_BIAS = {
+  // aiCaptures: excited/proud-biased when cfEmotion is low
+  aiCaptures: {
+    excited:   ["CHOMP. That piece has been reef-claimed.", "That was not a trade. That was a feeding.", "Nom.", "CHOMP.", "Heheheh. Mine.", "ACQUIRED.", "The reef provides."],
+    proud:     ["Consumption complete. Delicious.", "I did not come here to negotiate.", "CAPTURED. Stockfish would call this an inaccuracy. I call it lunch.", "One fewer obstacle between me and your king."],
+    furious:   ["I have out-fished the position.", "The feeding frenzy continues.", "Another piece enters the deep.", "CHOMP. Magnus would be mildly disappointed."],
+  },
+  playerCaptures: {
+    baffled:    ["A temporary setback in the grand aquatic plan.", "This is fine. The ocean is fine.", "Statistical anomaly. filing complaint with the sea.", "I have made a small financial error."],
+    frustrated: ["I have been reef-taxed… unacceptable.", "My formation leaks like a broken aquarium.", "I am being out-calculated by reality itself.", "My evaluation bar is emotionally compromised.", "Even Stockfish would say skill issue."],
+    furious:    ["NO. That was a high-value fish asset.", "Stockfish is silently judging me right now.", "Stockfish said I would improve after losses. I did not.", "I am shedding pieces like wet kelp."],
+  },
+  idle: {
+    excited:    ["My neural coral is firing at optimal frequency.", "Nothing has exploded yet. statistically concerning.", "The engine suggests calm. I suggest violence."],
+    proud:      ["I have seen this position before. I did not enjoy it then either.", "Position nominally balanced. I am bored.", "Chaosfish reviews position… Stockfish would be confused and ashamed.", "Chaosfish calculates… splashy outcomes pending."],
+    furious:    ["I have evolved into a panic salmon.", "This position tastes like regret.", "The board is legally haunted.", "I am 87% fish and 13% emotional damage."],
+  },
+};
+
+/**
+ * Emotion-weighted line picker.
+ * Pulls from the standard pool but boosts lines matching current emotional state.
+ */
+function cfPickLineEmotional(scenario) {
+  const pool = CHAOSFISH_LINES[scenario];
+  if (!pool || pool.length === 0) return null;
+
+  const biasMeta = CF_LINE_BIAS[scenario];
+  if (!biasMeta) return pool[Math.floor(Math.random() * pool.length)];
+
+  // Figure out which bias bucket we're in (if any)
+  let activeBiasKey = null;
+  for (const [key, range] of Object.entries(CF_EMOTION_BIAS)) {
+    if (cfEmotion >= range.min && cfEmotion <= range.max) {
+      activeBiasKey = key;
+      break;
+    }
+  }
+
+  const biasedLines = (activeBiasKey && biasMeta[activeBiasKey]) ? biasMeta[activeBiasKey] : [];
+
+  // Build weighted pool: biased lines get 3× weight
+  const weighted = [];
+  for (const line of pool) {
+    weighted.push(line);
+    if (biasedLines.includes(line)) {
+      weighted.push(line, line); // extra 2 copies = 3× total
+    }
+  }
+
+  return weighted[Math.floor(Math.random() * weighted.length)];
+}
+
 //  CHAOSFISH COMMENTARY SYSTEM
 // ============================================================
 
@@ -24428,7 +25085,7 @@ function cfShowBubble(msg, durationMs) {
 }
 
 function cfSay(scenario, durationMs) {
-  const line = cfPickLine(scenario);
+  const line = cfPickLineEmotional(scenario);
   if (line) cfShowBubble(line, durationMs);
 }
 
@@ -24451,6 +25108,8 @@ let cfLastDraftedModifier = null;
 // Special chaos-draft quip: 50% chance of "what the hell is a X", 50% generic chaos line
 function cfSayChaosDraft(modName) {
   if (!cfCommentaryActive) return;
+  // Chaos modifier always nudges emotion toward baffled/furious
+  cfPushEmotion('chaosDraft');
   if (modName && Math.random() < 0.5) {
     const wtfLines = [
       `What the hell is a ${modName}?!`,
@@ -24469,6 +25128,8 @@ function cfSayChaosDraft(modName) {
 
 function cfStartCommentary() {
   cfCommentaryActive = true;
+  cfResetEmotion();
+  cfStartDecay();
   cfScheduleIdle();
   // Opening greeting after a short delay
   setTimeout(() => cfShowBubble("Chaosfish online. processing your inevitable defeat.", 3500), 2200);
@@ -24476,6 +25137,7 @@ function cfStartCommentary() {
 
 function cfStopCommentary() {
   cfCommentaryActive = false;
+  cfStopDecay();
   clearTimeout(cfBubbleTimeout);
   clearTimeout(cfIdleTimeout);
   // Remove any lingering bubble
@@ -24533,11 +25195,17 @@ move = function(x1, y1, x2, y2, castleType) {
   const _cfCaptured = board[y2] && board[y2][x2] ? board[y2][x2] : null;
   const _cfWasAiMove = (turn === aiColor);
   _origMove.apply(this, arguments);
-  // Chaosfish capture commentary (fires ~500ms after move so board updates first)
+  // Chaosfish capture commentary + emotion (fires ~500ms after move so board updates first)
   if (aiActive && gameMode === 'local' && _cfCaptured && _cfCaptured !== 'D' && _cfCaptured !== 'G' && _cfCaptured !== 'g') {
     if (_cfWasAiMove) {
+      // AI captured — push toward proud
+      const isQueen = _cfCaptured.toLowerCase() === 'q';
+      cfPushEmotion(isQueen ? 'aiCapturesQueen' : 'aiCaptures');
       setTimeout(() => cfSay('aiCaptures', 2800), 500);
     } else {
+      // Player captured — push toward frustrated/furious
+      const isQueen = _cfCaptured.toLowerCase() === 'q';
+      cfPushEmotion(isQueen ? 'playerCapturesQueen' : 'playerCaptures');
       setTimeout(() => cfSay('playerCaptures', 2800), 500);
     }
   }
@@ -24549,6 +25217,7 @@ const _origRestart = restart;
 restart = function() {
   _origRestart.apply(this, arguments);
   if (!aiActive) return;
+  cfResetEmotion();
   // If AI was active and restart is called manually, re-trigger AI if it's AI's turn
   if (aiActive && turn === aiColor) setTimeout(requestAiMove, 400);
 };
