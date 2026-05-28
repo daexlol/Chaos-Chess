@@ -23360,11 +23360,11 @@ const AI_DIFFICULTY_THINK_MS = {
 
 // Display names
 const AI_DIFFICULTY_LABELS = {
-  1:  'Level 1 — Beginner',  2:  'Level 2 — Novice',
-  3:  'Level 3 — Amateur',   4:  'Level 4 — Casual',
-  5:  'Level 5 — Intermediate', 6: 'Level 6 — Club',
-  7:  'Level 7 — Advanced',  8:  'Level 8 — Expert',
-  9:  'Level 9 — Master',    10: 'Level 10 — Grandmaster'
+  1:  'Level 1 (Beginner)',  2:  'Level 2 (Novice)',
+  3:  'Level 3 (Amateur)',   4:  'Level 4 (Casual)',
+  5:  'Level 5 (Intermediate)', 6: 'Level 6 (Club)',
+  7:  'Level 7 (Advanced)',  8:  'Level 8 (Expert)',
+  9:  'Level 9 (Master)',    10: 'Level 10 (Grandmaster)'
 };
 
 // Sublabels
@@ -24635,8 +24635,8 @@ function setupLocalGameCards() {
   // AI Mode: show Chaosfish with level and title
   if (aiActive) {
     const aiDiff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
-    const fullLabel = AI_DIFFICULTY_LABELS[aiDiff] || 'Level 5 — Intermediate';
-    const titleOnly = fullLabel.split(' — ')[1] || 'Intermediate';
+    const fullLabel = AI_DIFFICULTY_LABELS[aiDiff] || 'Level 5 (Intermediate)';
+    const titleOnly = fullLabel.split(' (')[1]?.slice(0, -1) || 'Intermediate';
     const opponentName = `Chaosfish`;
     const opponentRating = `Level ${aiDiff} (${titleOnly})`;
 
