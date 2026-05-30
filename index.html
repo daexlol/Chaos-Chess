@@ -4159,6 +4159,11 @@ button:active {
 .local-ai-diff-labels span:nth-child(2) {
   color: #60a5fa; font-weight: 700; font-size: 12px;
 }
+.local-ai-elo-label {
+  display: block; font-size: 10px; font-weight: 500;
+  color: rgba(255,255,255,0.38); letter-spacing: 0.03em;
+  margin-top: 1px;
+}
 .local-ai-slider {
   width: 100%; -webkit-appearance: none; appearance: none;
   height: 4px; border-radius: 2px; outline: none; cursor: pointer;
@@ -9791,7 +9796,7 @@ button:active {
           <div class="local-ai-difficulty-wrap">
             <div class="local-ai-diff-labels">
               <span>Level 1</span>
-              <span id="local-ai-diff-label">Level 5</span>
+              <span id="local-ai-diff-label">Level 5<span class="local-ai-elo-label" id="local-ai-elo-label">~1400 Elo</span></span>
               <span>Level 10</span>
             </div>
             <input type="range" id="local-ai-difficulty" class="local-ai-slider" min="1" max="10" value="5"
@@ -9799,7 +9804,16 @@ button:active {
             <div class="local-ai-diff-sublabel" id="local-ai-diff-sublabel">Thinks for ~500ms per move</div>
           </div>
 
-          <div class="pvt-section-label" style="margin-top:16px;">Play as</div>
+          <div class="local-ai-difficulty-wrap" style="margin-top:14px;">
+            <div class="local-ai-diff-labels">
+              <span>100ms</span>
+              <span id="local-ai-think-label">1000ms</span>
+              <span>5000ms</span>
+            </div>
+            <input type="range" id="local-ai-think-time" class="local-ai-slider" min="0" max="8" value="4"
+              oninput="localAiUpdateThinkLabel(this.value)">
+            <div class="local-ai-diff-sublabel">Think time per move</div>
+          </div>
           <div class="local-ai-color-row">
             <button class="local-ai-color-btn local-ai-color-active" id="local-ai-color-white" onclick="localAiSelectColor('white')">♔ White</button>
             <button class="local-ai-color-btn" id="local-ai-color-random" onclick="localAiSelectColor('random')">🎲 Random</button>
@@ -11185,6 +11199,7 @@ const pieceImages = {
 let board, selected=null, turn='white', moveCount=0;
 let animating = false; // true while a piece move animation is in progress
 let lastMove = null;  // {fromX, fromY, toX, toY} — highlighted after each move
+let epSquare  = null; // {x, y} of en-passant target square, or null — set after a pawn double-push
 let pinnedShake = null; // {x, y} for piece that should shake
 // Castling rights — revoked when king or that rook moves from its starting square
 let castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
@@ -12070,7 +12085,8 @@ function draw(){
       if(settings.showLastMove && lastMove && (
         (x === lastMove.fromX && y === lastMove.fromY) ||
         (x === lastMove.toX   && y === lastMove.toY)   ||
-        (lastMove.decoyX !== undefined && x === lastMove.decoyX && y === lastMove.decoyY)
+        (lastMove.decoyX !== undefined && x === lastMove.decoyX && y === lastMove.decoyY) ||
+        (lastMove.decoy2X !== undefined && x === lastMove.decoy2X && y === lastMove.decoy2Y)
       )){
         sq.classList.add((x + y) % 2 === 0 ? 'last-move-light' : 'last-move-dark');
       }
@@ -12755,6 +12771,7 @@ function applyPuzzlePosition(puzzle){
   selected = null;
   legalMoves = [];
   lastMove = null;
+  epSquare  = null;
   whiteCaptured = [];
   blackCaptured = [];
   moveHistory = [];
@@ -12906,6 +12923,7 @@ function savePuzzleCheckpoint(){
     playerMovesUsed: puzzlePlayerMovesUsed,
     castleRights: Object.assign({}, castleRights),
     lastMove: lastMove ? Object.assign({}, lastMove) : null,
+    epSquare: epSquare ? Object.assign({}, epSquare) : null,
     whiteCaptured: whiteCaptured.slice(),
     blackCaptured: blackCaptured.slice(),
     kamikazeBombs: JSON.parse(JSON.stringify(kamikazeBombs)),
@@ -12928,6 +12946,7 @@ function rewindToCurrentCheckpoint(message){
   puzzlePlayerMovesUsed = cp.playerMovesUsed;
   castleRights = Object.assign({}, cp.castleRights);
   lastMove = cp.lastMove ? Object.assign({}, cp.lastMove) : null;
+  epSquare  = cp.epSquare  ? Object.assign({}, cp.epSquare)  : null;
   whiteCaptured = cp.whiteCaptured.slice();
   blackCaptured = cp.blackCaptured.slice();
   kamikazeBombs = JSON.parse(JSON.stringify(cp.kamikazeBombs));
@@ -13498,6 +13517,8 @@ function getBoardHash(){
   hash += (cr.whiteKing?'1':'0')+(cr.blackKing?'1':'0')+
           (cr.whiteRookK?'1':'0')+(cr.whiteRookQ?'1':'0')+
           (cr.blackRookK?'1':'0')+(cr.blackRookQ?'1':'0');
+  // Include en-passant availability — same position with/without EP option is distinct
+  hash += epSquare ? (epSquare.x + ',' + epSquare.y) : '-';
   return hash;
 }
 
@@ -13828,6 +13849,16 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
           moves.push({x:nx,y:ny});
         }
       });
+      // En passant capture
+      if(epSquare) {
+        // The en-passant target square must be diagonally ahead and the landing
+        // square must be empty (it's the square the double-pushed pawn skipped over)
+        [[x-1,y+dir],[x+1,y+dir]].forEach(([nx,ny])=>{
+          if(nx === epSquare.x && ny === epSquare.y && !board[ny]?.[nx]) {
+            moves.push({x:nx, y:ny, enPassant:true});
+          }
+        });
+      }
       // Pawn Bayonet / Pawn Bayonet (Evolved): forward capture
       let hasBayonet = modifiers.includes('Pawn Bayonet') || modifiers.includes('Pawn Bayonet (Evolved)');
       if(hasBayonet && board[y+dir]?.[x] && isWhite(board[y+dir][x])!==isWhite(piece)) {
@@ -14977,7 +15008,7 @@ function move(x1,y1,x2,y2,castleType){
 
   // Capture move metadata before legalMoves is cleared, for Chaos Log
   const _selectedMoveMeta = legalMoves.find(m => m.x===x2 && m.y===y2) || {};
-  const _moverWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+  const _moverWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
 
   if(_selectedMoveMeta.portal) {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Portal Pair — entered ${sqNotation(_selectedMoveMeta.portalEntry.x,_selectedMoveMeta.portalEntry.y)} and emerged at ${sqNotation(x2,y2)}!`);
@@ -15068,6 +15099,7 @@ function move(x1,y1,x2,y2,castleType){
       selected = null;
       legalMoves = [];
       lastMove = null;
+      epSquare  = null;
       if(puzzleValidation.rewind){
         rewindToCurrentCheckpoint(puzzleValidation.message);
       } else {
@@ -15133,7 +15165,7 @@ function move(x1,y1,x2,y2,castleType){
       setPieceData(x2,y2,{shieldBurned:true});
       showToast(`${isWhite(captured)?'White':'Black'} pawn reinforced! 🛡️`);
       // Log the shield absorb — the defended pawn's owner gets the 'you' tag
-      const _rpWho = (gameMode==='online') ? (isWhite(captured)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(captured) ? 'you' : 'opponent');
+      const _rpWho = (gameMode==='online') ? (isWhite(captured)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(captured)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(captured) ? 'you' : 'opponent'));
       logChaos(_rpWho, 'ability', (_rpWho==='you'?'Your':'Opponent\'s') + ` Reinforced Pawn absorbed a hit at ${sqNotation(x2,y2)}! 🛡️`);
       // Attacker loses their turn — record the failed capture and end the turn
       recordMove(piece, x1, y1, x2, y2, null, null);
@@ -15149,7 +15181,7 @@ function move(x1,y1,x2,y2,castleType){
     mindControlled = true;
     captured = isWhite(piece) ? captured.toUpperCase() : captured.toLowerCase();
     console.log('Mind control activated!');
-    const _mcWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _mcWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     const _mcPiece = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[board[y2][x2]?.toLowerCase()] || 'piece';
     logChaos(_mcWho, 'ability', (_mcWho==='you'?'You':'Opponent') + ` used Mind Control Bishop — ${_mcPiece} at ${sqNotation(x2,y2)} switched sides! 🌀`);
   }
@@ -15165,7 +15197,7 @@ function move(x1,y1,x2,y2,castleType){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
           const _ppSpot = respawnPhoenixPawn(captured);
-          const _ppWho = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+          const _ppWho = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
           logChaos(_ppWho, 'ability', (_ppWho==='you'?'Your':'Opponent\'s') + ` Phoenix Pawn respawned at ${_ppSpot ? sqNotation(_ppSpot.x,_ppSpot.y) : '?'}!`);
         }
       }
@@ -15173,7 +15205,7 @@ function move(x1,y1,x2,y2,castleType){
       // Kamikaze Pawn: place bomb on capture square
       if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
-        const _kzWho = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+        const _kzWho = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
         logChaos(_kzWho, 'ability', (_kzWho==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
       }
     } else {
@@ -15185,7 +15217,7 @@ function move(x1,y1,x2,y2,castleType){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
           const _ppSpot2 = respawnPhoenixPawn(captured);
-          const _ppWho2 = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+          const _ppWho2 = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
           logChaos(_ppWho2, 'ability', (_ppWho2==='you'?'Your':'Opponent\'s') + ` Phoenix Pawn respawned at ${_ppSpot2 ? sqNotation(_ppSpot2.x,_ppSpot2.y) : '?'}!`);
         }
       }
@@ -15193,7 +15225,7 @@ function move(x1,y1,x2,y2,castleType){
       // Kamikaze Pawn: place bomb on capture square
       if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
-        const _kzWho2 = isWhite(captured) ? (gameMode==='online' ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
+        const _kzWho2 = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
         logChaos(_kzWho2, 'ability', (_kzWho2==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
       }
     }
@@ -15285,8 +15317,59 @@ function move(x1,y1,x2,y2,castleType){
       if(x2 === 0 && y2 === 0) castleRights.blackRookQ = false;
     }
     
-    if(captured) clearPieceData(x2,y2);
+    if(captured) {
+      // Before clearing the captured piece's data, check whether it was the real
+      // piece that owns active fakes — if so, remove all its decoys/jester-decoys.
+      // We check !data.decoy and !data.jesterDecoy to ensure we're removing fakes
+      // for the *real* piece being captured, not a fake being traded away normally.
+      const _capData = getPieceData(x2, y2);
+      if(!_capData.decoy && !_capData.jesterDecoy) {
+        if(captured.toLowerCase() === 'r' && modifiers.includes('Decoy Rook')) {
+          removeDecoyRook(captured);
+        }
+        if(captured.toLowerCase() === 'n' &&
+           (modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)'))) {
+          removeJesterDecoys(captured);
+        }
+      }
+      clearPieceData(x2,y2);
+    }
     movePieceData(x1,y1,x2,y2);
+
+    // ── En passant ────────────────────────────────────────────────────────────
+    // Detect and execute en-passant capture: pawn moved diagonally to empty square == epSquare
+    const _isEP = piece.toLowerCase() === 'p' &&
+                  epSquare && x2 === epSquare.x && y2 === epSquare.y &&
+                  !captured; // landing square was empty (it's always empty for EP)
+    if(_isEP) {
+      // The captured pawn sits on the same file as destination but on the rank we came from
+      const _epCapturedY = y1; // same rank as the capturing pawn started
+      const _epCapturedPawn = board[_epCapturedY][x2];
+      if(_epCapturedPawn) {
+        if(isWhite(_epCapturedPawn)) whiteCaptured.push(_epCapturedPawn);
+        else                          blackCaptured.push(_epCapturedPawn);
+        // Decoy/jester cleanup on the captured pawn (edge case: pawn can't spawn fakes,
+        // but call the guards for consistency in case future modifiers change that)
+        const _epPd = getPieceData(x2, _epCapturedY);
+        if(!_epPd.decoy && !_epPd.jesterDecoy) {
+          if(_epCapturedPawn.toLowerCase() === 'r' && modifiers.includes('Decoy Rook')) removeDecoyRook(_epCapturedPawn);
+          if(_epCapturedPawn.toLowerCase() === 'n' && (modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)'))) removeJesterDecoys(_epCapturedPawn);
+        }
+        board[_epCapturedY][x2] = '';
+        clearPieceData(x2, _epCapturedY);
+        captured = _epCapturedPawn; // treat as a real capture for sound/logging
+        if(!castleType) playCaptureSound();
+        logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` captured en passant at ${sqNotation(x2,y2)}!`);
+      }
+    }
+
+    // Update epSquare: set after a pawn double-push, clear on every other move
+    if(piece.toLowerCase() === 'p' && Math.abs(y2 - y1) === 2) {
+      // The EP target square is the square the pawn jumped over
+      epSquare = { x: x2, y: (y1 + y2) / 2 };
+    } else {
+      epSquare = null;
+    }
     
     // Decoy Rook: leave decoy on previous square
     if(piece.toLowerCase()==='r' && modifiers.includes('Decoy Rook')){
@@ -15318,10 +15401,17 @@ function move(x1,y1,x2,y2,castleType){
         });
       }
 
-      // Include the decoy square in the last-move highlight
-      if(lastMove) lastMove.decoyX = jesterDecoyMove.x, lastMove.decoyY = jesterDecoyMove.y;
+      // Include the decoy square(s) in the last-move highlight
+      if(lastMove) {
+        lastMove.decoyX = jesterDecoyMove.x;
+        lastMove.decoyY = jesterDecoyMove.y;
+        if(jesterDecoyMove2) {
+          lastMove.decoy2X = jesterDecoyMove2.x;
+          lastMove.decoy2Y = jesterDecoyMove2.y;
+        }
+      }
       // Chaos Log — don't reveal which knight is real
-      const _jWho = (gameMode === 'online') ? (isWhite(piece) === (myColor === 'white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _jWho = (gameMode === 'online') ? (isWhite(piece) === (myColor === 'white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       const _jEvoSuffix = jesterEvolved ? ' Two decoys...' : '';
       logChaos(_jWho, 'ability', (_jWho === 'you' ? 'You' : 'Opponent') + ' used Jester Knight — a decoy appeared somewhere...' + _jEvoSuffix);
     }
@@ -15347,7 +15437,7 @@ function move(x1,y1,x2,y2,castleType){
       playExplosionSound();
       showExplosion(x2,y2);
       explode(x2,y2);
-      const _nqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _nqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_nqWho, 'ability', (_nqWho==='you'?'You':'Opponent') + ` used Nuclear Queen — explosion at ${sqNotation(x2,y2)}! ☢️`);
     }
 
@@ -15356,7 +15446,7 @@ function move(x1,y1,x2,y2,castleType){
       playExplosionSound();
       showExplosion(x2,y2);
       explode(x2,y2);
-      const _nqeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _nqeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_nqeWho, 'ability', (_nqeWho==='you'?'You':'Opponent') + ` used Nuclear Queen — nuclear zones placed around ${sqNotation(x2,y2)}! ☢️`);
       // Place a nuclear zone on the capture square AND every adjacent square
       for(let dy=-1; dy<=1; dy++){
@@ -15375,21 +15465,21 @@ function move(x1,y1,x2,y2,castleType){
   // Magnetic Queen: pull all enemy pieces in 3x3 area 1 square closer
   if(modifiers.includes('Magnetic Queen') && captured && piece.toLowerCase()==='q'){
     magneticPull(x2,y2,piece);
-    const _mqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _mqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_mqWho, 'ability', (_mqWho==='you'?'You':'Opponent') + ' used Magnetic Queen — nearby enemies were pulled in!');
   }
 
   // Magnetic Queen (Evolved): push all enemy pieces in 5x5 area 1 square away
   if(modifiers.includes('Magnetic Queen (Evolved)') && captured && piece.toLowerCase()==='q'){
     magneticPush(x2,y2,piece);
-    const _mpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _mpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_mpWho, 'ability', (_mpWho==='you'?'You':'Opponent') + ' used Magnetic Queen — enemies were blasted away!');
   }
   
   // Tectonic Rook: push all enemy pieces in same row/column away
   if(modifiers.includes('Tectonic Rook') && captured && piece.toLowerCase()==='r'){
     tectonicPush(x2,y2,piece);
-    const _trWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _trWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_trWho, 'ability', (_trWho==='you'?'You':'Opponent') + ` used Tectonic Rook — shockwave at ${sqNotation(x2,y2)}!`);
   }
   
@@ -15399,7 +15489,7 @@ function move(x1,y1,x2,y2,castleType){
     setPieceData(x2,y2,{phantom:true, phantomTurns:2}); // 2 turns = opponent's turn + your next turn
     console.log(`Knight at (${x2},${y2}) became phantom. Data:`, getPieceData(x2,y2));
     console.log('All piece data:', pieceData);
-    const _phWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _phWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_phWho, 'ability', (_phWho==='you'?'You':'Opponent') + ` used Phantom Knight — knight at ${sqNotation(x2,y2)} is untargetable!`);
   }
   
@@ -15419,7 +15509,7 @@ function move(x1,y1,x2,y2,castleType){
       const _ncPiece = _ncIsWhiteKnight ? captured.toUpperCase() : captured.toLowerCase();
       board[_ncSpot.y][_ncSpot.x] = _ncPiece;
       clearPieceData(_ncSpot.x, _ncSpot.y);
-      const _ncWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _ncWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       const _ncPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen'}[captured.toLowerCase()] || captured.toLowerCase();
       logChaos(_ncWho, 'ability', (_ncWho==='you'?'Your':'Opponent\'s') + ` Necromancer Knight resurrected a ${_ncPieceName} at ${sqNotation(_ncSpot.x,_ncSpot.y)}! 💀`);
     }
@@ -15428,7 +15518,7 @@ function move(x1,y1,x2,y2,castleType){
   // Copycat Knight: gain captured piece's movement for 1 turn
   if(piece.toLowerCase()==='n' && captured && modifiers.includes('Copycat Knight') && !mindControlled && captured !== 'D' && captured !== 'G' && captured !== 'g'){
     setPieceData(x2,y2,{copycatPiece: captured.toLowerCase(), copycatTurns: 2}); // 2 turns like phantom
-    const _ccWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _ccWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     const _ccPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[captured.toLowerCase()] || captured.toLowerCase();
     logChaos(_ccWho, 'ability', (_ccWho==='you'?'You':'Opponent') + ` used Copycat Knight — adopted ${_ccPieceName} movement!`);
   }
@@ -15436,7 +15526,7 @@ function move(x1,y1,x2,y2,castleType){
   // Copycat Knight (Evolved): permanently adopt captured piece's movement (no expiry — updates on next capture)
   if(piece.toLowerCase()==='n' && captured && modifiers.includes('Copycat Knight (Evolved)') && !mindControlled && captured !== 'D' && captured !== 'G' && captured !== 'g'){
     setPieceData(x2,y2,{copycatPiece: captured.toLowerCase(), copycatEvolved: true});
-    const _cceWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _cceWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     const _ccePieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'}[captured.toLowerCase()] || captured.toLowerCase();
     logChaos(_cceWho, 'ability', (_cceWho==='you'?'You':'Opponent') + ` used Copycat Knight (Evolved) — permanently became a ${_ccePieceName}!`);
   }
@@ -15465,7 +15555,7 @@ function move(x1,y1,x2,y2,castleType){
       }
       if(railgunFired){
         playRailgunSound();
-        const _rgWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+        const _rgWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
         logChaos(_rgWho, 'ability', (_rgWho==='you'?'You':'Opponent') + ` used Railgun Rook — pierced the file!`);
       }
     }
@@ -15476,7 +15566,7 @@ function move(x1,y1,x2,y2,castleType){
     const stormStrikes = modifiers.includes('Storm Rook (Evolved)') ? 3 : 1;
     stormRookStrike(x2, y2, stormStrikes);
     playLightningSound();
-    const _srWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _srWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     const _srSuffix = stormStrikes > 1 ? ` (${stormStrikes} bolts!)` : '';
     logChaos(_srWho, 'ability', (_srWho==='you'?'You':'Opponent') + ` used Storm Rook — lightning struck around ${sqNotation(x2,y2)}!` + _srSuffix);
   }
@@ -15486,10 +15576,12 @@ function move(x1,y1,x2,y2,castleType){
     doubleStrikeActive = true;
     doubleStrikeRookX = x2;
     doubleStrikeRookY = y2;
-    const _dsWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _dsWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_dsWho, 'ability', (_dsWho==='you'?'You':'Opponent') + ' used Double Strike Rook — strike again!');
     setTimeout(()=>{
-      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
+      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) {
+        requestAiMove(); return;
+      }
       selected = {x:x2, y:y2};
       legalMoves = getLegalMoves(x2,y2).filter(m=>!board[m.y][m.x]); // Only non-capture moves
       draw();
@@ -15509,10 +15601,12 @@ function move(x1,y1,x2,y2,castleType){
     berserkerQueenActive = true;
     berserkerQueenX = x2;
     berserkerQueenY = y2;
-    const _bqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _bqWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_bqWho, 'ability', (_bqWho==='you'?'You':'Opponent') + ' used Berserker Queen — move again!');
     setTimeout(()=>{
-      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
+      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) {
+        requestAiMove(); return;
+      }
       selected = {x:x2, y:y2};
       legalMoves = getLegalMoves(x2,y2).filter(m=>!board[m.y][m.x]);
       draw();
@@ -15555,10 +15649,12 @@ function move(x1,y1,x2,y2,castleType){
       cowardRetreatActive = true;
       cowardKnightX = x2;
       cowardKnightY = y2;
-      const _ckWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _ckWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_ckWho, 'ability', (_ckWho==='you'?'Your':'Opponent\'s') + ` Coward Knight at ${sqNotation(x2,y2)} must now retreat! 😨`);
       setTimeout(()=>{
-        if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) return;
+        if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) {
+          requestAiMove(); return;
+        }
         selected = {x:x2, y:y2};
         legalMoves = retreatMoves;
         draw();
@@ -15579,7 +15675,7 @@ function move(x1,y1,x2,y2,castleType){
     let pData = getPieceData(x2, y2); // pawn is now at x2,y2 after the move
     const _newKills = (pData.bountyKills || 0) + 1;
     setPieceData(x2, y2, { bountyKills: _newKills });
-    const _bhWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+    const _bhWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
     logChaos(_bhWho, 'ability', (_bhWho==='you'?'Your':'Opponent\'s') + ` Bounty Hunter Pawn scored kill #${_newKills} at ${sqNotation(x2,y2)}!`);
   }
 
@@ -15593,7 +15689,7 @@ function move(x1,y1,x2,y2,castleType){
       let newData = {...pawnData, viralDuplicate: true};
       setPieceData(x1, y1, newData);
       autoPromotePassivePawns();
-      const _vpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _vpWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_vpWho, 'ability', (_vpWho==='you'?'Your':'Opponent\'s') + ` Viral Pawn cloned at ${sqNotation(x1,y1)}!`);
     }
   }
@@ -15607,7 +15703,7 @@ function move(x1,y1,x2,y2,castleType){
         setPieceData(x1, y1, {...movedData});
       }
       autoPromotePassivePawns();
-      const _vpeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _vpeWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_vpeWho, 'ability', (_vpeWho==='you'?'Your':'Opponent\'s') + ` Viral Pawn (Evolved) cloned at ${sqNotation(x1,y1)}!`);
     }
   }
@@ -15685,7 +15781,7 @@ function move(x1,y1,x2,y2,castleType){
     });
 
     if(hiveEvolved && hiveMoves.some(m => m.capture)){
-      const _hmWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent');
+      const _hmWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       logChaos(_hmWho, 'ability', (_hmWho==='you'?'Your':'Opponent\'s') + ' Hive Mind Pawns (Evolved) — simultaneous captures!');
     }
     autoPromotePassivePawns();
@@ -15914,9 +16010,10 @@ function explode(x,y){
   let effectCount = 0;
   for(let dx=-1;dx<=1;dx++){
     for(let dy=-1;dy<=1;dy++){
-      let piece = board[y+dy]?.[x+dx];
+      let nx = x+dx, ny = y+dy;
+      let piece = board[ny]?.[nx];
       // Kings and ducks are immune to explosions
-      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D' && !isSanctuaryBishopAt(x+dx,y+dy)) {
+      if(piece && piece.toLowerCase() !== 'k' && piece !== 'D' && !isSanctuaryBishopAt(nx,ny)) {
         // Track captured piece from explosion
         let explodingPiece = board[y][x]; // The queen that caused the explosion
         if(isWhite(explodingPiece)){
@@ -15924,9 +16021,21 @@ function explode(x,y){
         } else {
           blackCaptured.push(piece);
         }
-        
-        board[y+dy][x+dx]='';
-        clearPieceData(x+dx,y+dy);
+
+        // If the exploding piece is the real owner of active fakes, remove them
+        const _expData = getPieceData(nx, ny);
+        if(!_expData.decoy && !_expData.jesterDecoy) {
+          if(piece.toLowerCase() === 'r' && modifiers.includes('Decoy Rook')) {
+            removeDecoyRook(piece);
+          }
+          if(piece.toLowerCase() === 'n' &&
+             (modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)'))) {
+            removeJesterDecoys(piece);
+          }
+        }
+
+        board[ny][nx]='';
+        clearPieceData(nx,ny);
         effectCount++;
       }
     }
@@ -19730,7 +19839,7 @@ function placeRoyalGuard(x, y){
   royalGuardKingY = -1;
 
   // Log Royal Guard placement
-  const _rgWho = (gameMode==='online') ? ((isWhiteKing ? 'white' : 'black') === myColor ? 'you' : 'opponent') : (isWhiteKing ? 'you' : 'opponent');
+  const _rgWho = (gameMode==='online') ? ((isWhiteKing ? 'white' : 'black') === myColor ? 'you' : 'opponent') : (myColor ? ((isWhiteKing ? 'white' : 'black') === myColor ? 'you' : 'opponent') : (isWhiteKing ? 'you' : 'opponent'));
   logChaos(_rgWho, 'ability', (_rgWho==='you'?'Your':'Opponent\'s') + ` Royal Guard bodyguard placed at ${sqNotation(x,y)}! 🛡️`);
 
   // Dismiss the toast
@@ -20380,6 +20489,7 @@ function restart(){
   selected=null;
   legalMoves=[];
   lastMove=null;
+  epSquare=null;
   whiteCaptured=[];
   blackCaptured=[];
   moveHistory=[];
@@ -20940,6 +21050,7 @@ function handleRemoteData(data){
     }
   }
   if(data.castleRights) castleRights = data.castleRights;
+  epSquare = data.epSquare || null;
   if(data.timeBombs !== undefined) timeBombs = data.timeBombs;
   if(data.pitSquare !== undefined) pitSquare = data.pitSquare;
   if(data.portalPair !== undefined) portalPair = data.portalPair;
@@ -21058,6 +21169,7 @@ function sendGameState(){
       moveCount: moveCount,
       modifiers: modifiers,
       castleRights: castleRights,
+      epSquare: epSquare,
       timeBombs: timeBombs,
       pitSquare: pitSquare,
       portalPair: portalPair,
@@ -23763,10 +23875,6 @@ function aiApplyDraftPick(mod) {
 let _localAiColor = 'white';
 
 // Think time per level (ms)
-const AI_DIFFICULTY_THINK_MS = {
-  1: 1000,   2: 1000,   3: 1000,  4: 1000,  5: 1000,
-  6: 1000,  7: 1000, 8: 1000, 9: 1000, 10: 1000
-};
 
 // Display names
 const AI_DIFFICULTY_LABELS = {
@@ -23779,34 +23887,19 @@ const AI_DIFFICULTY_LABELS = {
 
 // Sublabels
 const AI_DIFFICULTY_SUBLABEL = {
-  1:  'Blunders frequently — just learning the ropes',
-  2:  'Makes lots of mistakes',
-  3:  'Misses tactics often',
-  4:  'Plays reasonably but makes clear errors',
-  5:  'Decent play with occasional inaccuracies',
-  6:  'Club-level play — rarely blunders',
+  1:  'Blunders constantly. Barely knows what it\'s doing',
+  2:  'Makes lots of big mistakes and misses obvious threats',
+  3:  'Misses tactics frequently. Quite beatable',
+  4:  'Plays reasonably but drops pieces and makes clear errors',
+  5:  'Decent club-entry play with noticeable inaccuracies',
+  6:  'Club-level play. Occasionally blunders under pressure',
   7:  'Strong play with minor inaccuracies',
-  8:  'Expert-level — makes very few mistakes',
-  9:  'Master-level play',
-  10: 'Plays the strongest move almost every time',
+  8:  'Expert-level. Makes very few mistakes',
+  9:  'Master-level play. Very rarely slips',
+  10: 'Maximum strength. Plays the best move',
 };
 
-// Per-level error injection config:
-// blunderChance: probability of making a near-random move (complete blunder)
-// mistakeChance: probability of picking a random-ish move among legal options
-// randomPoolFraction: when making a "mistake", pick from the worst X% of moves
-const AI_ERROR_CONFIG = {
-  1:  { blunderChance: 0.30, mistakeChance: 0.50, randomPoolFraction: 0.90 },  // Blunders frequently
-  2:  { blunderChance: 0.18, mistakeChance: 0.45, randomPoolFraction: 0.80 },  // Makes lots of mistakes
-  3:  { blunderChance: 0.10, mistakeChance: 0.35, randomPoolFraction: 0.70 },  // Misses tactics often
-  4:  { blunderChance: 0.05, mistakeChance: 0.20, randomPoolFraction: 0.55 },  // Plays reasonably but makes errors
-  5:  { blunderChance: 0.02, mistakeChance: 0.12, randomPoolFraction: 0.45 },  // Decent play with occasional inaccuracies
-  6:  { blunderChance: 0.006, mistakeChance: 0.08, randomPoolFraction: 0.35 }, // Rarely blunders
-  7:  { blunderChance: 0.001, mistakeChance: 0.04, randomPoolFraction: 0.25 }, // Minor inaccuracies
-  8:  { blunderChance: 0.0005, mistakeChance: 0.02, randomPoolFraction: 0.20 },// Very few mistakes
-  9:  { blunderChance: 0.0001, mistakeChance: 0.005, randomPoolFraction: 0.10 },// Master-level play
-  10: { blunderChance: 0.0, mistakeChance: 0.002, randomPoolFraction: 0.05 },   // Strongest move almost always
-};
+
 
 function showLocalSetup() {
   hideAll();
@@ -23816,6 +23909,8 @@ function showLocalSetup() {
   localAiSelectColor('white');
   const slider = document.getElementById('local-ai-difficulty');
   if (slider) { slider.value = 5; localAiUpdateLabel(5); }
+  const thinkSlider = document.getElementById('local-ai-think-time');
+  if (thinkSlider) { thinkSlider.value = 4; localAiUpdateThinkLabel(4); }
 }
 
 function backFromLocalSetup() {
@@ -23824,12 +23919,31 @@ function backFromLocalSetup() {
   updateMenuHubUI();
 }
 
+// Approximate Elo estimates per level — matches the UCI_Elo / Skill Level settings
+// in applyStockfishSkillLevel so the label is honest about actual engine strength.
+const AI_DIFFICULTY_ELO = {
+  1: '~600 Elo',  2: '~800 Elo',  3: '~1000 Elo', 4: '~1200 Elo',
+  5: '~1400 Elo', 6: '~1700 Elo', 7: '~2000 Elo',  8: '~2300 Elo',
+  9: '~2600 Elo', 10: '~3200 Elo'
+};
+
 function localAiUpdateLabel(val) {
   val = parseInt(val);
   const lbl = document.getElementById('local-ai-diff-label');
+  const elo = document.getElementById('local-ai-elo-label');
   const sub = document.getElementById('local-ai-diff-sublabel');
   const slider = document.getElementById('local-ai-difficulty');
-  if (lbl) lbl.textContent = AI_DIFFICULTY_LABELS[val] || 'Medium';
+  // Set the main label text without touching the nested elo span
+  if (lbl) {
+    const textNode = lbl.firstChild;
+    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+      textNode.textContent = AI_DIFFICULTY_LABELS[val] || 'Medium';
+    } else {
+      // Fallback: prepend a text node if one doesn't exist yet
+      lbl.insertBefore(document.createTextNode(AI_DIFFICULTY_LABELS[val] || 'Medium'), lbl.firstChild);
+    }
+  }
+  if (elo) elo.textContent = AI_DIFFICULTY_ELO[val] || '';
   if (sub) sub.textContent = AI_DIFFICULTY_SUBLABEL[val] || '';
   // Update slider gradient to reflect position
   if (slider) {
@@ -23837,6 +23951,21 @@ function localAiUpdateLabel(val) {
     slider.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${pct}%, rgba(255,255,255,0.12) ${pct}%)`;
   }
 }
+
+const AI_THINK_STEPS = [100, 200, 500, 750, 1000, 1500, 2000, 3500, 5000];
+
+function localAiUpdateThinkLabel(val) {
+  val = parseInt(val);
+  const ms = AI_THINK_STEPS[val] ?? 1000;
+  const lbl = document.getElementById('local-ai-think-label');
+  if (lbl) lbl.textContent = ms >= 1000 ? (ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1) + 's' : ms + 'ms';
+  const slider = document.getElementById('local-ai-think-time');
+  if (slider) {
+    const pct = (val / (AI_THINK_STEPS.length - 1)) * 100;
+    slider.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${pct}%, rgba(255,255,255,0.12) ${pct}%)`;
+  }
+}
+
 
 function localAiSelectColor(color) {
   _localAiColor = color;
@@ -23850,12 +23979,96 @@ function localAiSelectColor(color) {
 
 let stockfishWorker   = null;
 let stockfishReady    = false;
+
+// ── Unified Stockfish request queue ──────────────────────────────────────────
+// Every search (main AI move + all probes) goes through sfRequest(), which
+// queues it and runs requests strictly one at a time through a single permanent
+// onmessage handler.  This eliminates the race condition where stockfishEvalFen
+// was overwriting stockfishWorker.onmessage mid-search, clobbering the main
+// search's bestmove callback and causing the "timed out — continuing without
+// best move" failure.
+let _sfActiveReq  = null; // { resolve, reject, timer, lastPv, lastScore, lastKnownMate, isMainSearch, id, label, startMs }
+const _sfQueue    = [];   // pending requests not yet started
+let _sfReqCounter = 0;    // monotonic ID so every request is traceable across log lines
+
+function _sfRunNext() {
+  if (_sfActiveReq || _sfQueue.length === 0 || !stockfishWorker || !stockfishReady) return;
+  const req = _sfQueue.shift();
+  _sfActiveReq = req;
+  req.startMs = performance.now();
+  console.log(`[SF#${req.id}] START ${req.label} thinkMs=${req.thinkMs} queueRemaining=${_sfQueue.length}`);
+  req.timer = setTimeout(() => {
+    console.warn(`[SF#${req.id}] TIMEOUT after ${req.timeoutMs}ms — resolving with fallback`);
+    const r = _sfActiveReq;
+    _sfActiveReq = null;
+    if (r) r.resolve(r._timeoutResult !== undefined ? r._timeoutResult : null);
+    _sfRunNext();
+  }, req.timeoutMs);
+  stockfishWorker.postMessage(`position fen ${req.fen}`);
+  stockfishWorker.postMessage(`go movetime ${req.thinkMs}`);
+}
+
+// Internal helper — enqueue a search and return a Promise that resolves when
+// bestmove arrives (or timeout fires).
+// opts: { fen, thinkMs, timeoutMs, isMainSearch, _timeoutResult, label? }
+function _sfEnqueue(opts) {
+  return new Promise((resolve, reject) => {
+    const id = ++_sfReqCounter;
+    const label = opts.label || (opts.isMainSearch ? 'main' : 'probe');
+    const req = Object.assign({ resolve, reject, timer: null, lastPv: null, lastScore: null, lastKnownMate: false, id, label }, opts);
+    _sfQueue.push(req);
+    _sfRunNext();
+  });
+}
+
+// Legacy alias kept so the rest of the AI code still compiles unchanged.
+// This is only the *variable declaration* — the actual value is set inside
+// the main AI search via the queue mechanism below.
 let stockfishCallback = null;
-let stockfishLastPv   = null; // tracks last pv move from info lines for mate position fallback
-let stockfishLastKnownMate = false; // true when last info line indicated a forced mate
 let aiThinkMs         = 500;
 let aiColor           = 'black'; // which colour the AI plays
 let aiActive          = false;
+
+// Mutex: true while an AI pipeline is actively running (from TURN START through FINAL).
+// Prevents duplicate pipelines from spawning when multiple requestAiMove() calls
+// land close together (e.g. the double-spawn on game start when AI plays white).
+let _aiRunning        = false;
+
+function applyStockfishSkillLevel() {
+  if (!stockfishWorker || !stockfishReady) return;
+  const _sfDiff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+
+  // Two-track difficulty model:
+  //
+  // Levels 1–5: use UCI_LimitStrength + UCI_Elo.
+  //   This directly caps the engine's playing strength in Elo, which is far more
+  //   effective at producing genuinely weak play than Skill Level alone.
+  //   Stockfish Skill Level 0 still plays ~1100 Elo; UCI_Elo can go down to ~500.
+  //
+  // Levels 6–10: disable Elo cap, use Skill Level only.
+  //   At these levels the player expects coherent, strong play — Skill Level
+  //   provides the right gradation without the erratic blundering of Elo caps.
+  //
+  //                  diff:  1     2     3     4     5
+  const eloByLevel = { 1: 600, 2: 800, 3: 1000, 4: 1200, 5: 1400 };
+
+  //                      diff:  1   2   3   4   5    6    7    8    9   10
+  const skillByLevel = [         0,  0,  1,  3,  5,   8,  13,  17,  19,  20];
+
+  if (_sfDiff <= 5) {
+    // Enable Elo cap
+    stockfishWorker.postMessage('setoption name UCI_LimitStrength value true');
+    stockfishWorker.postMessage(`setoption name UCI_Elo value ${eloByLevel[_sfDiff]}`);
+    // Also set a low Skill Level as a secondary limiter
+    stockfishWorker.postMessage(`setoption name Skill Level value ${skillByLevel[_sfDiff - 1]}`);
+    console.log(`[SF] difficulty ${_sfDiff} → UCI_Elo=${eloByLevel[_sfDiff]} + Skill Level=${skillByLevel[_sfDiff - 1]}`);
+  } else {
+    // Disable Elo cap, rely on Skill Level only
+    stockfishWorker.postMessage('setoption name UCI_LimitStrength value false');
+    stockfishWorker.postMessage(`setoption name Skill Level value ${skillByLevel[_sfDiff - 1]}`);
+    console.log(`[SF] difficulty ${_sfDiff} → Skill Level=${skillByLevel[_sfDiff - 1]} (no Elo cap)`);
+  }
+}
 
 function initStockfish() {
   if (stockfishWorker) return;
@@ -23865,28 +24078,66 @@ function initStockfish() {
     .then(blob => {
       const blobUrl = URL.createObjectURL(blob);
       stockfishWorker = new Worker(blobUrl);
+      // ── Single permanent onmessage — NEVER replaced ───────────────────────
+      // All Stockfish output is routed here.  UCI handshake messages are handled
+      // directly; search output (info / bestmove) is routed to _sfActiveReq so
+      // that probes and the main search never interfere with each other.
       stockfishWorker.onmessage = function(e) {
         const line = e.data;
+
+        // ── UCI handshake ────────────────────────────────────────────────────
         if (line === 'uciok') {
           stockfishWorker.postMessage('isready');
-        } else if (line === 'readyok') {
+          return;
+        }
+        if (line === 'readyok') {
           stockfishReady = true;
-        } else if (typeof line === 'string' && line.startsWith('info') && stockfishCallback) {
+          applyStockfishSkillLevel();
+          _sfRunNext(); // drain queue now that the engine is ready
+          return;
+        }
+
+        // ── Search output — route to active request ──────────────────────────
+        if (typeof line !== 'string') return;
+        const req = _sfActiveReq;
+        if (!req) return; // stale message after cancel — ignore
+
+        if (line.startsWith('info')) {
+          // Track the most recent PV move and mate/score for the active request.
+          // No console output here — PV lines are high-frequency and not useful for tracing.
           const pvMatch = line.match(/\bpv\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
-          if (pvMatch) { stockfishLastPv = pvMatch[1]; console.log('[SF] pv captured:', stockfishLastPv); }
-          if (line.includes('score mate ')) { stockfishLastKnownMate = true; console.log('[SF] mate detected in:', line); }
-        } else if (typeof line === 'string' && line.startsWith('bestmove') && stockfishCallback) {
-          console.log('[SF] bestmove line:', line, '| lastPv:', stockfishLastPv, '| knownMate:', stockfishLastKnownMate);
+          if (pvMatch) req.lastPv = pvMatch[1];
+          const scoreMatch = line.match(/score cp (-?\d+)/);
+          const mateMatch  = line.match(/score mate (-?\d+)/);
+          if (scoreMatch) req.lastScore = parseInt(scoreMatch[1]);
+          if (mateMatch)  { req.lastScore = parseInt(mateMatch[1]) > 0 ? 100000 : -100000; }
+          if (line.includes('score mate ')) req.lastKnownMate = true;
+
+        } else if (line.startsWith('bestmove')) {
+          const elapsedMs = Math.round(performance.now() - (req.startMs || 0));
+          clearTimeout(req.timer);
+          _sfActiveReq = null;
+
           const parts = line.split(' ');
           const mv = parts[1];
-          const cb = stockfishCallback;
-          stockfishCallback = null;
-          const effectiveMv = (mv && mv !== '(none)' && mv !== '0000') ? mv : stockfishLastPv;
-          const wasMate = stockfishLastKnownMate;
-          console.log('[SF] effectiveMv:', effectiveMv, '| wasMate:', wasMate);
-          stockfishLastPv = null;
-          stockfishLastKnownMate = false;
-          if (cb) cb(effectiveMv || null, wasMate);
+          const effectiveMv = (mv && mv !== '(none)' && mv !== '0000') ? mv : req.lastPv;
+          console.log(`[SF#${req.id}] DONE ${req.label} elapsed=${elapsedMs}ms bestmove=${mv} effectiveMv=${effectiveMv} score=${req.lastScore} wasMate=${req.lastKnownMate}`);
+
+          // Resolve with the right shape depending on what the caller expects
+          if (req.isMainSearch) {
+            // Main AI search expects { uciMove, wasMate }
+            req.resolve({ uciMove: effectiveMv || null, wasMate: req.lastKnownMate });
+          } else {
+            // Probe (stockfishEvalFen) expects a centipawn score
+            const score = req.lastScore;
+            if (effectiveMv && effectiveMv.includes('(none)')) {
+              req.resolve(100000); // no legal moves → checkmate for the side just moved
+            } else {
+              req.resolve(score !== null ? -score : 0);
+            }
+          }
+
+          _sfRunNext(); // start the next queued request immediately
         }
       };
       stockfishWorker.postMessage('uci');
@@ -23895,6 +24146,7 @@ function initStockfish() {
       console.error('Failed to load Chaosfish:', err);
       showToast('Could not load Chaosfish engine — check your internet connection.', 4000);
       aiActive = false;
+      _aiRunning = false;
     });
 }
 
@@ -23917,13 +24169,22 @@ function boardToFen() {
   fen += ' ' + (turn === 'white' ? 'w' : 'b');
   let cr = '';
   if (castleRights) {
-    if (castleRights.whiteKingside)  cr += 'K';
-    if (castleRights.whiteQueenside) cr += 'Q';
-    if (castleRights.blackKingside)  cr += 'k';
-    if (castleRights.blackQueenside) cr += 'q';
+    // Use the correct castleRights property names (whiteKing/whiteRookK/whiteRookQ etc.)
+    // and cross-check that the king and rook are actually still on their starting squares —
+    // modifiers can move or remove pieces without always revoking castleRights.
+    if (castleRights.whiteKing && castleRights.whiteRookK && board[7][4] === 'K' && board[7][7] === 'R') cr += 'K';
+    if (castleRights.whiteKing && castleRights.whiteRookQ && board[7][4] === 'K' && board[7][0] === 'R') cr += 'Q';
+    if (castleRights.blackKing && castleRights.blackRookK && board[0][4] === 'k' && board[0][7] === 'r') cr += 'k';
+    if (castleRights.blackKing && castleRights.blackRookQ && board[0][4] === 'k' && board[0][0] === 'r') cr += 'q';
   }
   fen += ' ' + (cr || '-');
-  fen += ' - 0 ' + Math.ceil((moveCount + 1) / 2);
+  // En-passant target square
+  if (epSquare) {
+    fen += ' ' + 'abcdefgh'[epSquare.x] + (8 - epSquare.y);
+  } else {
+    fen += ' -';
+  }
+  fen += ' 0 ' + Math.ceil((moveCount + 1) / 2);
   return fen;
 }
 
@@ -24021,56 +24282,62 @@ function simulateMoveToFen(fx, fy, tx, ty, castleType) {
     if (empty) fen += empty;
     if (y < 7) fen += '/';
   }
+  // Build castling rights for the post-move position.
+  // Start from the current game rights and revoke based on what moved/was captured.
+  let simCr = '';
+  if (castleRights) {
+    const simPieceType = simPiece ? simPiece.toLowerCase() : '';
+    const wKingMoved  = (simPiece === 'K');
+    const bKingMoved  = (simPiece === 'k');
+    const wRookKMoved = (simPiece === 'R' && fx === 7 && fy === 7);
+    const wRookQMoved = (simPiece === 'R' && fx === 0 && fy === 7);
+    const bRookKMoved = (simPiece === 'r' && fx === 7 && fy === 0);
+    const bRookQMoved = (simPiece === 'r' && fx === 0 && fy === 0);
+    // Captured a rook on its starting square?
+    const wRookKCaptured = (tx === 7 && ty === 7 && simCapture === 'R');
+    const wRookQCaptured = (tx === 0 && ty === 7 && simCapture === 'R');
+    const bRookKCaptured = (tx === 7 && ty === 0 && simCapture === 'r');
+    const bRookQCaptured = (tx === 0 && ty === 0 && simCapture === 'r');
+
+    const wK  = castleRights.whiteKing  && !wKingMoved;
+    const wRK = castleRights.whiteRookK && !wRookKMoved && !wRookKCaptured;
+    const wRQ = castleRights.whiteRookQ && !wRookQMoved && !wRookQCaptured;
+    const bK  = castleRights.blackKing  && !bKingMoved;
+    const bRK = castleRights.blackRookK && !bRookKMoved && !bRookKCaptured;
+    const bRQ = castleRights.blackRookQ && !bRookQMoved && !bRookQCaptured;
+
+    // Also verify pieces are still on their starting squares in the simulated board
+    if (wK && wRK && simBoard[7][4] === 'K' && simBoard[7][7] === 'R') simCr += 'K';
+    if (wK && wRQ && simBoard[7][4] === 'K' && simBoard[7][0] === 'R') simCr += 'Q';
+    if (bK && bRK && simBoard[0][4] === 'k' && simBoard[0][7] === 'r') simCr += 'k';
+    if (bK && bRQ && simBoard[0][4] === 'k' && simBoard[0][0] === 'r') simCr += 'q';
+  }
+
+  // Compute post-move en-passant square: set only if the simulated move was a pawn double-push
+  let simEpStr = '-';
+  if (simPiece && simPiece.toLowerCase() === 'p' && Math.abs(ty - fy) === 2) {
+    const simEpY = (fy + ty) / 2;
+    simEpStr = 'abcdefgh'[tx] + (8 - simEpY);
+  }
+
   // Switch turn
   const nextTurn = (turn === 'white') ? 'b' : 'w';
-  fen += ' ' + nextTurn + ' - - 0 ' + Math.ceil((moveCount + 1) / 2);
+  fen += ' ' + nextTurn + ' ' + (simCr || '-') + ' ' + simEpStr + ' 0 ' + Math.ceil((moveCount + 1) / 2);
   return fen;
 }
 
-// Ask Stockfish to evaluate a FEN, resolve with centipawn score from AI's perspective
-function stockfishEvalFen(fen, thinkMs) {
-  return new Promise((resolve) => {
-    if (!stockfishWorker || !stockfishReady) { resolve(-99999); return; }
-
-    let score = null;
-    let settled = false;
-    const tempHandler = stockfishWorker.onmessage;
-
-    const finish = (value) => {
-      if (settled) return;
-      settled = true;
-      stockfishWorker.onmessage = tempHandler;
-      resolve(value);
-    };
-
-    // Safety timeout: if Stockfish doesn't respond in time, resolve neutrally
-    // so the probe loop is never stuck forever.
-    const timer = setTimeout(() => {
-      console.warn('[SF] stockfishEvalFen timed out — resolving neutral');
-      finish(score !== null ? -score : 0);
-    }, thinkMs * 3 + 2000);
-
-    stockfishWorker.onmessage = function(e) {
-      const line = e.data;
-      if (typeof line === 'string') {
-        const scoreMatch = line.match(/score cp (-?\d+)/);
-        const mateMatch  = line.match(/score mate (-?\d+)/);
-        if (scoreMatch) score = parseInt(scoreMatch[1]);
-        if (mateMatch)  score = parseInt(mateMatch[1]) > 0 ? 100000 : -100000;
-
-        if (line.startsWith('bestmove')) {
-          clearTimeout(timer);
-          if (line.includes('(none)') || line.includes('0000')) {
-            finish(100000);
-          } else {
-            finish(score !== null ? -score : 0);
-          }
-        }
-      }
-    };
-
-    stockfishWorker.postMessage(`position fen ${fen}`);
-    stockfishWorker.postMessage(`go movetime ${thinkMs}`);
+// Ask Stockfish to evaluate a FEN, resolve with centipawn score from AI's perspective.
+// Uses the unified request queue — never replaces stockfishWorker.onmessage.
+// Pass label (e.g. 'probe[AI#3]') to tie probe logs back to the requesting turn.
+function stockfishEvalFen(fen, thinkMs, label) {
+  if (!stockfishWorker || !stockfishReady) return Promise.resolve(-99999);
+  return _sfEnqueue({
+    fen,
+    thinkMs,
+    timeoutMs: thinkMs * 3 + 2000,
+    isMainSearch: false,
+    label: label || 'probe',
+    _timeoutResult: 0  // resolve neutral on timeout so the probe loop is never stuck
   });
 }
 
@@ -24236,57 +24503,94 @@ async function requestAiMove() {
   if (turn !== aiColor) return;
   if (gameMode !== 'local') return;
 
-  // ── Handle secondary moves (Double Strike Rook / Coward Knight) ───────────
-  // These fire immediately without the Stockfish think delay — the AI just
-  // picks the best available move from the constrained set.
+  // ── Mutex: one pipeline at a time ────────────────────────────────────────
+  // Multiple call sites (startLocalGame, completeTurn, restart wrapper, secondary
+  // move timeouts) can all fire requestAiMove() within the same JS tick or within
+  // a few hundred milliseconds of each other.  Without this guard the function
+  // re-enters while the first invocation is still awaiting Stockfish, resulting in
+  // two independent pipelines both racing to call move() on the same turn.
+  //
+  // Secondary-move paths (doubleStrike, berserkerQueen, cowardRetreat) are intentional
+  // re-entries triggered AFTER a move() call has already advanced the game state, so
+  // they are exempt — they acquire _aiRunning themselves after the quick-return paths.
+  if (_aiRunning) {
+    console.log(`[AI m${moveCount}] BLOCKED — pipeline already running, ignoring duplicate call`);
+    return;
+  }
+
+  // Unique ID for this turn's AI pipeline — ties every log line for this turn together
+  const _aiTurn = ++_sfReqCounter;
+  const _tag = `[AI#${_aiTurn} m${moveCount}]`;
+
+  // Helper: release the mutex and always-log the release point
+  const _release = (reason) => {
+    _aiRunning = false;
+    console.log(`${_tag} RELEASED mutex (${reason})`);
+  };
+
+  // ── Handle secondary moves (Double Strike Rook / Berserker Queen / Coward Knight) ─
+  // These re-enter requestAiMove intentionally after the primary move() call has
+  // already been made and game state updated.  They are fast and don't contend with
+  // a main Stockfish search, so they acquire the mutex here rather than at the top.
   if (doubleStrikeActive) {
+    _aiRunning = true;
+    console.log(`${_tag} SECONDARY double-strike rook at ${doubleStrikeRookX},${doubleStrikeRookY}`);
     const secondMoves = getLegalMoves(doubleStrikeRookX, doubleStrikeRookY)
-      .filter(m => !board[m.y][m.x]); // non-capture only (same filter as player UI)
+      .filter(m => !board[m.y][m.x]);
     if (secondMoves.length > 0) {
-      // Think about the best non-capture square using Stockfish
       const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
       let bestMove = secondMoves[0], bestScore = -Infinity;
       for (const m of secondMoves) {
-        if (!aiActive || turn !== aiColor) return;
+        if (!aiActive || turn !== aiColor) { _release('cancelled mid-double-strike'); return; }
         const simFen = simulateMoveToFen(doubleStrikeRookX, doubleStrikeRookY, m.x, m.y, m.castle || null);
-        const s = await stockfishEvalFen(simFen, probeMs);
+        const s = await stockfishEvalFen(simFen, probeMs, `probe${_tag}`);
         if (s > bestScore) { bestScore = s; bestMove = m; }
       }
-      if (!aiActive || turn !== aiColor) return;
+      if (!aiActive || turn !== aiColor) { _release('cancelled post-double-strike probes'); return; }
+      console.log(`${_tag} FINAL source=double-strike move=${doubleStrikeRookX},${doubleStrikeRookY}->${bestMove.x},${bestMove.y} score=${bestScore}`);
+      _release('double-strike move');
       move(doubleStrikeRookX, doubleStrikeRookY, bestMove.x, bestMove.y, bestMove.castle || null);
     } else {
-      // No valid second move — clear the flag manually so the turn completes
+      console.log(`${_tag} FINAL source=double-strike-skip (no non-capture moves)`);
       doubleStrikeActive = false;
       doubleStrikeRookX = -1;
       doubleStrikeRookY = -1;
+      _release('double-strike-skip');
     }
     return;
   }
 
   if (berserkerQueenActive) {
+    _aiRunning = true;
+    console.log(`${_tag} SECONDARY berserker queen at ${berserkerQueenX},${berserkerQueenY}`);
     const secondMoves = getLegalMoves(berserkerQueenX, berserkerQueenY)
       .filter(m => !board[m.y][m.x]);
     if (secondMoves.length > 0) {
       const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
       let bestMove = secondMoves[0], bestScore = -Infinity;
       for (const m of secondMoves) {
-        if (!aiActive || turn !== aiColor) return;
+        if (!aiActive || turn !== aiColor) { _release('cancelled mid-berserker'); return; }
         const simFen = simulateMoveToFen(berserkerQueenX, berserkerQueenY, m.x, m.y, m.castle || null);
-        const s = await stockfishEvalFen(simFen, probeMs);
+        const s = await stockfishEvalFen(simFen, probeMs, `probe${_tag}`);
         if (s > bestScore) { bestScore = s; bestMove = m; }
       }
-      if (!aiActive || turn !== aiColor) return;
+      if (!aiActive || turn !== aiColor) { _release('cancelled post-berserker probes'); return; }
+      console.log(`${_tag} FINAL source=berserker-queen move=${berserkerQueenX},${berserkerQueenY}->${bestMove.x},${bestMove.y} score=${bestScore}`);
+      _release('berserker-queen move');
       move(berserkerQueenX, berserkerQueenY, bestMove.x, bestMove.y, bestMove.castle || null);
     } else {
+      console.log(`${_tag} FINAL source=berserker-queen-skip (no non-capture moves)`);
       berserkerQueenActive = false;
       berserkerQueenX = -1;
       berserkerQueenY = -1;
+      _release('berserker-queen-skip');
     }
     return;
   }
 
   if (cowardRetreatActive) {
-    // Recompute retreat moves the same way the move function does
+    _aiRunning = true;
+    console.log(`${_tag} SECONDARY coward-knight retreat at ${cowardKnightX},${cowardKnightY}`);
     const kx = cowardKnightX, ky = cowardKnightY;
     const knightPiece = board[ky][kx];
     const enemyIsWhite = knightPiece ? !isWhite(knightPiece) : (aiColor !== 'white');
@@ -24311,32 +24615,115 @@ async function requestAiMove() {
     }
     if (retreatMoves.length > 0) {
       const pick = retreatMoves[Math.floor(Math.random() * retreatMoves.length)];
+      console.log(`${_tag} FINAL source=coward-retreat move=${kx},${ky}->${pick.x},${pick.y}`);
+      _release('coward-retreat move');
       move(kx, ky, pick.x, pick.y, null);
     } else {
-      // No retreat available — clear flag so turn completes
+      console.log(`${_tag} FINAL source=coward-retreat-skip (no retreat squares)`);
       cowardRetreatActive = false;
       cowardKnightX = -1;
       cowardKnightY = -1;
+      _release('coward-retreat-skip');
+    }
+    return;
+  }
+
+  // ── From here on: primary move pipeline — acquire mutex ──────────────────
+  _aiRunning = true;
+
+  // ── Auto-capture king if legal (Chaosfish never misses a king capture) ───
+  for (let ky2 = 0; ky2 < 8; ky2++) {
+    for (let kx2 = 0; kx2 < 8; kx2++) {
+      const kp = board[ky2][kx2];
+      if (!kp || isWhite(kp) === (aiColor === 'white')) continue;
+      if (kp.toLowerCase() !== 'k') continue;
+      for (let ay = 0; ay < 8; ay++) {
+        for (let ax = 0; ax < 8; ax++) {
+          const ap = board[ay][ax];
+          if (!ap || isWhite(ap) !== (aiColor === 'white')) continue;
+          const _apd = getPieceData(ax, ay);
+          if (_apd.decoy || _apd.jesterDecoy) continue;
+          const legal = getLegalMoves(ax, ay);
+          const kingCapture = legal.find(m => m.x === kx2 && m.y === ky2);
+          if (kingCapture) {
+            console.log(`${_tag} FINAL source=king-capture move=${ax},${ay}->${kx2},${ky2}`);
+            _release('king-capture');
+            move(ax, ay, kx2, ky2, kingCapture.castle || null);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  // ── Handle Royal Guard placement ─────────────────────────────────────────
+  if (royalGuardPlacementMode) {
+    const kx = royalGuardKingX, ky = royalGuardKingY;
+    const adjEmpty = [];
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = kx + dx, ny = ky + dy;
+        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && !board[ny][nx])
+          adjEmpty.push({ x: nx, y: ny });
+      }
+    }
+    if (adjEmpty.length > 0) {
+      const pick = adjEmpty[Math.floor(Math.random() * adjEmpty.length)];
+      console.log(`${_tag} FINAL source=royal-guard-placement at ${pick.x},${pick.y}`);
+      _release('royal-guard-placement');
+      placeRoyalGuard(pick.x, pick.y);
+    } else {
+      console.log(`${_tag} FINAL source=royal-guard-skip (no adjacent empty)`);
+      royalGuardPlacementMode = false;
+      royalGuardKingX = -1;
+      royalGuardKingY = -1;
+      if (royalGuardPendingCallback) {
+        const cb = royalGuardPendingCallback;
+        royalGuardPendingCallback = null;
+        _release('royal-guard-skip');
+        cb();
+      } else {
+        _release('royal-guard-skip');
+      }
     }
     return;
   }
 
   await new Promise(r => setTimeout(r, 320));
-  if (!aiActive || turn !== aiColor) return;
+  if (!aiActive || turn !== aiColor) { _release('cancelled during delay'); return; }
 
+  // Wait for Stockfish to be ready — spin in place rather than spawning a new pipeline
   if (!stockfishReady) {
-    setTimeout(requestAiMove, 200);
-    return;
+    let _sfWait = 0;
+    while (!stockfishReady && _sfWait < 5000) {
+      console.warn(`${_tag} Stockfish not ready — waiting 200ms (total waited: ${_sfWait}ms)`);
+      await new Promise(r => setTimeout(r, 200));
+      _sfWait += 200;
+      if (!aiActive || turn !== aiColor) { _release('cancelled while waiting for SF ready'); return; }
+    }
+    if (!stockfishReady) {
+      console.error(`${_tag} Stockfish still not ready after 5s — aborting turn`);
+      _release('SF never ready');
+      return;
+    }
   }
 
+  console.log(`${_tag} TURN START color=${aiColor} thinkMs=${aiThinkMs} fen=${boardToFen()}`);
+
   // ── 1. Collect all AI legal moves ────────────────────────────────────────
-  const allModifierMoves = []; // modifier-exclusive moves
-  const allRegularMoves  = []; // standard-chess moves
+  const allModifierMoves = [];
+  const allRegularMoves  = [];
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       if (!board[y][x] || isWhite(board[y][x]) !== (aiColor === 'white')) continue;
-      const legal = getLegalMoves(x, y);
+      const _pd = getPieceData(x, y);
+      if (_pd.decoy || _pd.jesterDecoy) continue;
+      let legal = getLegalMoves(x, y);
+      if (_pd.phantom && board[y][x].toLowerCase() === 'n') {
+        legal = legal.filter(m => !board[m.y][m.x]);
+      }
       for (const m of legal) {
         const entry = { fx: x, fy: y, tx: m.x, ty: m.y, castle: m.castle || null, moveObj: m };
         if (isModifierMove(x, y, m.x, m.y, m)) {
@@ -24348,187 +24735,193 @@ async function requestAiMove() {
     }
   }
 
+  console.log(`${_tag} MOVES regularCount=${allRegularMoves.length} modifierCount=${allModifierMoves.length}`);
+
   if (allRegularMoves.length === 0 && allModifierMoves.length === 0) {
-    // No legal moves found — could be a modifier edge case or stalemate.
-    // Rather than silently freezing, try a brute-force scan of all pieces as a last resort.
-    console.warn('[AI] no legal moves found via normal scan — trying brute force fallback');
+    console.warn(`${_tag} FALLBACK no legal moves from normal scan — trying brute force`);
     const fallbackMoves = [];
     for (let fy2 = 0; fy2 < 8; fy2++) {
       for (let fx2 = 0; fx2 < 8; fx2++) {
         const p = board[fy2][fx2];
         if (!p || isWhite(p) !== (aiColor === 'white')) continue;
+        const _pdFb = getPieceData(fx2, fy2);
+        if (_pdFb.decoy || _pdFb.jesterDecoy) continue;
         const legal = getLegalMoves(fx2, fy2);
         for (const m of legal) fallbackMoves.push({ fx: fx2, fy: fy2, tx: m.x, ty: m.y, castle: m.castle || null });
       }
     }
     if (fallbackMoves.length > 0) {
       const pick = fallbackMoves[Math.floor(Math.random() * fallbackMoves.length)];
+      console.warn(`${_tag} FINAL source=brute-fallback bruteFallbackCount=${fallbackMoves.length} move=${pick.fx},${pick.fy}->${pick.tx},${pick.ty}`);
+      _release('brute-fallback');
       move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle);
+    } else {
+      _release('no moves at all (checkmate/stalemate)');
     }
-    // If truly no moves exist it's checkmate/stalemate — game will handle it naturally.
     return;
   }
 
-  // ── 2. Get Stockfish's best regular move ──────────────────────────────────
+  // ── 2. Get Stockfish's best regular move ─────────────────────────────────
   const mainFen = boardToFen();
   let stockfishBestMove = null;
-  let stockfishBestScore = -Infinity;
-
   let stockfishFoundMate = false;
 
-  await new Promise((resolve) => {
-    let resolved = false;
-    const safeResolve = () => { if (!resolved) { resolved = true; resolve(); } };
-
-    // Safety timeout: if the main Stockfish call hangs, bail out and fall through
-    // to the scored moves / random fallback rather than freezing indefinitely.
-    const mainTimer = setTimeout(() => {
-      console.warn('[AI] main Stockfish call timed out — continuing without best move');
-      stockfishCallback = null;
-      safeResolve();
-    }, aiThinkMs * 3 + 3000);
-
-    stockfishCallback = (uciMove, wasMate) => {
-      clearTimeout(mainTimer);
-      console.log('[AI] callback uciMove:', uciMove, 'wasMate:', wasMate);
-      if (uciMove) {
-        const fx = uciMove.charCodeAt(0) - 97;
-        const fy = 8 - parseInt(uciMove[1]);
-        const tx = uciMove.charCodeAt(2) - 97;
-        const ty = 8 - parseInt(uciMove[3]);
-        const legal = getLegalMoves(fx, fy);
-        console.log('[AI] legal moves at', fx, fy, ':', legal.map(m=>m.x+','+m.y));
-        if (legal.some(m => m.x === tx && m.y === ty)) {
-          const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
-          stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
-          console.log('[AI] stockfishBestMove set:', stockfishBestMove);
-        } else {
-          console.log('[AI] move', uciMove, 'not in legal moves — stockfishBestMove stays null');
-        }
-      }
-      stockfishFoundMate = !!wasMate;
-      safeResolve();
-    };
-    console.log('[AI] sending FEN to Stockfish:', mainFen);
-    stockfishWorker.postMessage(`position fen ${mainFen}`);
-    stockfishWorker.postMessage(`go movetime ${aiThinkMs}`);
+  const _mainResult = await _sfEnqueue({
+    fen: mainFen,
+    thinkMs: aiThinkMs,
+    timeoutMs: aiThinkMs * 3 + 3000,
+    isMainSearch: true,
+    label: `main${_tag}`,
+    _timeoutResult: { uciMove: null, wasMate: false }
   });
 
-  console.log('[AI] after main call — stockfishBestMove:', stockfishBestMove, 'foundMate:', stockfishFoundMate);
-
-  if (!aiActive || turn !== aiColor) return;
-
-  // Fast path: Stockfish found a forced mate and has a valid move — skip probes
-  if (stockfishBestMove && stockfishFoundMate) {
-    const _diff2 = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
-    const _err2 = AI_ERROR_CONFIG[_diff2] || AI_ERROR_CONFIG[5];
-    if (Math.random() >= _err2.blunderChance + _err2.mistakeChance) {
-      console.log('[AI] playing mate move immediately:', stockfishBestMove);
-      move(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove.castle || null);
-      return;
+  if (!_mainResult || !_mainResult.uciMove) {
+    console.warn(`${_tag} SF-MAIN no move returned (timeout or null bestmove)`);
+  } else {
+    const { uciMove, wasMate } = _mainResult;
+    const fx = uciMove.charCodeAt(0) - 97;
+    const fy = 8 - parseInt(uciMove[1]);
+    const tx = uciMove.charCodeAt(2) - 97;
+    const ty = 8 - parseInt(uciMove[3]);
+    const legal = getLegalMoves(fx, fy);
+    if (legal.some(m => m.x === tx && m.y === ty)) {
+      const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
+      stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
+      console.log(`${_tag} SF-MAIN accepted uciMove=${uciMove} wasMate=${wasMate} -> ${fx},${fy}->${tx},${ty}`);
+    } else {
+      console.warn(`${_tag} SF-MAIN REJECTED uciMove=${uciMove} -> ${fx},${fy}->${tx},${ty} not in getLegalMoves (legalCount=${legal.length})`);
     }
+    stockfishFoundMate = !!wasMate;
   }
 
-  // ── 3. Score ALL moves with quick Stockfish probes ───────────────────────
-  // Regular moves AND modifier moves all get evaluated so the ranked pool is complete.
+  if (!aiActive || turn !== aiColor) { _release('cancelled post-SF-main'); return; }
+
+  // ── Fast path: forced mate — SF move is authoritative, skip all probes ───
+  if (stockfishBestMove && stockfishFoundMate) {
+    console.log(`${_tag} FINAL source=sf-mate move=${stockfishBestMove.fx},${stockfishBestMove.fy}->${stockfishBestMove.tx},${stockfishBestMove.ty}`);
+    _release('sf-mate');
+    move(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove.castle || null);
+    return;
+  }
+
+  // ── 3. Probe modifier moves to see if any beat SF's choice ───────────────
+  // Key principle: Stockfish's full-depth search is the authority for regular
+  // chess moves.  Probes are SHORT (thinkMs/4) and inherently noisier than the
+  // main search, so we NEVER let a probe on a regular move override the SF best
+  // move.  Probes only serve two purposes:
+  //   a) evaluate modifier moves that Stockfish doesn't know about
+  //   b) determine whether a modifier move is better than stockfishBestMove
+  //
+  // If no modifier move beats SF's pick, we play SF's move.
+  // If SF returned nothing, we fall back to the best probe-scored regular move.
   const probeMs = Math.max(50, Math.floor(aiThinkMs / 4));
-  const scoredMoves = []; // { move, score }
 
-  // Score Stockfish's own best move first as a reference
-  if (stockfishBestMove) {
-    const baseFen = simulateMoveToFen(
-      stockfishBestMove.fx, stockfishBestMove.fy,
-      stockfishBestMove.tx, stockfishBestMove.ty,
-      stockfishBestMove.castle
-    );
-    const s = await stockfishEvalFen(baseFen, probeMs);
-    if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: stockfishBestMove, score: s + chaosBonusScore(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove) });
-    stockfishBestScore = s;
-  }
-
-  // Score every modifier move
-  // First do a quick pre-filter with minimal time to skip obviously bad moves
+  // Quick pre-filter: skip modifier moves that are clearly losing (< -300 cp)
   const quickProbeMs = 50;
   const filteredModifierMoves = [];
   for (const mm of allModifierMoves) {
-    if (!aiActive || turn !== aiColor) return;
+    if (!aiActive || turn !== aiColor) { _release('cancelled during modifier pre-filter'); return; }
     const simFen = simulateMoveToFen(mm.fx, mm.fy, mm.tx, mm.ty, mm.castle);
-    const s = await stockfishEvalFen(simFen, quickProbeMs);
-    if (!aiActive || turn !== aiColor) return;
-    // Only keep modifier moves that don't lose badly (threshold: -300 cp)
-    if (s > -300) {
-      filteredModifierMoves.push(mm);
-    }
+    const s = await stockfishEvalFen(simFen, quickProbeMs, `probe${_tag}`);
+    if (!aiActive || turn !== aiColor) { _release('cancelled post modifier pre-filter probe'); return; }
+    if (s > -300) filteredModifierMoves.push(mm);
   }
 
-  // Now do full evaluation on the promising modifier moves
+  // Full probe for promising modifier moves
+  let bestModifierMove = null;
+  let bestModifierScore = -Infinity;
   for (const mm of filteredModifierMoves) {
-    if (!aiActive || turn !== aiColor) return;
+    if (!aiActive || turn !== aiColor) { _release('cancelled during modifier full probe'); return; }
     const simFen = simulateMoveToFen(mm.fx, mm.fy, mm.tx, mm.ty, mm.castle);
-    const s = await stockfishEvalFen(simFen, probeMs);
-    if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: mm, score: s + chaosBonusScore(mm.fx, mm.fy, mm.tx, mm.ty, mm) });
+    const s = await stockfishEvalFen(simFen, probeMs, `probe${_tag}`);
+    if (!aiActive || turn !== aiColor) { _release('cancelled post modifier full probe'); return; }
+    const scored = s + chaosBonusScore(mm.fx, mm.fy, mm.tx, mm.ty, mm);
+    if (scored > bestModifierScore) { bestModifierScore = scored; bestModifierMove = mm; }
   }
 
-  // Also score a sample of regular moves so the weak pool is meaningful
-  // (scoring all could be slow — sample up to 12 additional regular moves)
+  if (!aiActive || turn !== aiColor) { _release('cancelled pre-execution'); return; }
+
+  // ── 4. Execute final move ─────────────────────────────────────────────────
+  // Decision hierarchy (strict):
+  //   1. SF best move is valid AND no modifier move beats it → play SF move
+  //   2. A modifier move beat SF's probe score → play modifier move
+  //   3. SF best move valid but no modifiers existed → play SF move
+  //   4. SF returned nothing → probe a sample of regular moves and pick best
+  //   5. Everything failed → random legal move
+
+  if (stockfishBestMove) {
+    if (bestModifierMove !== null) {
+      // Compare the modifier move against SF's own probe score (not its full-depth score,
+      // since we want a fair comparison on the same probe budget)
+      const sfProbeFen = simulateMoveToFen(
+        stockfishBestMove.fx, stockfishBestMove.fy,
+        stockfishBestMove.tx, stockfishBestMove.ty,
+        stockfishBestMove.castle
+      );
+      const sfProbeScore = await stockfishEvalFen(sfProbeFen, probeMs, `probe${_tag}`);
+      if (!aiActive || turn !== aiColor) { _release('cancelled post sf-probe'); return; }
+      const sfScoreWithBonus = sfProbeScore + chaosBonusScore(
+        stockfishBestMove.fx, stockfishBestMove.fy,
+        stockfishBestMove.tx, stockfishBestMove.ty,
+        stockfishBestMove
+      );
+
+      const _top3Mods = filteredModifierMoves.slice(0, 3).map(
+        m => `${m.fx},${m.fy}->${m.tx},${m.ty}(${m === bestModifierMove ? bestModifierScore : '?'})`
+      ).join(' | ');
+      console.log(`${_tag} SCORES sfProbe=${sfProbeScore} sfWithBonus=${sfScoreWithBonus} bestModifier=${bestModifierScore} modifiers=[${_top3Mods}]`);
+
+      if (bestModifierScore > sfScoreWithBonus) {
+        console.log(`${_tag} FINAL source=modifier-beats-sf move=${bestModifierMove.fx},${bestModifierMove.fy}->${bestModifierMove.tx},${bestModifierMove.ty} modScore=${bestModifierScore} sfScore=${sfScoreWithBonus}`);
+        _release('modifier-beats-sf');
+        move(bestModifierMove.fx, bestModifierMove.fy, bestModifierMove.tx, bestModifierMove.ty, bestModifierMove.castle || null);
+        return;
+      }
+    } else {
+      console.log(`${_tag} SCORES sfBestMove valid modifierCount=${filteredModifierMoves.length} (no modifier beat SF)`);
+    }
+
+    // SF move wins — play it
+    console.log(`${_tag} FINAL source=sf-best move=${stockfishBestMove.fx},${stockfishBestMove.fy}->${stockfishBestMove.tx},${stockfishBestMove.ty}`);
+    _release('sf-best');
+    move(stockfishBestMove.fx, stockfishBestMove.fy, stockfishBestMove.tx, stockfishBestMove.ty, stockfishBestMove.castle || null);
+    return;
+  }
+
+  // SF returned nothing — probe a sample of regular moves as fallback
+  console.warn(`${_tag} SF-MAIN absent — scoring regular moves via probes`);
   const regularSample = allRegularMoves
-    .filter(m => !stockfishBestMove ||
-      !(m.fx===stockfishBestMove.fx && m.fy===stockfishBestMove.fy &&
-        m.tx===stockfishBestMove.tx && m.ty===stockfishBestMove.ty))
     .sort(() => Math.random() - 0.5)
     .slice(0, 12);
 
+  let bestFallbackMove = bestModifierMove;
+  let bestFallbackScore = bestModifierScore;
+
   for (const rm of regularSample) {
-    if (!aiActive || turn !== aiColor) return;
+    if (!aiActive || turn !== aiColor) { _release('cancelled during regular fallback probe'); return; }
     const simFen = simulateMoveToFen(rm.fx, rm.fy, rm.tx, rm.ty, rm.castle);
-    const s = await stockfishEvalFen(simFen, probeMs);
-    if (!aiActive || turn !== aiColor) return;
-    scoredMoves.push({ move: rm, score: s + chaosBonusScore(rm.fx, rm.fy, rm.tx, rm.ty, rm) });
+    const s = await stockfishEvalFen(simFen, probeMs, `probe${_tag}`);
+    if (!aiActive || turn !== aiColor) { _release('cancelled post regular fallback probe'); return; }
+    const scored = s + chaosBonusScore(rm.fx, rm.fy, rm.tx, rm.ty, rm);
+    if (scored > bestFallbackScore) { bestFallbackScore = scored; bestFallbackMove = rm; }
   }
 
-  if (!aiActive || turn !== aiColor) return;
+  if (bestFallbackMove) {
+    console.log(`${_tag} FINAL source=probe-fallback move=${bestFallbackMove.fx},${bestFallbackMove.fy}->${bestFallbackMove.tx},${bestFallbackMove.ty} score=${bestFallbackScore}`);
+    _release('probe-fallback');
+    move(bestFallbackMove.fx, bestFallbackMove.fy, bestFallbackMove.tx, bestFallbackMove.ty, bestFallbackMove.castle || null);
+    return;
+  }
 
-  // Sort descending: best move first, worst last
-  scoredMoves.sort((a, b) => b.score - a.score);
-
-  const bestScoredMove = scoredMoves.length > 0 ? scoredMoves[0].move : stockfishBestMove;
-
-  // ── 4. Apply difficulty-based imperfection ───────────────────────────────
-  const _diff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
-  const _errCfg = AI_ERROR_CONFIG[_diff] || AI_ERROR_CONFIG[5];
+  // Last resort: random legal move
   const _allMoves = [...allRegularMoves, ...allModifierMoves];
-  const _roll = Math.random();
-
-  if (scoredMoves.length > 0 && _roll < _errCfg.blunderChance) {
-    // Blunder — pick from the worst fraction of the Stockfish-scored pool
-    // scoredMoves is sorted best→worst; slice from the tail
-    const blunderCount = Math.max(1, Math.floor(scoredMoves.length * _errCfg.randomPoolFraction));
-    const blunderPool = scoredMoves.slice(scoredMoves.length - blunderCount);
-    const pick = blunderPool[Math.floor(Math.random() * blunderPool.length)].move;
-    move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
-    return;
-  } else if (scoredMoves.length > 1 && _roll < _errCfg.blunderChance + _errCfg.mistakeChance) {
-    // Mistake — pick from the worst fraction of the Stockfish-scored pool
-    // scoredMoves is sorted best→worst; slice from the tail
-    const weakCount = Math.max(1, Math.floor(scoredMoves.length * _errCfg.randomPoolFraction));
-    const weakPool  = scoredMoves.slice(scoredMoves.length - weakCount);
-    const pick = weakPool[Math.floor(Math.random() * weakPool.length)].move;
-    move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
-    return;
-  }
-
-  // ── 5. Execute best move ─────────────────────────────────────────────────
-  if (bestScoredMove) {
-    move(bestScoredMove.fx, bestScoredMove.fy, bestScoredMove.tx, bestScoredMove.ty, bestScoredMove.castle || null);
-    return;
-  }
-
-  // Fallback: random legal move
   if (_allMoves.length > 0) {
     const pick = _allMoves[Math.floor(Math.random() * _allMoves.length)];
+    console.warn(`${_tag} FINAL source=random-fallback totalMoves=${_allMoves.length} move=${pick.fx},${pick.fy}->${pick.tx},${pick.ty}`);
+    _release('random-fallback');
     move(pick.fx, pick.fy, pick.tx, pick.ty, pick.castle || null);
+  } else {
+    _release('truly no moves');
   }
 }
 
@@ -25149,7 +25542,17 @@ function cfStopCommentary() {
 
 function startVsAI() {
   const diff = parseInt(document.getElementById('local-ai-difficulty').value) || 5;
-  aiThinkMs  = AI_DIFFICULTY_THINK_MS[diff] || 500;
+  const _thinkIdx = parseInt((document.getElementById('local-ai-think-time') || {value:'4'}).value) ?? 4;
+  const _rawThinkMs = AI_THINK_STEPS[_thinkIdx] ?? 1000;
+
+  // Think-time ceiling per difficulty level.
+  // A low-skill engine given 5 seconds still finds good moves — the ceiling ensures
+  // the experience matches the sublabel description.  The think-time slider still
+  // controls response speed for levels 6–10 where it matters, but can't make
+  // lower levels play stronger than intended.
+  //                       diff: 1    2    3    4    5     6     7     8     9    10
+  const thinkCeilingMs =       [100, 150, 200, 350, 600, 1000, 1500, 2500, 3500, 5000];
+  aiThinkMs = Math.min(_rawThinkMs, thinkCeilingMs[diff - 1] ?? 5000);
 
   let playerColor = _localAiColor;
   if (playerColor === 'random') playerColor = Math.random() < 0.5 ? 'white' : 'black';
@@ -25179,6 +25582,7 @@ function startVsAI() {
   }
 
   initStockfish();
+  applyStockfishSkillLevel(); // re-apply now that we know the chosen difficulty
   cfStartCommentary();
 
   // If AI plays white, it goes first
@@ -25214,6 +25618,7 @@ move = function(x1, y1, x2, y2, castleType) {
 // Reset AI state when game restarts or mode changes
 const _origRestart = restart;
 restart = function() {
+  _aiRunning = false; // always clear mutex on restart regardless of aiActive state
   _origRestart.apply(this, arguments);
   if (!aiActive) return;
   cfResetEmotion();
@@ -25225,6 +25630,7 @@ restart = function() {
 const _origShowMainMenu = showMainMenu;
 showMainMenu = function() {
   aiActive = false;
+  _aiRunning = false;
   cfStopCommentary();
   _origShowMainMenu.apply(this, arguments);
 };
@@ -27555,7 +27961,7 @@ function sandboxNewGame() {
   if(_clList) _clList.innerHTML = '';
   const _clPanel = document.getElementById('chaos-log-panel');
   if(_clPanel) _clPanel.style.display = 'none';
-  selected = null; legalMoves = []; lastMove = null;
+  selected = null; legalMoves = []; lastMove = null; epSquare = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
   kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null; portalPair = null;
   draftCooldowns = {};
