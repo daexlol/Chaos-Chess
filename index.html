@@ -303,7 +303,8 @@ h1 {
   box-shadow: inset 0 0 0 4px #10b981 !important;
 }
 .bomb-square.right-click-highlight,
-.pit-square.right-click-highlight {
+.pit-square.right-click-highlight,
+.portal-square.right-click-highlight {
   box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0.85) !important;
 }
 
@@ -1528,6 +1529,16 @@ h1 {
   color: rgba(255,255,255,0.38);
   text-decoration: line-through;
   text-decoration-color: rgba(255,255,255,0.25);
+}
+.card .evo-hint-stackable {
+  color: rgba(251,191,36,0.75);
+}
+#modifier-info-modal .modal-evo-hint-stackable {
+  color: rgba(251,191,36,0.85);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
 }
 
 .card small {
@@ -5244,6 +5255,20 @@ button:active {
 #game-mods-bar .game-mods-empty {
   font-size: 15px; color: rgba(255,255,255,0.25); font-style: italic;
   padding: 2px 0; user-select: none;
+}
+
+/* Stack count badge (×2, ×3 etc.) shown when a modifier appears multiple times */
+.mod-stack-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.35);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  opacity: 0.9;
 }
 
 /* Actions bar below the board */
@@ -9362,27 +9387,38 @@ button:active {
     drop-shadow(0 0 40px #fbbf24);
   animation: glow-pulse-mythic 1.5s ease-in-out infinite;
 }
+/* Portal Pair — blue pair */
+/* ── Portal Pair squares ─────────────────────────────────────────────────── */
 .portal-square {
-  box-shadow: inset 0 0 0 3px rgba(34,211,238,0.7), inset 0 0 24px rgba(14,165,233,0.35) !important;
+  overflow: hidden !important;  /* clip canvas to square bounds */
+  position: relative;
 }
-.portal-square.portal-b {
-  box-shadow: inset 0 0 0 3px rgba(244,114,182,0.7), inset 0 0 24px rgba(236,72,153,0.35) !important;
-}
-.portal-glyph {
+/* Solid base tints per portal colour — these paint over the board texture */
+.portal-color-blue    { background: #071a2e !important; background-image: none !important; }
+.portal-color-blue-b  { background: #1a0720 !important; background-image: none !important; }
+.portal-color-purple  { background: #100920 !important; background-image: none !important; }
+.portal-color-purple-b{ background: #071a14 !important; background-image: none !important; }
+.portal-color-red     { background: #1a0808 !important; background-image: none !important; }
+.portal-color-red-b   { background: #1a1400 !important; background-image: none !important; }
+
+/* Canvas that renders the animated vortex — sits below pieces and highlights */
+.portal-canvas {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 56px;
-  z-index: 4;
-  opacity: 0.72;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;        /* below legal dots (z-index 5) and pieces (z-index 10) */
   pointer-events: none;
-  filter: drop-shadow(0 0 10px rgba(34,211,238,0.9));
-  animation: glow-pulse-rare 1.7s ease-in-out infinite;
+  display: block;
 }
-.portal-square.portal-b .portal-glyph {
-  filter: drop-shadow(0 0 10px rgba(244,114,182,0.9));
-}
+
+/* Thin colored rim around the portal square edge */
+.portal-color-blue    { box-shadow: inset 0 0 0 2px rgba(34,211,238,0.8)  !important; }
+.portal-color-blue-b  { box-shadow: inset 0 0 0 2px rgba(244,114,182,0.8) !important; }
+.portal-color-purple  { box-shadow: inset 0 0 0 2px rgba(167,139,250,0.8) !important; }
+.portal-color-purple-b{ box-shadow: inset 0 0 0 2px rgba(52,211,153,0.8)  !important; }
+.portal-color-red     { box-shadow: inset 0 0 0 2px rgba(248,113,113,0.8) !important; }
+.portal-color-red-b   { box-shadow: inset 0 0 0 2px rgba(251,191,36,0.8)  !important; }
 .sleeper-pawn-icon {
   position: absolute;
   right: 5px;
@@ -11216,8 +11252,8 @@ let timeBombs = [];   // Track time bombs: [{x, y, turnsLeft}]
 // Draft cooldown: maps modName -> draftsRemaining before full weight restored
 // Mods offered recently get a weight penalty for the next 2-3 drafts.
 let draftCooldowns = {};
-let pitSquare = null; // Bottomless Pit: {x, y} or null
-let portalPair = null; // Portal Pair: {a:{x,y}, b:{x,y}} or null
+let pitSquares = []; // Bottomless Pit: array of {x,y} // Bottomless Pit: {x, y} or null
+let portalPairs = []; // Portal Pair: array of {a:{x,y}, b:{x,y}, color:'blue'|'purple'|'red'}
 let tornadoPlacementMode = false; // When true, next empty square click places tornado
 let royalGuardPlacementMode = false; // When true, next adjacent empty square click places bodyguard
 let royalGuardKingX = -1, royalGuardKingY = -1; // King's new position awaiting guard placement
@@ -12113,7 +12149,7 @@ function draw(){
 
       // Tornado
       // Bottomless Pit overlay
-      if(pitSquare && pitSquare.x === x && pitSquare.y === y){
+      if(pitSquares.some(ps => ps.x === x && ps.y === y)){
         sq.classList.add('pit-square');
         let pitEl = document.createElement('div');
         pitEl.className = 'pit-emoji';
@@ -12121,16 +12157,28 @@ function draw(){
         sq.appendChild(pitEl);
       }
 
-      if(portalPair && modifiers.includes('Portal Pair')){
-        let portalSide = null;
-        if(portalPair.a && portalPair.a.x === x && portalPair.a.y === y) portalSide = 'a';
-        if(portalPair.b && portalPair.b.x === x && portalPair.b.y === y) portalSide = 'b';
-        if(portalSide){
-          sq.classList.add('portal-square', portalSide === 'a' ? 'portal-a' : 'portal-b');
-          let portalEl = document.createElement('div');
-          portalEl.className = 'portal-glyph';
-          portalEl.textContent = 'O';
-          sq.appendChild(portalEl);
+      if(portalPairs.length > 0 && modifiers.includes('Portal Pair')){
+        for(const pp of portalPairs){
+          let portalSide = null;
+          if(pp.a && pp.a.x === x && pp.a.y === y) portalSide = 'a';
+          if(pp.b && pp.b.x === x && pp.b.y === y) portalSide = 'b';
+          if(portalSide){
+            sq.classList.add('portal-square', `portal-color-${pp.color}${portalSide === 'b' ? '-b' : ''}`);
+            const _portalAccentMap = {
+              'blue':'34,211,238', 'blue-b':'244,114,182',
+              'purple':'167,139,250', 'purple-b':'52,211,153',
+              'red':'248,113,113', 'red-b':'251,191,36'
+            };
+            const _colorKey = pp.color + (portalSide === 'b' ? '-b' : '');
+            let portalCanvas = document.createElement('canvas');
+            portalCanvas.className = 'portal-canvas';
+            portalCanvas.width = 100;
+            portalCanvas.height = 100;
+            portalCanvas.dataset.accent = _portalAccentMap[_colorKey] || '34,211,238';
+            sq.appendChild(portalCanvas);
+            startPortalCanvas(portalCanvas);
+            break;
+          }
         }
       }
 
@@ -12259,8 +12307,13 @@ function draw(){
             }
           }
           // Mythic glows
+          // Evolved duck glow
+          else if(activeMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') {
+            sq.classList.add('glow-evolved');
+          }
+          // Mythic glows
           else if((activeMods.has('Nuclear Queen') && pieceType==='q') ||
-             (activeMods.has('Duck of Eternal Blocking') && piece === 'D') ||
+             (activeMods.has('Duck of Eternal Blocking') && !activeMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') ||
              (activeMods.has('Hive Mind Pawns') && pieceType==='p') ||
              (activeMods.has('The Impawnster') && pieceType==='p') ||
              (activeMods.has('Berserker Queen') && pieceType==='q') ||
@@ -13232,34 +13285,172 @@ function ensureSleeperPawns(){
   });
 }
 
+const PORTAL_COLORS = ['blue', 'purple', 'red'];
+
+// ── Portal Pair canvas vortex animator ────────────────────────────────────────
+// Each portal square gets its own canvas. We keep a WeakMap so draw() can
+// cancel old RAF loops when it rebuilds the DOM each frame.
+const _portalAnimMap = new WeakMap(); // canvas → cancelToken {cancelled}
+
+function startPortalCanvas(canvas) {
+  // Cancel any previous loop on this canvas element
+  const prev = _portalAnimMap.get(canvas);
+  if (prev) prev.cancelled = true;
+
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const accentRgb = canvas.dataset.accent || '34,211,238';
+
+  // Pre-build a fixed set of grain particles
+  const GRAIN_COUNT = 48;
+  const grains = [];
+  for (let i = 0; i < GRAIN_COUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r     = 8 + Math.random() * 36;   // radial distance from center
+    grains.push({
+      baseAngle : angle,
+      r         : r,
+      speed     : 0.4 + Math.random() * 0.8, // angular speed multiplier
+      size      : 0.8 + Math.random() * 2.2,
+      opacity   : 0.25 + Math.random() * 0.55,
+      drift     : (Math.random() - 0.5) * 0.008,  // slow radial drift
+    });
+  }
+
+  const token = { cancelled: false };
+  _portalAnimMap.set(canvas, token);
+
+  let t = 0;
+
+  function frame() {
+    if (token.cancelled || !canvas.isConnected) return;
+    t += 0.016;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // ── 1. Deep radial gradient background (solid tint → pitch black core) ──
+    const bgGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, W * 0.72);
+    bgGrad.addColorStop(0,   `rgba(0,0,0,1)`);
+    bgGrad.addColorStop(0.28,`rgba(0,0,0,0.92)`);
+    bgGrad.addColorStop(0.6, `rgba(${accentRgb},0.08)`);
+    bgGrad.addColorStop(1,   `rgba(${accentRgb},0.0)`);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── 2. Swirling spiral rings ──────────────────────────────────────────────
+    const RINGS = 6;
+    for (let ring = 0; ring < RINGS; ring++) {
+      const progress  = ring / RINGS;              // 0 = innermost
+      const baseR     = 6 + progress * 36;         // ring radius
+      const spin      = t * (2.2 - progress * 1.4);// inner rings spin faster
+      const arcStart  = spin;
+      const arcEnd    = spin + Math.PI * (1.4 - progress * 0.5);
+      const lw        = (1 - progress) * 3.5 + 0.4;
+      const alpha     = (1 - progress) * 0.7 + 0.1;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, baseR, arcStart, arcEnd);
+      ctx.strokeStyle = `rgba(${accentRgb},${alpha.toFixed(2)})`;
+      ctx.lineWidth   = lw;
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+
+      // Counter-arc for the chaotic gap feel
+      ctx.beginPath();
+      ctx.arc(cx, cy, baseR * 0.82, arcEnd + Math.PI * 0.3, arcStart + Math.PI * 0.15);
+      ctx.strokeStyle = `rgba(0,0,0,0.5)`;
+      ctx.lineWidth   = lw * 0.7;
+      ctx.stroke();
+    }
+
+    // ── 3. Grain particles orbiting and drifting inward ──────────────────────
+    ctx.save();
+    for (const g of grains) {
+      // Orbit angle: inner grains orbit faster (inward-pull illusion)
+      const orbitSpeed  = 1.1 + (40 / (g.r + 5)) * 0.35;
+      const angle       = g.baseAngle + t * g.speed * orbitSpeed;
+      // Slow radial pull toward center
+      g.r = Math.max(4, g.r + g.drift * (1 + 0.5 * Math.sin(t)));
+      if (g.r < 6) {
+        // Reset particle to outer ring when it collapses to center
+        g.r = 28 + Math.random() * 18;
+        g.baseAngle = Math.random() * Math.PI * 2;
+      }
+
+      const px = cx + Math.cos(angle) * g.r;
+      const py = cy + Math.sin(angle) * g.r;
+
+      // Fade grain toward center (deeper into void)
+      const depthFade = Math.min(1, g.r / 20);
+      ctx.beginPath();
+      ctx.arc(px, py, g.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${accentRgb},${(g.opacity * depthFade).toFixed(3)})`;
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // ── 4. Singularity core — pitch black eye ────────────────────────────────
+    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10);
+    coreGrad.addColorStop(0,   'rgba(0,0,0,1)');
+    coreGrad.addColorStop(0.6, 'rgba(0,0,0,0.95)');
+    coreGrad.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── 5. Accent corona flicker ─────────────────────────────────────────────
+    const flicker  = 0.12 + 0.07 * Math.sin(t * 3.7);
+    const corona   = ctx.createRadialGradient(cx, cy, 3, cx, cy, 16);
+    corona.addColorStop(0,   `rgba(${accentRgb},0)`);
+    corona.addColorStop(0.5, `rgba(${accentRgb},${flicker.toFixed(3)})`);
+    corona.addColorStop(1,   `rgba(${accentRgb},0)`);
+    ctx.fillStyle = corona;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+
 function spawnPortalPair(){
   if(puzzleModeActive) return;
   let emptySquares = [];
   for(let y=0; y<8; y++){
     for(let x=0; x<8; x++){
-      if(!board[y][x] && !(pitSquare && pitSquare.x === x && pitSquare.y === y)) emptySquares.push({x,y});
+      if(!board[y][x] && !pitSquares.some(ps => ps.x === x && ps.y === y)) emptySquares.push({x,y});
     }
   }
   if(emptySquares.length < 2){ showToast('No room for Portal Pair!'); return; }
   emptySquares.sort(() => Math.random() - 0.5);
-  portalPair = { a: emptySquares[0], b: emptySquares[1] };
-  logChaos('sys', 'ability', `Portal Pair linked ${sqNotation(portalPair.a.x, portalPair.a.y)} and ${sqNotation(portalPair.b.x, portalPair.b.y)}!`);
+  const color = PORTAL_COLORS[portalPairs.length % PORTAL_COLORS.length];
+  const newPair = { a: emptySquares[0], b: emptySquares[1], color };
+  portalPairs.push(newPair);
+  logChaos('sys', 'ability', `🌀 Portal Pair (${color}) linked ${sqNotation(newPair.a.x, newPair.a.y)} and ${sqNotation(newPair.b.x, newPair.b.y)}!`);
 }
 
 function ensurePortalPair(){
   if(!modifiers.includes('Portal Pair')) return;
-  if(!portalPair) spawnPortalPair();
+  if(portalPairs.length === 0) spawnPortalPair();
 }
 
 function getPortalExit(x,y){
-  if(!portalPair) return null;
-  if(portalPair.a.x === x && portalPair.a.y === y) return {x: portalPair.b.x, y: portalPair.b.y};
-  if(portalPair.b.x === x && portalPair.b.y === y) return {x: portalPair.a.x, y: portalPair.a.y};
+  for(const pp of portalPairs){
+    if(pp.a.x === x && pp.a.y === y) return {x: pp.b.x, y: pp.b.y};
+    if(pp.b.x === x && pp.b.y === y) return {x: pp.a.x, y: pp.a.y};
+  }
   return null;
 }
 
 function applyPortalMoveTransforms(fromX, fromY, piece, moves){
-  if(!modifiers.includes('Portal Pair') || !portalPair) return moves;
+  if(!modifiers.includes('Portal Pair') || portalPairs.length === 0) return moves;
   const mapped = [];
   const seen = new Set();
   moves.forEach(move => {
@@ -14853,21 +15044,40 @@ function playRailgunSound() {
   initAudio();
   const t = audioContext.currentTime;
   const master = audioContext.createGain();
-  master.gain.value = 0.55;
+  master.gain.value = 1.1;
   master.connect(audioContext.destination);
 
-  // Laser charge — rising sweep
-  _osc('sawtooth', 80,   t,       800,  0.08, 0.3,  master);
-  _osc('sine',     800,  t + 0.07, 3200, 0.12, 0.18, master);
-  // Discharge crack
-  const noise = _makeNoise(0.15);
-  const hp = _filter('highpass', 3000);
+  // Deep thump — sub-bass punch on fire
+  _osc('sine', 55, t, 28, 0.9, 0.18, master);
+
+  // Charge — aggressive rising sweep with more body
+  _osc('sawtooth', 60,  t,       1200, 0.25, 0.35, master);
+  _osc('sawtooth', 120, t + 0.02, 2400, 0.20, 0.28, master);
+  _osc('sine',     900, t + 0.06, 4800, 0.18, 0.22, master);
+
+  // Discharge crack — wider noise burst, harder attack
+  const noise = _makeNoise(0.22);
+  const hp = _filter('highpass', 2200);
   const ng = audioContext.createGain();
-  ng.gain.setValueAtTime(0.45, t + 0.08); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.23);
+  ng.gain.setValueAtTime(0.0001, t + 0.07);
+  ng.gain.linearRampToValueAtTime(1.0, t + 0.085);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
   noise.connect(hp); hp.connect(ng); ng.connect(master);
-  noise.start(t + 0.08); noise.stop(t + 0.23);
-  // Tail ring
-  _osc('sine', 1800, t + 0.1, 400, 0.4, 0.12, master);
+  noise.start(t + 0.07); noise.stop(t + 0.38);
+
+  // Mid-crack crunch layer
+  const noise2 = _makeNoise(0.18);
+  const bp2 = _filter('bandpass', 800, 1.5);
+  const ng2 = audioContext.createGain();
+  ng2.gain.setValueAtTime(0.0001, t + 0.08);
+  ng2.gain.linearRampToValueAtTime(0.6, t + 0.09);
+  ng2.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+  noise2.connect(bp2); bp2.connect(ng2); ng2.connect(master);
+  noise2.start(t + 0.08); noise2.stop(t + 0.28);
+
+  // Tail ring — longer, louder resonance
+  _osc('sine', 1400, t + 0.09, 320, 0.55, 0.55, master);
+  _osc('sine', 2800, t + 0.10, 200, 0.20, 0.35, master);
 }
 
 // ── Storm Rook (lightning) ────────────────────────────────
@@ -15841,7 +16051,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
   if(modifiers.includes('Time Bomb')) processTimeBombs();
 
   // Bottomless Pit: destroy anything on the pit square (AFTER the move has been applied)
-  if(pitSquare) processBottomlessPit();
+  if(pitSquares.length > 0) processBottomlessPit();
 
   // Nuclear Queen (Evolved): countdown and explode nuclear zones (BEFORE turn switch)
   processNuclearZones();
@@ -15984,6 +16194,11 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
   
   // Force redraw to recalculate legal moves
   draw();
+
+  // Evolved ducks wander after each move
+  if (modifiers.includes('Duck of Eternal Blocking (Evolved)')) {
+    wanderEvolvedDucks();
+  }
 
   // Trigger AI move if it's now the AI's turn (covers post-promotion cases too)
   if(typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && turn === aiColor){
@@ -16320,6 +16535,7 @@ const MODIFIER_LORE = {
   'Nuclear Queen':      'She doesn’t hesitate. When she acts, everything around her is affected—not as an accident, but as a consequence. Power at this level doesn’t ask for permission. It simply takes its place in the world.',
   'Nuclear Queen (Evolved)': 'The first explosion was expected. The second one wasn’t. The board remembers where she landed, and for three turns it holds that memory like a wound that hasn’t finished opening.',
   'Duck of Eternal Blocking': 'Something small watches over the board, refusing to move. It does not fight, it does not leave. It simply exists—and that is enough to matter.',
+  'Duck of Eternal Blocking (Evolved)': 'There are three of them now. You did not ask for this. Nobody asked for this. And yet here they are, waddling.',
   'Phoenix Pawn':       'It falls like any other pawn… but there’s a moment where it doesn’t feel final. Like something quietly decides that this isn’t the end of its story.',
   'Fog of War Bishop': 'It only exists when it is noticed. To some, it appears clearly; to others, it is nothing at all. The board doesn’t agree on where it is, only that it might be. That uncertainty becomes its presence.',
   'Decoy Rook':         'It doesn’t look different—but something about it feels slightly off. Like it’s waiting to be noticed, or hoping you look at the wrong one.',
@@ -16359,10 +16575,13 @@ function showModifierInfo(modName){
   let evoHintHtml = '';
   if(!isEvo && modData.evolvesTo) {
     if(modifiers.includes(modData.evolvesTo)) {
-      evoHintHtml = `<div class="modal-evo-hint modal-evo-hint-done">✦ EVOLVED</div>`;
+      evoHintHtml += `<div class="modal-evo-hint modal-evo-hint-done">✦ EVOLVED</div>`;
     } else {
-      evoHintHtml = `<div class="modal-evo-hint modal-evo-hint-available">✧ CAN EVOLVE</div>`;
+      evoHintHtml += `<div class="modal-evo-hint modal-evo-hint-available">✧ CAN EVOLVE</div>`;
     }
+  }
+  if(modData.stackable) {
+    evoHintHtml += `<div class="modal-evo-hint modal-evo-hint-stackable">🥞 STACKABLE</div>`;
   }
 
   let modal = document.getElementById('modifier-info-modal');
@@ -16495,7 +16714,7 @@ function spawnTimeBomb(){
   if(puzzleModeActive) return;
   let emptySquares = [];
   for(let y=0;y<8;y++) for(let x=0;x<8;x++){
-    if(!board[y][x] && !(pitSquare && pitSquare.x===x && pitSquare.y===y)) emptySquares.push({x,y});
+    if(!board[y][x] && !pitSquares.some(ps => ps.x===x && ps.y===y)) emptySquares.push({x,y});
   }
   if(emptySquares.length === 0){ showToast('No room for the Time Bomb!'); return; }
   let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
@@ -16549,33 +16768,34 @@ function spawnBottomlessPit(){
   }
   if(emptySquares.length === 0){ showToast('No room for the pit!'); return; }
   let spot = emptySquares[Math.floor(Math.random()*emptySquares.length)];
-  pitSquare = {x:spot.x, y:spot.y};
+  pitSquares.push({x:spot.x, y:spot.y});
+  logChaos('sys', 'ability', `🕳️ Bottomless Pit spawned on ${sqNotation(spot.x, spot.y)}!`);
   draw();
 }
 
 function processBottomlessPit(){
-  if(!pitSquare) return;
-  let piece = board[pitSquare.y][pitSquare.x];
-  if(piece && piece !== ''){
-    // Destroys EVERYTHING — kings, ducks, guards, uncapturable — no exceptions
-    showExplosion(pitSquare.x, pitSquare.y);
-    const _pitOwner = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'your' : "opponent's") : (isWhite(piece) ? 'your' : "opponent's");
-    const _pitPiece = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king',d:'duck',g:'bodyguard'}[piece.toLowerCase()] || 'piece';
-    logChaos('sys', 'ability', `${_pitOwner.charAt(0).toUpperCase()+_pitOwner.slice(1)} ${_pitPiece} fell into the pit! 😂😂😂`);
-    if(piece.toLowerCase() === 'k'){
-      // King fell in — game over
-      let winner = isWhite(piece) ? 'Black' : 'White';
+  for(const pitSquare of pitSquares){
+    let piece = board[pitSquare.y][pitSquare.x];
+    if(piece && piece !== ''){
+      // Destroys EVERYTHING — kings, ducks, guards, uncapturable — no exceptions
+      showExplosion(pitSquare.x, pitSquare.y);
+      const _pitOwner = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'your' : "opponent's") : (myColor ? (isWhite(piece)===(myColor==='white') ? 'your' : "opponent's") : (isWhite(piece) ? 'your' : "opponent's"));
+      const _pitPiece = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king',d:'duck',g:'bodyguard'}[piece.toLowerCase()] || 'piece';
+      logChaos('sys', 'ability', `${_pitOwner.charAt(0).toUpperCase()+_pitOwner.slice(1)} ${_pitPiece} fell into the pit! 😂😂😂`);
+      if(piece.toLowerCase() === 'k'){
+        let winner = isWhite(piece) ? 'Black' : 'White';
+        board[pitSquare.y][pitSquare.x] = '';
+        clearPieceData(pitSquare.x, pitSquare.y);
+        draw();
+        playCheckmateSound();
+        endGame(`${winner} wins! The king fell into the pit! 🕳️`, 3500);
+        return;
+      }
+      if(isWhite(piece)) blackCaptured.push(piece); else whiteCaptured.push(piece);
       board[pitSquare.y][pitSquare.x] = '';
       clearPieceData(pitSquare.x, pitSquare.y);
-      draw();
-      playCheckmateSound();
-      endGame(`${winner} wins! The king fell into the pit! 🕳️`, 3500);
-      return;
+      incrementEffectsTriggered(1);
     }
-    if(isWhite(piece)) blackCaptured.push(piece); else whiteCaptured.push(piece);
-    board[pitSquare.y][pitSquare.x] = '';
-    clearPieceData(pitSquare.x, pitSquare.y);
-    incrementEffectsTriggered(1);
   }
 }
 
@@ -16597,6 +16817,39 @@ function spawnDuck(){
   } else {
     showToast('No room for duck! Board is full!');
   }
+}
+
+function wanderEvolvedDucks() {
+  if (!modifiers.includes('Duck of Eternal Blocking (Evolved)')) return;
+  // Collect all duck positions
+  const ducks = [];
+  for (let y = 0; y < 8; y++)
+    for (let x = 0; x < 8; x++)
+      if (board[y][x] === 'D') ducks.push({x, y});
+
+  const WANDER_CHANCE = 0.40; // 40% per duck per move
+  const dirs = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1},{dx:1,dy:1},{dx:1,dy:-1},{dx:-1,dy:1},{dx:-1,dy:-1}];
+  let anyMoved = false;
+
+  for (const duck of ducks) {
+    if (Math.random() > WANDER_CHANCE) continue;
+    // Shuffle directions for randomness
+    const shuffled = dirs.slice().sort(() => Math.random() - 0.5);
+    for (const {dx, dy} of shuffled) {
+      const nx = duck.x + dx, ny = duck.y + dy;
+      if (nx < 0 || nx > 7 || ny < 0 || ny > 7) continue;
+      if (board[ny][nx]) continue; // blocked — try another direction
+      // Move the duck
+      board[ny][nx] = 'D';
+      clearPieceData(duck.x, duck.y);
+      board[duck.y][duck.x] = '';
+      setPieceData(nx, ny, {duck: true});
+      logChaos('sys', 'ability', `🦆 A duck waddled to ${sqNotation(nx, ny)}!`);
+      anyMoved = true;
+      break;
+    }
+  }
+  if (anyMoved) draw();
 }
 
 function respawnPhoenixPawn(pawnPiece){
@@ -17087,7 +17340,7 @@ const allMods=[
   {name:'Double Strike Rook',rarity:'rare',desc:'Rook can move again immediately after capturing (no second capture)',icon:'♜'},
   {name:'Longbow Knight',rarity:'rare',desc:'Knights can also move in a 3-1 L shape',icon:'♞'},
   {name:'Heavy Rook',rarity:'rare',desc:'Rooks cannot be pushed, pulled, or displaced by modifier effects',icon:'♜'},
-  {name:'Portal Pair',rarity:'rare',desc:'Two random squares become linked portals. Entering one exits the other, capturing enemies on the exit',icon:'🌀'},
+  {name:'Portal Pair',rarity:'rare',desc:'Two random squares become linked portals. Entering one exits the other, capturing enemies on the exit',icon:'🌀',stackable:true},
   {name:'Coward Knight',rarity:'rare',desc:'After every move, the knight takes one free step away from the nearest enemy piece',icon:'♞'},
   {name:'Copycat Knight',rarity:'rare',desc:'After capturing, knight can move like captured piece for 1 turn',icon:'♞',evolvesTo:'Copycat Knight (Evolved)'},
   {name:'Boomerang Bishop',rarity:'rare',desc:'Bishop can return to its starting square at any point if free',icon:'♗'},
@@ -17102,7 +17355,7 @@ const allMods=[
   {name:'Fog of War Bishop',rarity:'legendary',desc:'Bishops are completely invisible to the enemy unless in their capture vision',icon:'♗'},
   {name:'Nuclear Queen',rarity:'mythic',desc:'Queen captures destroy all adjacent pieces (except kings), including the Queen itself',icon:'♛',evolvesTo:'Nuclear Queen (Evolved)'},
   {name:'Berserker Queen',rarity:'mythic',desc:'Queen can move again immediately after capturing (no second capture)',icon:'♛'},
-  {name:'Duck of Eternal Blocking',rarity:'mythic',desc:'Summons an uncapturable duck on a random empty square',icon:'🦆'},
+  {name:'Duck of Eternal Blocking',rarity:'mythic',desc:'Summons an uncapturable duck on a random empty square',icon:'🦆',evolvesTo:'Duck of Eternal Blocking (Evolved)',stackable:true},
   {name:'Phoenix Pawn',rarity:'legendary',desc:'Captured pawns respawn on random square (once per pawn)',icon:'♟'},
   {name:'Decoy Rook',rarity:'legendary',desc:'Rook leaves immobile decoy on previous square when moving',icon:'♜'},
   {name:'Kamikaze Pawn',rarity:'legendary',desc:'Captured pawns explode after 1 turn, destroying any piece on the armed square',icon:'♟'},
@@ -17111,13 +17364,13 @@ const allMods=[
   {name:'The Impawnster',rarity:'mythic',desc:'One pawn per side secretly moves like a queen. Only its owner sees the hidden queen marker',icon:'♟'},
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
   {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
-  {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️'},
+  {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️',stackable:true},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
   {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
   {name:'Bounty Hunter Pawn',rarity:'rare',desc:'Each pawn permanently gains +1 square of movement for every piece it captures',icon:'♟'},
-  {name:'Time Bomb',rarity:'legendary',desc:'A random square is marked. In 5 turns it explodes, destroying any piece on it',icon:'💣'},
-  {name:'Bottomless Pit',rarity:'mythic',desc:'Spawns an inescapable pit on a random square. Any piece that lands on it is instantly destroyed',icon:'🕳️'},
+  {name:'Time Bomb',rarity:'legendary',desc:'A random square is marked. In 5 turns it explodes, destroying any piece on it',icon:'💣',stackable:true},
+  {name:'Bottomless Pit',rarity:'mythic',desc:'Spawns an inescapable pit on a random square. Any piece that lands on it is instantly destroyed',icon:'🕳️',stackable:true},
   {name:'Royal Guard',rarity:'legendary',desc:'After the King moves, choose an adjacent empty square to place a stationary bodyguard',icon:'♚',evolvesTo:'Royal Guard (Evolved)'}
 ];
 
@@ -17221,6 +17474,15 @@ const evolvedMods = [
     isEvolution: true,
     baseModifier: 'Pinballing Bishop'
   },
+  {
+    name: 'Duck of Eternal Blocking (Evolved)',
+    rarity: 'mythic',
+    desc: 'Spawns 3 ducks. After each move, each duck independently has a chance to waddle 1 square in a random direction. Uncapturable. Uncontrollable. Inevitable.',
+    icon: '🦆',
+    isEvolution: true,
+    stackable: true,
+    baseModifier: 'Duck of Eternal Blocking'
+  },
 ];
 
 // Convenience lookup
@@ -17241,6 +17503,7 @@ const CODEX_CATEGORIES = [
 const CODEX_ENVIRONMENTAL_MODS = new Set([
   'Magnetic Poles',
   'Duck of Eternal Blocking',
+  'Duck of Eternal Blocking (Evolved)',
   'Tornado de Caballos',
   'Portal Pair',
   'Cookie',
@@ -17663,6 +17926,7 @@ function renderCodexDetail(mod, unlocked){
         <span class="codex-mini-chip">${codexEscape(CODEX_CATEGORIES.find(c => c.id === mod.codexCategory)?.label || 'Environmental')}</span>
         ${base ? `<span class="codex-mini-chip">Evolves from ${codexEscape(base.name)}</span>` : ''}
         ${evolvesTo ? `<span class="codex-mini-chip">Can evolve into ${codexEscape(evolvesTo.name)}</span>` : ''}
+        ${mod.stackable ? `<span class="codex-mini-chip" style="color:rgba(251,191,36,0.9);">🥞 Stackable</span>` : ''}
       </div>
     </div>
   `;
@@ -19881,7 +20145,7 @@ function chaosDraft(){
     // Build available pool (same logic as main path)
     const _evolvedBaseNames = evolvedMods.filter(ev => modifiers.includes(ev.name)).map(ev => ev.baseModifier);
     const _available = allMods.filter(m =>
-      !modifiers.includes(m.name) &&
+      (!modifiers.includes(m.name) || m.stackable) &&
       !settings.bannedMods.includes(m.name) &&
       !_evolvedBaseNames.includes(m.name)
     );
@@ -20048,7 +20312,7 @@ function chaosDraft(){
     .filter(ev => modifiers.includes(ev.name))
     .map(ev => ev.baseModifier);
   let available = allMods.filter(m =>
-    !modifiers.includes(m.name) &&
+    (!modifiers.includes(m.name) || m.stackable) &&
     !settings.bannedMods.includes(m.name) &&
     !evolvedBaseNames.includes(m.name)
   );
@@ -20122,6 +20386,9 @@ function chaosDraft(){
       } else {
         evoHintHtml = `<span class="evo-hint evo-hint-available">✧ CAN EVOLVE</span>`;
       }
+    }
+    if(mod.stackable) {
+      evoHintHtml += `<span class="evo-hint evo-hint-stackable">🥞 STACKABLE</span>`;
     }
 
     // Rarity-specific particle colour
@@ -20307,6 +20574,7 @@ function chaosDraft(){
       logChaos('you', 'draft', `You drafted ${_displayName} (${_rarityLabel})!`, `chaos-rarity-${_rarityKey}`);
 
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
+      if(mod.name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
       if(mod.name === 'Time Bomb') spawnTimeBomb();
       if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
       if(mod.name === 'Portal Pair') spawnPortalPair();
@@ -20502,8 +20770,8 @@ function restart(){
   nuclearZones=[];
   tornadoes=[];
   timeBombs=[];
-  pitSquare=null;
-  portalPair=null;
+  pitSquares=[];
+  portalPairs=[];
   tornadoPlacementMode=false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
   royalGuardPlacementMode=false;
@@ -21052,8 +21320,10 @@ function handleRemoteData(data){
   if(data.castleRights) castleRights = data.castleRights;
   epSquare = data.epSquare || null;
   if(data.timeBombs !== undefined) timeBombs = data.timeBombs;
-  if(data.pitSquare !== undefined) pitSquare = data.pitSquare;
-  if(data.portalPair !== undefined) portalPair = data.portalPair;
+  if(data.pitSquares !== undefined) pitSquares = data.pitSquares;
+  else if(data.pitSquare !== undefined) pitSquares = data.pitSquare ? [data.pitSquare] : []; // backwards compat
+  if(data.portalPairs !== undefined) portalPairs = data.portalPairs;
+  else if(data.portalPair !== undefined) portalPairs = data.portalPair ? [data.portalPair] : []; // backwards compat
   whiteTime = data.whiteTime || whiteTime;
   blackTime = data.blackTime || blackTime;
   if(data.increment !== undefined) increment = data.increment;
@@ -21171,8 +21441,8 @@ function sendGameState(){
       castleRights: castleRights,
       epSquare: epSquare,
       timeBombs: timeBombs,
-      pitSquare: pitSquare,
-      portalPair: portalPair,
+      pitSquares: pitSquares,
+      portalPairs: portalPairs,
       whiteTime: whiteTime,
       blackTime: blackTime,
       increment: increment,
@@ -23850,6 +24120,7 @@ function aiApplyDraftPick(mod) {
 
   // Handle special placement modifiers silently
   if (mod.name === 'Duck of Eternal Blocking') spawnDuck();
+  if (mod.name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
   if (mod.name === 'Time Bomb') spawnTimeBomb();
   if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
   if (mod.name === 'Portal Pair') spawnPortalPair();
@@ -24353,7 +24624,7 @@ function chaosBonusScore(fx, fy, tx, ty, moveObj) {
   let bonus = 0;
 
   // ── Bottomless Pit ────────────────────────────────────────────────────────
-  if (pitSquare) {
+  for (const pitSquare of pitSquares) {
     if (tx === pitSquare.x && ty === pitSquare.y) bonus -= sign * 900;
     if (fx === pitSquare.x && fy === pitSquare.y) bonus += sign * 300;
     const pitOccupant = board[pitSquare.y][pitSquare.x];
@@ -24390,13 +24661,13 @@ function chaosBonusScore(fx, fy, tx, ty, moveObj) {
   }
 
   // ── Duck (D) — blocks sliding pieces ─────────────────────────────────────
-  if (modifiers.includes('Duck of Eternal Blocking')) {
-    let duckX = -1, duckY = -1;
-    outer: for (let dy = 0; dy < 8; dy++)
+  if (modifiers.includes('Duck of Eternal Blocking') || modifiers.includes('Duck of Eternal Blocking (Evolved)')) {
+    const duckPositions = [];
+    for (let dy = 0; dy < 8; dy++)
       for (let dx = 0; dx < 8; dx++)
-        if (board[dy][dx] === 'D') { duckX = dx; duckY = dy; break outer; }
+        if (board[dy][dx] === 'D') duckPositions.push({x: dx, y: dy});
 
-    if (duckX >= 0) {
+    for (const {x: duckX, y: duckY} of duckPositions) {
       // Penalise moving a sliding piece into a line already blocked by the duck
       const collinearFile = (tx === duckX);
       const collinearRank = (ty === duckY);
@@ -24784,7 +25055,10 @@ async function requestAiMove() {
     const tx = uciMove.charCodeAt(2) - 97;
     const ty = 8 - parseInt(uciMove[3]);
     const legal = getLegalMoves(fx, fy);
-    if (legal.some(m => m.x === tx && m.y === ty)) {
+    const _sfMovePd = getPieceData(fx, fy);
+    if (_sfMovePd.decoy || _sfMovePd.jesterDecoy) {
+      console.warn(`${_tag} SF-MAIN REJECTED uciMove=${uciMove} -> ${fx},${fy} is a decoy piece`);
+    } else if (legal.some(m => m.x === tx && m.y === ty)) {
       const castle = legal.find(m => m.x === tx && m.y === ty && m.castle);
       stockfishBestMove = { fx, fy, tx, ty, castle: castle ? castle.castle : null };
       console.log(`${_tag} SF-MAIN accepted uciMove=${uciMove} wasMate=${wasMate} -> ${fx},${fy}->${tx},${ty}`);
@@ -25889,13 +26163,23 @@ function updateGameModsList() {
 
   if (countEl) countEl.textContent = modifiers.length;
 
-  container.innerHTML = modifiers.map(modName => {
+  // Count stacked duplicates so we show (×N) instead of repeating chips
+  const _modCounts = {};
+  const _modOrder = [];
+  modifiers.forEach(modName => {
+    if (_modCounts[modName] === undefined) { _modCounts[modName] = 0; _modOrder.push(modName); }
+    _modCounts[modName]++;
+  });
+
+  container.innerHTML = _modOrder.map(modName => {
     const modData = allMods ? allMods.find(m => m.name === modName) : null;
     const evolvedData = evolvedMods ? evolvedMods.find(m => m.name === modName) : null;
     const isEvo = !!evolvedData;
     const rarity = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
     const icon = isEvo ? evolvedData.icon : (modData ? modData.icon : '');
-    return `<div class='mod mod-${rarity}' onclick='showModifierInfo("${modName}")' style='cursor:pointer;' title="Click for details">${icon} ${modName}</div>`;
+    const count = _modCounts[modName];
+    const stackBadge = count > 1 ? `<span class='mod-stack-badge'>×${count}</span>` : '';
+    return `<div class='mod mod-${rarity}' onclick='showModifierInfo("${modName}")' style='cursor:pointer;' title="Click for details">${icon} ${modName}${stackBadge}</div>`;
   }).join('');
 }
 
@@ -27822,13 +28106,15 @@ function sbxToggleModifier(name, on) {
     if (!modifiers.includes(name)) modifiers.push(name);
     markModifierDiscovered(name);
     if (name === 'Duck of Eternal Blocking') spawnDuck();
+    if (name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
     if (name === 'Time Bomb') spawnTimeBomb();
     if (name === 'Bottomless Pit') spawnBottomlessPit();
     if (name === 'Portal Pair') spawnPortalPair();
     if (name === 'The Impawnster') ensureSleeperPawns();
   } else {
     modifiers = modifiers.filter(m => m !== name);
-    if (name === 'Portal Pair') portalPair = null;
+    if (name === 'Portal Pair') portalPairs = [];
+    if (name === 'Bottomless Pit') pitSquares = [];
   }
   syncModifierDisplays();
   draw();
@@ -27843,17 +28129,25 @@ function sbxUpdateModsBar() {
     if (emptyLabel) emptyLabel.style.display = '';
   } else {
     if (emptyLabel) emptyLabel.style.display = 'none';
+    // Count stacked duplicates
+    const _sbxCounts = {};
+    const _sbxOrder = [];
     modifiers.forEach(name => {
+      if (_sbxCounts[name] === undefined) { _sbxCounts[name] = 0; _sbxOrder.push(name); }
+      _sbxCounts[name]++;
+    });
+    _sbxOrder.forEach(name => {
       const modData = allMods.find(m => m.name === name);
       const evoData = evolvedMods.find(m => m.name === name);
       const isEvo   = !!evoData;
       const rarity  = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
       const icon    = isEvo ? evoData.icon : (modData ? modData.icon : '');
+      const count   = _sbxCounts[name];
       let chip = document.createElement('div');
       chip.className = 'mod mod-' + rarity;
       chip.style.cursor = 'pointer';
       chip.title = 'Click for details';
-      chip.textContent = icon + ' ' + name;
+      chip.innerHTML = icon + ' ' + name + (count > 1 ? `<span class='mod-stack-badge'>×${count}</span>` : '');
       chip.onclick = () => showModifierInfo(name);
       bar.appendChild(chip);
     });
@@ -27963,7 +28257,7 @@ function sandboxNewGame() {
   if(_clPanel) _clPanel.style.display = 'none';
   selected = null; legalMoves = []; lastMove = null; epSquare = null;
   whiteCaptured = []; blackCaptured = []; moveHistory = [];
-  kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquare = null; portalPair = null;
+  kamikazeBombs = []; nuclearZones = []; tornadoes = []; timeBombs = []; pitSquares = []; portalPairs = [];
   draftCooldowns = {};
   tornadoPlacementMode = false;
   castleRights = { whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true };
@@ -28004,7 +28298,8 @@ function sbxCreateSaveEntry(name, existingId) {
     board: board.map(r => r.slice()),
     modifiers: modifiers.slice(),
     pieceData: JSON.parse(JSON.stringify(pieceData || {})),
-    portalPair: portalPair ? JSON.parse(JSON.stringify(portalPair)) : null,
+    portalPairs: JSON.parse(JSON.stringify(portalPairs)),
+    pitSquares: JSON.parse(JSON.stringify(pitSquares)),
     turn,
     moveCount,
     castleRights: Object.assign({}, castleRights)
@@ -28064,7 +28359,8 @@ function sbxLoad(id) {
   moveCount = entry.moveCount || 0;
   castleRights = Object.assign({ whiteKing:true, blackKing:true, whiteRookK:true, whiteRookQ:true, blackRookK:true, blackRookQ:true }, entry.castleRights);
   pieceData = entry.pieceData ? JSON.parse(JSON.stringify(entry.pieceData)) : {};
-  portalPair = entry.portalPair || null;
+  portalPairs = entry.portalPairs ? JSON.parse(JSON.stringify(entry.portalPairs)) : [];
+  pitSquares = entry.pitSquares ? JSON.parse(JSON.stringify(entry.pitSquares)) : [];
   selected = null; legalMoves = []; moveHistory = [];
   ensureSleeperPawns();
   ensurePortalPair();
