@@ -2393,6 +2393,396 @@ button:active {
   display: none;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   CHAOS CHESS — COMMAND SIDEBAR
+   ═══════════════════════════════════════════════════════════ */
+
+/* Reflow #menu into a row so sidebar sits left of content */
+#menu {
+  flex-direction: row !important;
+  align-items: stretch !important;
+}
+
+/* Sidebar shell */
+#cmd-sidebar {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  width: 240px;
+  min-height: 100%;
+  background: rgba(0,0,0,0.28);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.28s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  /* subtle inner scanline texture */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(124,92,255,0.018) 3px,
+      rgba(124,92,255,0.018) 4px
+    );
+}
+#cmd-sidebar.collapsed {
+  width: 56px;
+}
+
+/* Everything that wraps the topbar + content area */
+#menu-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* ── Collapse toggle ── */
+#cmd-sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 56px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 4px;
+  padding: 0 16px;
+  box-shadow: none;
+  margin: 0;
+  color: rgba(196,181,253,0.55);
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+#cmd-sidebar-toggle:hover {
+  background: rgba(124,92,255,0.08);
+  color: #c4b5fd;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Three vertical bars (≡ rotated) */
+.cmd-toggle-bars {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.cmd-toggle-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: height 0.2s, opacity 0.2s;
+}
+.cmd-toggle-bar:nth-child(1) { height: 14px; }
+.cmd-toggle-bar:nth-child(2) { height: 20px; }
+.cmd-toggle-bar:nth-child(3) { height: 14px; }
+#cmd-sidebar-toggle:hover .cmd-toggle-bar { opacity: 1; }
+
+/* Toggle label (hidden when collapsed) */
+.cmd-toggle-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  color: rgba(124,92,255,0.5);
+  white-space: nowrap;
+  margin-left: 10px;
+  opacity: 1;
+  transition: opacity 0.18s, max-width 0.28s;
+  overflow: hidden;
+  max-width: 120px;
+}
+#cmd-sidebar.collapsed .cmd-toggle-label {
+  opacity: 0;
+  max-width: 0;
+}
+
+/* ── Scrollable nav area ── */
+#cmd-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 0;
+  scrollbar-width: none;
+}
+#cmd-sidebar-nav::-webkit-scrollbar { display: none; }
+
+/* ── Section group ── */
+.cmd-section {
+  margin-bottom: 2px;
+}
+
+/* Section header label */
+.cmd-section-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 14px 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(170,176,214,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+  transition: opacity 0.18s;
+  font-family: 'Courier New', monospace;
+}
+.cmd-section-label-text {
+  opacity: 1;
+  transition: opacity 0.15s, max-width 0.28s;
+  max-width: 160px;
+  overflow: hidden;
+}
+#cmd-sidebar.collapsed .cmd-section-label-text {
+  opacity: 0;
+  max-width: 0;
+}
+.cmd-section-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  transition: opacity 0.18s;
+}
+#cmd-sidebar.collapsed .cmd-section-line {
+  opacity: 0;
+}
+
+/* ── Nav item (top level) ── */
+.cmd-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 14px;
+  height: 40px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: rgba(245,247,255,0.65);
+  font-size: 13px;
+  font-weight: 600;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  box-shadow: none;
+  margin: 0;
+  transition: color 0.18s, background 0.18s;
+  overflow: hidden;
+}
+.cmd-nav-item:hover {
+  background: rgba(124,92,255,0.1);
+  color: #f5f7ff;
+  transform: none;
+  box-shadow: none;
+}
+.cmd-nav-item.active {
+  color: #c4b5fd;
+  background: rgba(124,92,255,0.14);
+}
+.cmd-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #c4b5fd 0%, #7c5cff 100%);
+  box-shadow: 0 0 8px rgba(124,92,255,0.6);
+}
+
+/* icon */
+.cmd-nav-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  line-height: 1;
+  transition: filter 0.2s;
+}
+.cmd-nav-item:hover .cmd-nav-icon,
+.cmd-nav-item.active .cmd-nav-icon {
+  filter: drop-shadow(0 0 6px rgba(124,92,255,0.7));
+}
+
+/* label text */
+.cmd-nav-label {
+  flex: 1;
+  opacity: 1;
+  transition: opacity 0.15s, max-width 0.28s;
+  max-width: 160px;
+  overflow: hidden;
+}
+#cmd-sidebar.collapsed .cmd-nav-label {
+  opacity: 0;
+  max-width: 0;
+}
+
+/* chevron for items with submenus */
+.cmd-nav-chevron {
+  font-size: 9px;
+  opacity: 0.45;
+  flex-shrink: 0;
+  transition: transform 0.22s, opacity 0.18s, max-width 0.28s;
+  max-width: 16px;
+  overflow: hidden;
+}
+#cmd-sidebar.collapsed .cmd-nav-chevron {
+  opacity: 0;
+  max-width: 0;
+}
+.cmd-nav-item.submenu-open .cmd-nav-chevron {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* ── Submenu ── */
+.cmd-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.26s cubic-bezier(0.4,0,0.2,1);
+  background: rgba(0,0,0,0.15);
+}
+.cmd-submenu.open {
+  max-height: 200px;
+}
+#cmd-sidebar.collapsed .cmd-submenu {
+  max-height: 0 !important;
+}
+
+.cmd-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px 0 42px;
+  height: 34px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: rgba(245,247,255,0.5);
+  font-size: 12px;
+  font-weight: 500;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  box-shadow: none;
+  margin: 0;
+  transition: color 0.18s, background 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.cmd-sub-item::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(124,92,255,0.4);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+.cmd-sub-item:hover {
+  color: #c4b5fd;
+  background: rgba(124,92,255,0.08);
+  transform: none;
+  box-shadow: none;
+}
+.cmd-sub-item:hover::before {
+  background: #7c5cff;
+  box-shadow: 0 0 6px rgba(124,92,255,0.6);
+}
+.cmd-sub-item.active {
+  color: #a78bfa;
+  background: rgba(124,92,255,0.1);
+}
+.cmd-sub-item.active::before {
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167,139,250,0.5);
+}
+
+/* ── Settings pinned at bottom ── */
+#cmd-sidebar-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 0;
+}
+
+/* ── Tooltip (collapsed mode only) ── */
+.cmd-tooltip {
+  position: fixed;
+  left: 64px;
+  background: #1e2240;
+  border: 1px solid rgba(124,92,255,0.35);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f7ff;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  font-family: 'Inter', sans-serif;
+}
+.cmd-tooltip.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Sys chip (decorative label on active item) ── */
+.cmd-nav-chip {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  color: rgba(124,92,255,0.55);
+  background: rgba(124,92,255,0.1);
+  border: 1px solid rgba(124,92,255,0.2);
+  border-radius: 3px;
+  padding: 2px 5px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.18s, max-width 0.28s;
+  max-width: 60px;
+  overflow: hidden;
+}
+#cmd-sidebar.collapsed .cmd-nav-chip {
+  opacity: 0;
+  max-width: 0;
+}
+.cmd-nav-item.active .cmd-nav-chip,
+.cmd-nav-item:hover .cmd-nav-chip {
+  opacity: 1;
+}
+
+/* ── Divider between sections ── */
+.cmd-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+  margin: 4px 12px;
+}
+
 /* Top nav bar */
 .menu-topbar {
   display: flex;
@@ -9545,6 +9935,145 @@ button:active {
   <div class="menu-scanline"></div>
   <div class="menu-vignette"></div>
   <div class="menu-noise"></div>
+
+  <!-- ═══ COMMAND SIDEBAR ═══ -->
+  <nav id="cmd-sidebar" aria-label="Game navigation">
+
+    <!-- Collapse toggle -->
+    <button id="cmd-sidebar-toggle" onclick="cmdSidebarToggle()" title="Toggle navigation">
+      <div class="cmd-toggle-bars">
+        <div class="cmd-toggle-bar"></div>
+        <div class="cmd-toggle-bar"></div>
+        <div class="cmd-toggle-bar"></div>
+      </div>
+      <span class="cmd-toggle-label">SYS::NAV</span>
+    </button>
+
+    <!-- Scrollable nav -->
+    <div id="cmd-sidebar-nav">
+
+      <!-- ⚔️ PLAY -->
+      <div class="cmd-section">
+        <div class="cmd-section-label">
+          <span class="cmd-section-label-text">Play</span>
+          <span class="cmd-section-line"></span>
+        </div>
+
+        <!-- Play Online (parent) -->
+        <button class="cmd-nav-item" id="cmd-item-online"
+          onclick="cmdNavClick('online')"
+          data-tooltip="Play Online">
+          <span class="cmd-nav-icon">🌐</span>
+          <span class="cmd-nav-label">Play Online</span>
+          <span class="cmd-nav-chip">NET</span>
+          <span class="cmd-nav-chevron">›</span>
+        </button>
+        <div class="cmd-submenu" id="cmd-sub-online">
+          <button class="cmd-sub-item" onclick="cmdGo('findmatch')" data-tooltip="Find Match">Find Match</button>
+          <button class="cmd-sub-item" onclick="cmdGo('private')" data-tooltip="Private Game">Private Game</button>
+        </div>
+
+        <!-- Play Local (parent) -->
+        <button class="cmd-nav-item" id="cmd-item-local"
+          onclick="cmdNavClick('local')"
+          data-tooltip="Play Local">
+          <span class="cmd-nav-icon">🖥️</span>
+          <span class="cmd-nav-label">Play Local</span>
+          <span class="cmd-nav-chip">LOC</span>
+          <span class="cmd-nav-chevron">›</span>
+        </button>
+        <div class="cmd-submenu" id="cmd-sub-local">
+          <button class="cmd-sub-item" onclick="cmdGo('passplay')" data-tooltip="Pass & Play">Pass &amp; Play</button>
+          <button class="cmd-sub-item" onclick="cmdGo('vsai')" data-tooltip="Play vs AI">Play vs AI</button>
+        </div>
+      </div>
+
+      <!-- 🌀 CHAOS -->
+      <div class="cmd-section">
+        <div class="cmd-section-label">
+          <span class="cmd-section-label-text">Chaos</span>
+          <span class="cmd-section-line"></span>
+        </div>
+        <button class="cmd-nav-item" id="cmd-item-sandbox"
+          onclick="cmdGo('sandbox')"
+          data-tooltip="Sandbox Mode">
+          <span class="cmd-nav-icon">🧪</span>
+          <span class="cmd-nav-label">Sandbox Mode</span>
+          <span class="cmd-nav-chip">SBX</span>
+        </button>
+        <button class="cmd-nav-item" id="cmd-item-codex"
+          onclick="cmdGo('codex')"
+          data-tooltip="Modifier Library">
+          <span class="cmd-nav-icon">📚</span>
+          <span class="cmd-nav-label">Modifier Library</span>
+          <span class="cmd-nav-chip">LIB</span>
+        </button>
+      </div>
+
+      <!-- 🧩 LEARN -->
+      <div class="cmd-section">
+        <div class="cmd-section-label">
+          <span class="cmd-section-label-text">Learn</span>
+          <span class="cmd-section-line"></span>
+        </div>
+        <button class="cmd-nav-item" id="cmd-item-puzzle"
+          onclick="cmdGo('puzzle')"
+          data-tooltip="Puzzle Mode">
+          <span class="cmd-nav-icon">🧩</span>
+          <span class="cmd-nav-label">Puzzle Mode</span>
+          <span class="cmd-nav-chip">PZL</span>
+        </button>
+        <button class="cmd-nav-item" id="cmd-item-howtoplay"
+          onclick="cmdGo('howtoplay')"
+          data-tooltip="How to Play">
+          <span class="cmd-nav-icon">📖</span>
+          <span class="cmd-nav-label">How to Play</span>
+          <span class="cmd-nav-chip">HTP</span>
+        </button>
+      </div>
+
+      <!-- 🌐 SOCIAL -->
+      <div class="cmd-section">
+        <div class="cmd-section-label">
+          <span class="cmd-section-label-text">Social</span>
+          <span class="cmd-section-line"></span>
+        </div>
+        <button class="cmd-nav-item" id="cmd-item-friends"
+          onclick="cmdGo('friends')"
+          data-tooltip="Friends">
+          <span class="cmd-nav-icon">👥</span>
+          <span class="cmd-nav-label">Friends</span>
+          <span class="cmd-nav-chip">SOC</span>
+        </button>
+        <button class="cmd-nav-item" id="cmd-item-profile"
+          onclick="cmdGo('profile')"
+          data-tooltip="Statistics">
+          <span class="cmd-nav-icon">📊</span>
+          <span class="cmd-nav-label">Statistics</span>
+          <span class="cmd-nav-chip">STAT</span>
+        </button>
+      </div>
+
+    </div><!-- /cmd-sidebar-nav -->
+
+    <!-- ⚙️ SETTINGS pinned at bottom -->
+    <div id="cmd-sidebar-footer">
+      <button class="cmd-nav-item" id="cmd-item-settings"
+        onclick="cmdGo('settings')"
+        data-tooltip="Settings">
+        <span class="cmd-nav-icon">⚙️</span>
+        <span class="cmd-nav-label">Settings</span>
+      </button>
+    </div>
+
+  </nav><!-- /cmd-sidebar -->
+
+  <!-- Tooltip element (shared, positioned by JS) -->
+  <div id="cmd-tooltip" class="cmd-tooltip"></div>
+
+  <!-- ═══ REST OF MENU (topbar + hub/sub-content) ═══ -->
+  <div id="menu-body">
+
   <!-- TOP NAV BAR -->
   <div class="menu-topbar">
     <div class="menu-topbar-logo">♟ Chaos<span>Chess</span><span class="chaos-topbar-corrupt" aria-hidden="true">♟ Chaos<span>Chess</span></span></div>
@@ -9556,8 +10085,6 @@ button:active {
           <div class="menu-topbar-rating" id="menu-topbar-rating"></div>
         </div>
       </div>
-      <button class="topbar-codex-btn" onclick="openModifierCodex()" title="Modifier Library">📚</button>
-      <button class="menu-topbar-settings" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
 
@@ -10475,6 +11002,8 @@ button:active {
 
     <div id="connection-status" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;"></div>
   </div><!-- end menu-sub-content -->
+
+  </div><!-- end #menu-body -->
 </div><!-- end #menu -->
 
 <!-- HOW TO PLAY MODAL -->
@@ -21950,6 +22479,180 @@ async function _populateLobbyInlineFriends(p){
     container.appendChild(more);
   }
 }
+
+// ============================================================
+//  COMMAND SIDEBAR
+// ============================================================
+(function(){
+  // ── State ──────────────────────────────────────────────
+  let collapsed = false;
+  let openSubmenu = null; // 'online' | 'local' | null
+  let activeItem = null;  // string id like 'online', 'local', 'sandbox' …
+
+  // Map of item id → submenu id (for items that have submenus)
+  const SUBMENUS = { online: 'cmd-sub-online', local: 'cmd-sub-local' };
+
+  // ── Toggle collapse ────────────────────────────────────
+  window.cmdSidebarToggle = function() {
+    const sb = document.getElementById('cmd-sidebar');
+    if (!sb) return;
+    collapsed = !collapsed;
+    sb.classList.toggle('collapsed', collapsed);
+    // Close any open submenu when collapsing (they'd be hidden anyway, but keep state clean)
+    if (collapsed && openSubmenu) {
+      _closeSubmenu(openSubmenu);
+      openSubmenu = null;
+    }
+  };
+
+  // ── Nav item clicked ───────────────────────────────────
+  window.cmdNavClick = function(id) {
+    const sb = document.getElementById('cmd-sidebar');
+    if (!sb) return;
+
+    // If in collapsed mode, expand first then open submenu
+    if (collapsed && SUBMENUS[id]) {
+      collapsed = false;
+      sb.classList.remove('collapsed');
+    }
+
+    if (SUBMENUS[id]) {
+      // Toggle submenu
+      if (openSubmenu === id) {
+        _closeSubmenu(id);
+        openSubmenu = null;
+      } else {
+        if (openSubmenu) _closeSubmenu(openSubmenu);
+        _openSubmenu(id);
+        openSubmenu = id;
+      }
+      _setActive(id);
+    } else {
+      // Direct nav
+      if (openSubmenu) { _closeSubmenu(openSubmenu); openSubmenu = null; }
+    }
+  };
+
+  function _openSubmenu(id) {
+    const el = document.getElementById(SUBMENUS[id]);
+    const btn = document.getElementById('cmd-item-' + id);
+    if (el) el.classList.add('open');
+    if (btn) btn.classList.add('submenu-open');
+  }
+  function _closeSubmenu(id) {
+    const el = document.getElementById(SUBMENUS[id]);
+    const btn = document.getElementById('cmd-item-' + id);
+    if (el) el.classList.remove('open');
+    if (btn) btn.classList.remove('submenu-open');
+  }
+
+  // ── Go — actual navigation ─────────────────────────────
+  window.cmdGo = function(dest) {
+    switch (dest) {
+      case 'online':
+      case 'findmatch':
+        _setActive('online');
+        if (typeof showMatchmaking === 'function') showMatchmaking();
+        else if (typeof showLobby === 'function') showLobby();
+        break;
+      case 'private':
+        _setActive('online');
+        if (typeof showPrivateSetup === 'function') showPrivateSetup();
+        else if (typeof showLobby === 'function') showLobby();
+        break;
+      case 'local':
+      case 'vsai':
+        _setActive('local');
+        if (typeof showLocalSetup === 'function') showLocalSetup();
+        break;
+      case 'passplay':
+        _setActive('local');
+        if (typeof startLocal === 'function') startLocal();
+        break;
+      case 'sandbox':
+        _setActive('sandbox');
+        if (typeof startSandbox === 'function') startSandbox();
+        break;
+      case 'codex':
+        _setActive('codex');
+        if (typeof openModifierCodex === 'function') openModifierCodex();
+        break;
+      case 'puzzle':
+        _setActive('puzzle');
+        if (typeof startPuzzle === 'function') startPuzzle();
+        break;
+      case 'howtoplay':
+        _setActive('howtoplay');
+        if (typeof openHowToPlay === 'function') openHowToPlay();
+        break;
+      case 'friends':
+        _setActive('friends');
+        if (typeof showLobby === 'function') {
+          showLobby();
+          setTimeout(() => { if (typeof showFriends === 'function') showFriends(); }, 80);
+        }
+        break;
+      case 'profile':
+        _setActive('profile');
+        if (typeof showLobby === 'function') {
+          showLobby();
+          setTimeout(() => { if (typeof showProfile === 'function') showProfile(); }, 80);
+        }
+        break;
+      case 'settings':
+        _setActive('settings');
+        if (typeof openSettings === 'function') openSettings();
+        break;
+    }
+  };
+
+  // ── Active highlight ───────────────────────────────────
+  function _setActive(id) {
+    activeItem = id;
+    document.querySelectorAll('.cmd-nav-item, .cmd-sub-item').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById('cmd-item-' + id);
+    if (target) target.classList.add('active');
+  }
+
+  // ── Tooltip (collapsed mode) ───────────────────────────
+  const tooltip = document.createElement('div');
+  tooltip.id = 'cmd-tooltip';
+  tooltip.className = 'cmd-tooltip';
+  document.addEventListener('DOMContentLoaded', () => {
+    const existing = document.getElementById('cmd-tooltip');
+    const sb = document.getElementById('cmd-sidebar');
+
+    function attachTooltips(root) {
+      root.querySelectorAll('[data-tooltip]').forEach(el => {
+        el.addEventListener('mouseenter', (e) => {
+          if (!collapsed) return;
+          const existing = document.getElementById('cmd-tooltip');
+          if (!existing) return;
+          const rect = el.getBoundingClientRect();
+          existing.textContent = el.getAttribute('data-tooltip');
+          existing.style.top = (rect.top + rect.height / 2 - 14) + 'px';
+          existing.classList.add('visible');
+        });
+        el.addEventListener('mouseleave', () => {
+          const existing = document.getElementById('cmd-tooltip');
+          if (existing) existing.classList.remove('visible');
+        });
+      });
+    }
+    if (sb) attachTooltips(sb);
+
+    // Auto-detect current view on any hub navigation to update active state
+    // Patch showHubView to clear active when returning home
+    const _origShowHub = window.showHubView;
+    if (_origShowHub) {
+      window.showHubView = function() {
+        _origShowHub.apply(this, arguments);
+        document.querySelectorAll('.cmd-nav-item, .cmd-sub-item').forEach(el => el.classList.remove('active'));
+        activeItem = null;
+      };
+    }
+  });
+})();
 
 // ============================================================
 //  MENU NAVIGATION
