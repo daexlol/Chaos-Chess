@@ -5657,6 +5657,236 @@ button:active {
   padding-right: 24px;
   align-self: stretch;
 }
+
+/* TOTAL CHAOS meter between the player cards and the board */
+#chaos-level-rail {
+  width: 58px;
+  flex-shrink: 0;
+  align-self: center;
+  height: min(72vh, 620px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 4;
+  pointer-events: none;
+}
+.chaos-level-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: rgba(196,181,253,0.78);
+  text-shadow: 0 0 12px rgba(124,92,255,0.45);
+}
+#chaos-level-shell {
+  flex: 1;
+  width: 26px;
+  border-radius: 999px;
+  padding: 3px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(15,23,42,0.92), rgba(10,10,20,0.96)),
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px);
+  border: 1px solid rgba(124,92,255,0.45);
+  box-shadow:
+    inset 0 0 18px rgba(124,92,255,0.18),
+    0 0 calc(12px + var(--chaos-intensity, 0) * 26px) rgba(124,92,255,0.35);
+}
+#chaos-level-shell::before,
+#chaos-level-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#chaos-level-shell::before {
+  background: repeating-linear-gradient(180deg, transparent 0 9px, rgba(255,255,255,0.13) 9px 10px);
+  mix-blend-mode: screen;
+  opacity: calc(0.08 + var(--chaos-intensity, 0) * 0.35);
+  animation: chaos-meter-scan 1.2s linear infinite;
+}
+#chaos-level-shell::after {
+  background:
+    linear-gradient(90deg, transparent, rgba(34,211,238,0.18), transparent),
+    linear-gradient(270deg, transparent, rgba(239,68,68,0.22), transparent);
+  opacity: calc(0.12 + var(--chaos-intensity, 0) * 0.45);
+  animation: chaos-meter-glitch 2.4s steps(2,end) infinite;
+}
+#chaos-level-fill {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: 0%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fef08a 0%, #fb7185 35%, #ef4444 68%, #7f1d1d 100%);
+  box-shadow:
+    0 0 12px rgba(248,113,113,0.75),
+    0 0 32px rgba(239,68,68,0.45);
+  transition: height 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+#chaos-level-value {
+  min-width: 48px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #f5f7ff;
+  padding: 5px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,92,255,0.45);
+  background: rgba(15,23,42,0.82);
+  box-shadow: 0 0 12px rgba(124,92,255,0.22);
+}
+#chaos-level-rail.chaos-gain #chaos-level-shell {
+  animation: chaos-gain-pop 0.38s ease-out;
+}
+body.total-chaos-active #chaos-level-rail .chaos-level-label,
+body.total-chaos-active #chaos-level-value {
+  color: #cc1a1a;
+  border-color: rgba(139,0,0,0.85);
+  text-shadow: 0 0 12px rgba(139,0,0,0.9);
+}
+body.total-chaos-active #chaos-level-shell {
+  border-color: rgba(139,0,0,0.95);
+  box-shadow:
+    inset 0 0 22px rgba(139,0,0,0.35),
+    0 0 24px rgba(139,0,0,0.75),
+    0 0 60px rgba(80,0,0,0.55);
+  animation: total-chaos-meter-shake 0.45s steps(2,end) infinite;
+}
+body.total-chaos-active #game-container {
+  background: linear-gradient(160deg, #150003 0%, #2d0008 48%, #0d0002 100%);
+}
+body.total-chaos-active #game-container::before {
+  background-image:
+    linear-gradient(rgba(139,0,0,0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,0,0,0.09) 1px, transparent 1px);
+}
+body.total-chaos-active #game-container::after {
+  content: '';
+  position: fixed;
+  inset: 64px 0 0 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(139,0,0,0.0) 0 8px, rgba(139,0,0,0.11) 9px 10px),
+    radial-gradient(circle at 18% 40%, rgba(139,0,0,0.18), transparent 34%),
+    radial-gradient(circle at 78% 65%, rgba(80,0,0,0.28), transparent 38%);
+  mix-blend-mode: screen;
+  animation: total-chaos-screen-glitch 1.8s steps(3,end) infinite;
+}
+body.total-chaos-active #game-topbar,
+body.total-chaos-active #ingame-sidebar {
+  background: rgba(18,2,5,0.95);
+  border-color: rgba(139,0,0,0.40);
+  box-shadow: 0 0 32px rgba(80,0,0,0.35);
+}
+body.total-chaos-active #game-topbar-logo,
+body.total-chaos-active #game-center-title {
+  background: linear-gradient(135deg, #cc1a1a 0%, #7b0000 52%, #3a0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(139,0,0,0.5);
+}
+body.total-chaos-active .game-player-card.active-turn {
+  border-color: rgba(139,0,0,0.80);
+  box-shadow: 0 0 24px rgba(139,0,0,0.28);
+}
+body.total-chaos-active .game-player-card.active-turn .gpc-name,
+body.total-chaos-active #game-topbar-rating,
+body.total-chaos-active .gpc-rating {
+  color: #b91c1c;
+}
+body.total-chaos-active .gpc-turn-badge {
+  color: #cc1a1a;
+  background: rgba(139,0,0,0.18);
+  border-color: rgba(139,0,0,0.40);
+}
+body.total-chaos-active .gpc-turn-dot {
+  background: #8b0000;
+}
+body.total-chaos-active .game-timer-box.total-chaos-timer,
+body.total-chaos-active .timer-box.total-chaos-timer {
+  border-color: rgba(139,0,0,0.95) !important;
+  color: #cc1a1a !important;
+  animation: total-chaos-timer-pulse 0.45s steps(2,end) infinite !important;
+}
+@keyframes chaos-meter-scan {
+  from { transform: translateY(-18px); }
+  to { transform: translateY(18px); }
+}
+@keyframes chaos-meter-glitch {
+  0%, 76%, 100% { transform: translateX(0); filter: none; }
+  78% { transform: translateX(-3px); filter: hue-rotate(35deg); }
+  80% { transform: translateX(3px); filter: hue-rotate(-35deg); }
+}
+@keyframes chaos-gain-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16) skewX(-4deg); }
+  100% { transform: scale(1); }
+}
+@keyframes total-chaos-meter-shake {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+@keyframes total-chaos-screen-glitch {
+  0%, 88%, 100% { opacity: 0.35; transform: translate(0,0); clip-path: inset(0 0 0 0); }
+  90% { opacity: 0.7; transform: translate(-3px,1px); clip-path: inset(18% 0 52% 0); }
+  93% { opacity: 0.5; transform: translate(3px,-1px); clip-path: inset(62% 0 12% 0); }
+}
+@keyframes total-chaos-timer-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(139,0,0,0.70), 0 0 24px rgba(139,0,0,0.55); transform: translateX(0); }
+  50% { box-shadow: 0 0 0 3px rgba(185,28,28,0.90), 0 0 36px rgba(139,0,0,0.80); transform: translateX(2px); }
+}
+
+/* ─── Total Chaos intro transition ──────────────────────────── */
+/* 1. Screen shake — brief violent rattle on the game container */
+@keyframes tc-shake {
+  0%   { transform: translate(0,   0  ); }
+  12%  { transform: translate(-7px,-3px); }
+  25%  { transform: translate( 7px, 4px); }
+  37%  { transform: translate(-5px, 2px); }
+  50%  { transform: translate( 4px,-2px); }
+  65%  { transform: translate(-2px, 1px); }
+  80%  { transform: translate( 1px,-1px); }
+  100% { transform: translate(0,   0  ); }
+}
+/* 2. Chromatic aberration — RGB channel split across the whole container */
+@keyframes tc-aberration {
+  0%   { filter: brightness(2.2) saturate(0); }
+  10%  { filter: brightness(1.0) drop-shadow(-14px 0 4px rgba(255,0,0,0.85)) drop-shadow(14px 0 4px rgba(0,210,255,0.75)) saturate(5); }
+  22%  { filter: brightness(1.0) drop-shadow( 9px 0 4px rgba(255,0,0,0.65)) drop-shadow(-9px 0 4px rgba(0,210,255,0.55)) saturate(3); }
+  40%  { filter: brightness(1.0) drop-shadow(-4px 0 3px rgba(180,0,0,0.35)) saturate(1.8); }
+  70%  { filter: brightness(1.0) saturate(1.2); }
+  100% { filter: none; }
+}
+body.total-chaos-entering #game-container {
+  animation:
+    tc-shake     0.48s ease-out           forwards,
+    tc-aberration 0.85s ease-out          forwards;
+}
+/* 3. Red bleed-in — a blood-red vignette floods from the edges, then dissolves */
+@keyframes tc-bleed {
+  0%   { opacity: 0;    box-shadow: inset 0 0   0px   0px rgba(100,0,0,0); }
+  18%  { opacity: 1;    box-shadow: inset 0 0 160px 100px rgba(100,0,0,0.88); }
+  55%  { opacity: 0.7;  box-shadow: inset 0 0 130px  80px rgba(80,0,0,0.60); }
+  100% { opacity: 0;    box-shadow: inset 0 0  60px  20px rgba(60,0,0,0); }
+}
+#total-chaos-bleed {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0;
+}
+body.total-chaos-entering #total-chaos-bleed {
+  animation: tc-bleed 1.5s ease-out forwards;
+  animation-delay: 0.08s;
+}
 .game-player-card {
   background: #232744;
   border: 1px solid rgba(255,255,255,0.07);
@@ -11697,6 +11927,8 @@ button:active {
 </div>
 
 <div id="game-container">
+  <!-- Total Chaos intro overlay: red bleed vignette, driven by body.total-chaos-entering -->
+  <div id="total-chaos-bleed"></div>
   <!-- Chaos flicker overlays -->
   <div class="chaos-overlay-layer game-flicker-r"></div>
   <div class="chaos-overlay-layer game-flicker-b"></div>
@@ -11961,6 +12193,14 @@ button:active {
       <div class="gpc-turn-badge"><div class="gpc-turn-dot"></div> Your Turn</div>
     </div>
 
+  </div>
+
+  <div id="chaos-level-rail" aria-label="Chaos Level">
+    <div class="chaos-level-label">CHAOS LEVEL</div>
+    <div id="chaos-level-shell">
+      <div id="chaos-level-fill"></div>
+    </div>
+    <div id="chaos-level-value">0%</div>
   </div>
 
   <!-- CENTER: Mods bar + Board + Actions bar -->
@@ -12681,6 +12921,10 @@ let berserkerQueenX = -1, berserkerQueenY = -1; // Position of the queen that mu
 let cowardRetreatActive = false; // Track if we're in a coward knight retreat step
 let cowardKnightX = -1, cowardKnightY = -1; // Position of the knight that must retreat
 
+const CHAOS_THRESHOLD = 100;
+let chaosLevel = 0;
+let totalChaosActive = false;
+
 // Arrow drawing variables
 let arrows = [];           // [{x1,y1,x2,y2}] in board coords
 let arrowDragFrom = null;  // {x,y} square where right-drag started
@@ -12693,6 +12937,98 @@ let myColor = null; // 'white' or 'black' for online games
 let peer = null;
 let connection = null;
 let autoDeclineRequests = false; // Auto-decline incoming draw/restart requests
+
+function getChaosPercent(){
+  return Math.max(0, Math.min(100, chaosLevel));
+}
+
+function getCurrentDraftFrequency(){
+  return totalChaosActive ? 5 : DRAFT_FREQUENCY;
+}
+
+function chaosChance(baseChance){
+  if(puzzleModeActive) return baseChance;
+  return totalChaosActive ? Math.min(0.95, baseChance * 2.2 + 0.12) : baseChance;
+}
+
+function getEvolutionDraftChance(){
+  return totalChaosActive ? 0.38 : 0.15;
+}
+
+function resetChaosLevel(){
+  chaosLevel = 0;
+  totalChaosActive = false;
+  updateChaosLevelUI();
+}
+
+function addChaos(amount, reason){
+  if(puzzleModeActive || totalChaosActive || !amount) return;
+  chaosLevel = Math.min(CHAOS_THRESHOLD, chaosLevel + amount);
+  updateChaosLevelUI(true);
+  if(chaosLevel >= CHAOS_THRESHOLD) activateTotalChaos(reason);
+}
+
+// NOTE (unfinished?): activateTotalChaos() currently has no board-level activation event.
+// The system enters Total Chaos mode (red theme, amplified draft odds, faster draft frequency)
+// but nothing dramatic happens *to the board itself* at the moment of activation. Potential
+// additions to consider:
+//   - Immediately trigger a forced chaos draft
+//   - Spawn a random modifier effect on the board (tornado, time bomb, etc.)
+//   - Play a dramatic animation / screen flash beyond what the CSS alone provides
+function activateTotalChaos(reason){
+  // NOTE: `reason` (e.g. 'promotion', 'capture', 'modifier-effect') is passed in from addChaos()
+  // but is currently unused inside this function. Consider logging it in the chaos log message
+  // or showing it in the toast, e.g. "TOTAL CHAOS — triggered by: Promotion!"
+  if(totalChaosActive) return;
+  totalChaosActive = true;
+  chaosLevel = CHAOS_THRESHOLD;
+  updateChaosLevelUI(true);
+  // Trigger the intro transition: chromatic aberration + red bleed-in.
+  // The CSS animations are driven by body.total-chaos-entering, which we remove after they finish.
+  document.body.classList.add('total-chaos-entering');
+  setTimeout(() => document.body.classList.remove('total-chaos-entering'), 1700);
+  try { logChaos('sys', 'ability', 'TOTAL CHAOS has begun — the board is no longer stable!'); } catch(e) {}
+  playTotalChaosSound();
+  showToast('TOTAL CHAOS ACTIVATED', 2600);
+  // Restart the timer interval at 2x speed (500ms ticks instead of 1000ms).
+  if(gameMode === 'online' && timeControl > 0) startTimer();
+}
+
+function updateChaosLevelUI(pulse){
+  const pct = getChaosPercent();
+  const rail = document.getElementById('chaos-level-rail');
+  const fill = document.getElementById('chaos-level-fill');
+  const value = document.getElementById('chaos-level-value');
+  const intensity = (pct / CHAOS_THRESHOLD).toFixed(2);
+  if(document.body){
+    document.body.classList.toggle('total-chaos-active', !!totalChaosActive);
+    document.body.style.setProperty('--chaos-intensity', intensity);
+  }
+  if(fill) fill.style.height = pct + '%';
+  if(value) value.textContent = totalChaosActive ? 'TOTAL' : Math.floor(pct) + '%';
+  if(rail){
+    rail.style.setProperty('--chaos-intensity', intensity);
+    if(pulse){
+      rail.classList.remove('chaos-gain');
+      void rail.offsetWidth;
+      rail.classList.add('chaos-gain');
+      setTimeout(() => rail.classList.remove('chaos-gain'), 420);
+    }
+  }
+}
+
+function awardChaosForMove(opts = {}){
+  if(puzzleModeActive) return;
+  if(opts.move !== false) addChaos(0.25, 'move');
+  if(opts.captured) addChaos(1, 'capture');
+  if(opts.check) addChaos(1, 'check');
+  if(opts.castle) addChaos(1, 'castle');
+  if(opts.promotion) addChaos(5, 'promotion');
+  if(opts.enPassant) addChaos(3, 'en-passant');
+  if(opts.effect) addChaos(4, 'modifier-effect');
+  if(opts.modifierOnly) addChaos(3, 'modifier-move');
+  if(opts.draft) addChaos(opts.evolvedDraft ? 7 : 5, 'draft');
+}
 
 // Puzzle mode state
 let puzzleModeActive = false;
@@ -13475,6 +13811,7 @@ function spawnPieceParticles(boardEl) {
 function draw(){
   const b = document.getElementById('board');
   const wrapper = document.getElementById('board-wrapper');
+  updateChaosLevelUI();
   b.innerHTML = '';
   const activeMods = new Set(modifiers || []);
   let heavyPawnGlowCount = 0;
@@ -14318,6 +14655,7 @@ function loadPuzzle(index){
   puzzleInputLocked = false;
   puzzleAutoPlaying = false;
   resetPuzzleHints();
+  resetChaosLevel(); // Puzzles don't use the chaos meter — zero it out so it doesn't show stale state
 
   gameMode = 'local';
   myColor = null;
@@ -14563,7 +14901,7 @@ function queuePuzzleAutoMove(){
       // After opponent move resolves, save checkpoint so player can retry from this position
       setTimeout(() => { if(puzzleModeActive) savePuzzleCheckpoint(); }, 100);
     });
-  }, 1000);
+  }, totalChaosActive ? 500 : 1000);
 }
 
 function pieceToNotation(piece) {
@@ -16647,6 +16985,69 @@ function playDraftPickSound(rarity) {
   }
 }
 
+// ── Total Chaos ───────────────────────────────────────────
+// "Reality Fracture" — designed to feel like the board's entire state has shifted.
+// Seven layered elements across ~2 seconds:
+//   1. Sub-bass ground shaker      — seismic foundation rumble
+//   2. Initial noise crack          — sharp burst at the moment of activation
+//   3. Dual detuned power sweep     — two sawtooth surges ascending in chorus
+//   4. Tritone chaos chord          — diabolus in musica (F3 + B3 + D4) — the new unstable reality
+//   5. Electrical static sweep      — bandpass noise rising from low to high, like current through the board
+//   6. High shimmer sparks          — staccato harmonics; sparks flying as chaos settles
+//   7. Beating undertone            — 73Hz vs 76Hz pair creates a 3Hz throb, persisting reminder of instability
+function playTotalChaosSound() {
+  if (!settings.sounds) return;
+  initAudio();
+  const t = audioContext.currentTime;
+  const master = audioContext.createGain();
+  master.gain.value = 0.68;
+  master.connect(audioContext.destination);
+
+  // 1. Sub-bass ground shaker
+  _osc('sine', 45, t, 20, 1.5, 0.55, master);
+
+  // 2. Initial noise crack — sharp percussive burst
+  const crack = _makeNoise(0.35);
+  const crackLP = _filter('lowpass', 2800);
+  const crackHP = _filter('highpass', 80);
+  const crackG = audioContext.createGain();
+  crackG.gain.setValueAtTime(0.85, t);
+  crackG.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+  crack.connect(crackLP); crackLP.connect(crackHP); crackHP.connect(crackG); crackG.connect(master);
+  crack.start(t); crack.stop(t + 0.35);
+
+  // 3. Dual detuned power sweep — two saws ascending, slightly out of tune for a beating/chorus effect
+  _osc('sawtooth', 50, t,        650, 0.62, 0.42, master);
+  _osc('sawtooth', 54, t + 0.02, 600, 0.60, 0.36, master);
+
+  // 4. Tritone chaos chord — F3 + B3 (diabolus in musica) + D4 piled on for extra dissonance
+  _osc('triangle', 174.6, t + 0.50, 160, 1.2, 0.22, master); // F3
+  _osc('triangle', 246.9, t + 0.50, 226, 1.2, 0.20, master); // B3
+  _osc('triangle', 293.7, t + 0.55, 270, 1.0, 0.14, master); // D4
+
+  // 5. Electrical static sweep — bandpass noise sweeping 200Hz → 4000Hz
+  const elec = _makeNoise(1.2);
+  const elecBP = audioContext.createBiquadFilter();
+  elecBP.type = 'bandpass';
+  elecBP.frequency.setValueAtTime(200,  t + 0.60);
+  elecBP.frequency.exponentialRampToValueAtTime(4000, t + 1.70);
+  elecBP.Q.value = 1.8;
+  const elecG = audioContext.createGain();
+  elecG.gain.setValueAtTime(0.5, t + 0.60);
+  elecG.gain.exponentialRampToValueAtTime(0.0001, t + 1.80);
+  elec.connect(elecBP); elecBP.connect(elecG); elecG.connect(master);
+  elec.start(t + 0.60); elec.stop(t + 1.80);
+
+  // 6. High shimmer sparks — staccato harmonic pops
+  [[1760, 0.70], [2640, 0.78], [3520, 0.86]].forEach(([freq, delay]) => {
+    _osc('triangle', freq, t + delay, null, 0.22, 0.09, master);
+  });
+
+  // 7. Beating undertone — 73Hz vs 76Hz creates a 3Hz throb; lingers as chaos persists
+  _osc('sine', 73, t + 0.85, null, 1.4, 0.28, master);
+  _osc('sine', 76, t + 0.85, null, 1.4, 0.24, master);
+}
+
 function move(x1,y1,x2,y2,castleType){
   let piece=board[y1][x1];
   let captured=board[y2][x2];
@@ -16657,6 +17058,7 @@ function move(x1,y1,x2,y2,castleType){
   // Capture move metadata before legalMoves is cleared, for Chaos Log
   const _selectedMoveMeta = legalMoves.find(m => m.x===x2 && m.y===y2) || {};
   const _moverWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
+  let _isEP = false;
 
   if(_selectedMoveMeta.portal) {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Portal Pair — entered ${sqNotation(_selectedMoveMeta.portalEntry.x,_selectedMoveMeta.portalEntry.y)} and emerged at ${sqNotation(x2,y2)}!`);
@@ -16807,7 +17209,7 @@ function move(x1,y1,x2,y2,castleType){
   // Reinforced Pawn: 50% chance to survive first capture
   if(!puzzleModeActive && captured && captured.toLowerCase()==='p' && modifiers.includes('Reinforced Pawn')){
     let data = getPieceData(x2,y2);
-    if(!data.shieldBurned && Math.random() < 0.5){
+    if(!data.shieldBurned && Math.random() < chaosChance(0.5)){
       // Board hasn't been updated yet at this point — piece is still at x1,y1 in data.
       // Mark the DEFENDER's shield as burned at x2,y2.
       setPieceData(x2,y2,{shieldBurned:true});
@@ -16825,7 +17227,7 @@ function move(x1,y1,x2,y2,castleType){
   
   // Mind Control Bishop: 25% chance to convert instead of capture
   let mindControlled = false;
-  if(!puzzleModeActive && captured && piece.toLowerCase()==='b' && modifiers.includes('Mind Control Bishop') && Math.random() < 0.25){
+  if(!puzzleModeActive && captured && piece.toLowerCase()==='b' && modifiers.includes('Mind Control Bishop') && Math.random() < chaosChance(0.25)){
     mindControlled = true;
     captured = isWhite(piece) ? captured.toUpperCase() : captured.toLowerCase();
     console.log('Mind control activated!');
@@ -16886,6 +17288,11 @@ function move(x1,y1,x2,y2,castleType){
     board[y2][x2]=captured; // Converted piece stays
     board[y1][x1]=piece; // Bishop doesn't move in, just converts
     clearPieceData(x2,y2); // Reset piece data for converted piece
+    awardChaosForMove({
+      captured: true,
+      modifierOnly: !!_selectedMoveMeta.modifierOnly,
+      effect: true
+    });
   } else if(royalSwapMove && piece.toLowerCase()==='k') {
     // Royal Swap: king and friendly piece swap positions
     let swappedPiece = board[y2][x2]; // The friendly piece
@@ -16899,6 +17306,9 @@ function move(x1,y1,x2,y2,castleType){
     if(swappedData && Object.keys(swappedData).length > 0) {
       setPieceData(x1, y1, swappedData);
     }
+    awardChaosForMove({
+      modifierOnly: !!_selectedMoveMeta.modifierOnly
+    });
   } else {
     // JESTER KNIGHT: Calculate decoy position BEFORE moving the knight!
     let jesterDecoyMove = null;
@@ -16986,9 +17396,9 @@ function move(x1,y1,x2,y2,castleType){
 
     // ── En passant ────────────────────────────────────────────────────────────
     // Detect and execute en-passant capture: pawn moved diagonally to empty square == epSquare
-    const _isEP = piece.toLowerCase() === 'p' &&
-                  epSquare && x2 === epSquare.x && y2 === epSquare.y &&
-                  !captured; // landing square was empty (it's always empty for EP)
+    _isEP = piece.toLowerCase() === 'p' &&
+            epSquare && x2 === epSquare.x && y2 === epSquare.y &&
+            !captured; // landing square was empty (it's always empty for EP)
     if(_isEP) {
       // The captured pawn sits on the same file as destination but on the rank we came from
       const _epCapturedY = y1; // same rank as the capturing pawn started
@@ -17010,6 +17420,13 @@ function move(x1,y1,x2,y2,castleType){
         logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` captured en passant at ${sqNotation(x2,y2)}!`);
       }
     }
+
+    awardChaosForMove({
+      captured: !!(captured && captured !== 'D' && captured !== 'G' && captured !== 'g'),
+      castle: !!castleType,
+      enPassant: !!_isEP,
+      modifierOnly: !!_selectedMoveMeta.modifierOnly
+    });
 
     // Update epSquare: set after a pawn double-push, clear on every other move
     if(piece.toLowerCase() === 'p' && Math.abs(y2 - y1) === 2) {
@@ -17566,6 +17983,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
 
   // Annotate the move that just happened with + (check) or # (checkmate)
   if(inCheck) {
+    awardChaosForMove({ move: false, check: true });
     amendLastMoveNotation(hasLegal ? '+' : '#');
   }
 
@@ -17621,7 +18039,8 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
     }
   }
 
-  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0) {
+  const currentDraftFrequency = getCurrentDraftFrequency();
+  if(moveCount > 0 && moveCount % currentDraftFrequency === 0) {
     chaosDraft();
   }
   
@@ -17860,7 +18279,7 @@ function applyMagneticDrift(){
       }
       
       // 30% chance to drift
-      if(!puzzleModeActive && Math.random() < 0.3 && (dx !== 0 || dy !== 0)){
+      if(!puzzleModeActive && Math.random() < chaosChance(0.3) && (dx !== 0 || dy !== 0)){
         let newX = x + dx;
         let newY = y + dy;
         
@@ -18095,6 +18514,7 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
   if(settings.autoQueen || (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && white === (aiColor === 'white'))){
     board[y][x] = white ? 'Q' : 'q';
     recordPromotion('Q');
+    awardChaosForMove({ move: false, promotion: true });
     // Chaosfish promotion commentary
     if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
       const _isAiPromotion = white === (aiColor === 'white');
@@ -18136,6 +18556,7 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
       board[y][x] = white ? pieceType : pieceType.toLowerCase();
       modal.style.display = 'none';
       recordPromotion(pieceType);
+      awardChaosForMove({ move: false, promotion: true });
       // Chaosfish player promotion commentary
       if(typeof cfSay !== 'undefined' && aiActive && gameMode === 'local'){
         cfPushEmotion('playerPromotes');
@@ -21591,7 +22012,7 @@ function chaosDraft(){
       !modifiers.includes(ev.name) && modifiers.includes(ev.baseModifier)
     );
     // Build picks with same rarity weighting
-    const _EVOLUTION_CHANCE = 0.15;
+    const _EVOLUTION_CHANCE = getEvolutionDraftChance();
     const _picks = [];
     const _pickCount = Math.min(3, _available.length + _evolutionPool.length);
     const _usedEvos = [];
@@ -21608,17 +22029,18 @@ function chaosDraft(){
         const _byRarity = { mythic: [], legendary: [], rare: [], common: [] };
         _available.forEach(m => { if (_byRarity[m.rarity]) _byRarity[m.rarity].push(m); });
         // Draft escalation: weights shift toward higher rarities as the game goes on.
-        // draftIndex 0 = first draft ever, increases every DRAFT_FREQUENCY moves.
+        // draftIndex 0 = first draft ever, increases every current draft interval.
         // Base weights (early game): mythic 10, legendary 16, rare 28, common 18
         // Peak weights (late game):  mythic 22, legendary 26, rare 18, common 10
         // Each draft index shifts +1.5 from common+rare toward legendary+mythic,
         // capped so weights never go negative.
-        const _draftIndex = Math.floor(moveCount / DRAFT_FREQUENCY);
+        const _draftIndex = Math.floor(moveCount / getCurrentDraftFrequency());
         const _escalation = Math.min(_draftIndex, 8); // caps at draft 8
-        const _wMythic    = 10 + _escalation * 1.5;
-        const _wLegendary = 16 + _escalation * 1.25;
+        const _chaosBoost = totalChaosActive ? 8 : 0;
+        const _wMythic    = 10 + _escalation * 1.5 + _chaosBoost;
+        const _wLegendary = 16 + _escalation * 1.25 + _chaosBoost;
         const _wRare      = 28 - _escalation * 1.25;
-        const _wCommon    = 18 - _escalation * 1.5;
+        const _wCommon    = 18 - _escalation * 1.5 - (totalChaosActive ? 6 : 0);
         const _weights = [
           { rarity: 'mythic',    w: _byRarity.mythic.length    > 0 ? _wMythic    : 0 },
           { rarity: 'legendary', w: _byRarity.legendary.length > 0 ? _wLegendary : 0 },
@@ -21779,16 +22201,23 @@ function chaosDraft(){
   function pickWeightedModifier(availableMods) {
     let roll = Math.random() * 100;
     let targetRarity;
-    if(roll < 15) targetRarity = 'mythic';
-    else if(roll < 40) targetRarity = 'legendary';
-    else if(roll < 70) targetRarity = 'rare';
-    else targetRarity = 'common';
+    if(totalChaosActive){
+      if(roll < 25) targetRarity = 'mythic';
+      else if(roll < 55) targetRarity = 'legendary';
+      else if(roll < 82) targetRarity = 'rare';
+      else targetRarity = 'common';
+    } else {
+      if(roll < 15) targetRarity = 'mythic';
+      else if(roll < 40) targetRarity = 'legendary';
+      else if(roll < 70) targetRarity = 'rare';
+      else targetRarity = 'common';
+    }
     let candidates = availableMods.filter(m => m.rarity === targetRarity);
     if(candidates.length > 0) return candidates[Math.floor(Math.random() * candidates.length)];
     return availableMods[Math.floor(Math.random() * availableMods.length)];
   }
 
-  const EVOLUTION_CHANCE = 0.15;
+  const EVOLUTION_CHANCE = getEvolutionDraftChance();
   let picks = [];
   let pickCount = Math.min(3, available.length + evolutionPool.length);
   let usedEvolutions = [];
@@ -22010,6 +22439,7 @@ function chaosDraft(){
       const _rarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
       const _displayName = isEvo ? mod.name.replace(' (Evolved)', '') + ' (Evolved)' : mod.name;
       logChaos('you', 'draft', `You drafted ${_displayName} (${_rarityLabel})!`, `chaos-rarity-${_rarityKey}`);
+      awardChaosForMove({ move: false, draft: true, evolvedDraft: isEvo });
 
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
       if(mod.name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
@@ -22187,6 +22617,7 @@ function restart(){
     return;
   }
   resetDraftUIState({ instant: true });
+  resetChaosLevel(); // Reset chaos level and totalChaosActive flag on every new game
   pieceData={};
   initBoard();
   modifiers=[];
@@ -22235,6 +22666,7 @@ function restart(){
 function backToMenu(){
   clearPuzzleState();
   resetDraftUIState({ instant: true });
+  resetChaosLevel(); // Ensure chaos state is wiped when returning to the main menu
   hidePostgameScreen();
   document.getElementById('game-container').classList.remove('active');
   
@@ -22745,6 +23177,9 @@ function handleRemoteData(data){
   moveCount = data.moveCount;
   
   modifiers = data.modifiers;
+  if(data.chaosLevel !== undefined) chaosLevel = data.chaosLevel;
+  if(data.totalChaosActive !== undefined) totalChaosActive = data.totalChaosActive;
+  updateChaosLevelUI();
 
   // Show opponent draft reveal if they just picked a new modifier
   if (data.modifiers && oldModifiers) {
@@ -22861,7 +23296,8 @@ function handleRemoteData(data){
   }
   
   // Check if we just crossed a draft threshold
-  if(moveCount > 0 && moveCount % DRAFT_FREQUENCY === 0 && moveCount !== oldMoveCount){
+  const currentDraftFrequency = getCurrentDraftFrequency();
+  if(moveCount > 0 && moveCount % currentDraftFrequency === 0 && moveCount !== oldMoveCount){
     chaosDraft();
   }
 }
@@ -22875,6 +23311,8 @@ function sendGameState(){
       blackCaptured: blackCaptured,
       turn: turn,
       moveCount: moveCount,
+      chaosLevel: chaosLevel,
+      totalChaosActive: totalChaosActive,
       modifiers: modifiers,
       castleRights: castleRights,
       epSquare: epSquare,
@@ -22939,8 +23377,11 @@ function showOccasionalLoreMessage(){
 // Timer functions
 function startTimer(){
   if(timeControl === 0) return; // No timer mode
-  
+
   stopTimer();
+  // Total Chaos doubles the clock speed — tick every 500ms instead of 1000ms.
+  // activateTotalChaos() calls startTimer() specifically to restart the interval at this rate.
+  const tickMs = totalChaosActive ? 500 : 1000;
   timerInterval = setInterval(()=>{
     if(turn === 'white'){
       whiteTime--;
@@ -22960,7 +23401,7 @@ function startTimer(){
       }
     }
     updateTimerDisplay();
-  }, 1000);
+  }, tickMs);
 }
 
 function stopTimer(){
@@ -23091,6 +23532,10 @@ function updateTimerDisplay(){
   // Visual states
   whiteBox.className = 'timer-box';
   blackBox.className = 'timer-box';
+  if(totalChaosActive){
+    whiteBox.classList.add('total-chaos-timer');
+    blackBox.classList.add('total-chaos-timer');
+  }
   
   if(turn === 'white'){
     whiteBox.classList.add('active');
@@ -25012,6 +25457,7 @@ let gameEffectsTriggered = 0;
 
 function incrementEffectsTriggered(n = 1){
   gameEffectsTriggered += n;
+  awardChaosForMove({ move: false, effect: true });
 }
 
 // Count moves for each side this game (reset in startOnlineGame/restart)
@@ -25989,6 +26435,7 @@ function aiApplyDraftPick(mod) {
   modifiers.push(mod.name);
   markModifierDiscovered(mod.name);
   syncModifierDisplays();
+  awardChaosForMove({ move: false, draft: true, evolvedDraft: isEvo });
 
   // Handle special placement modifiers silently
   if (mod.name === 'Duck of Eternal Blocking') spawnDuck();
@@ -27989,6 +28436,7 @@ function updateNewTimerDisplay() {
       isSelfActive = (turn === myColor);
     }
     selfTimerBox.className = 'game-timer-box';
+    if (totalChaosActive) selfTimerBox.classList.add('total-chaos-timer');
     if (isSelfActive) {
       selfTimerBox.classList.add('active');
       selfTimerBox.classList.add(selfColor === 'white' ? 'active-white' : 'active-black');
@@ -28011,6 +28459,7 @@ function updateNewTimerDisplay() {
       isOppActive = (turn !== myColor);
     }
     oppTimerBox.className = 'game-timer-box';
+    if (totalChaosActive) oppTimerBox.classList.add('total-chaos-timer');
     if (isOppActive) {
       oppTimerBox.classList.add('active');
       oppTimerBox.classList.add(oppColor === 'white' ? 'active-white' : 'active-black');
@@ -29781,6 +30230,7 @@ function sbxUpdateTopbar() {
 
 function backToMenuFromSandbox() {
   resetDraftUIState({ instant: true });
+  resetChaosLevel(); // Clear any accumulated chaos from sandbox play
   sbxCloseSaveModal();
   sandboxMode = false;
   sbxSelectedPiece = null;
