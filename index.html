@@ -10814,6 +10814,40 @@ body.total-chaos-entering #total-chaos-bleed {
   .lb-pod-stats { gap: 4px; }
   .lb-pod-stat-val { font-size: 10px; }
 }
+
+/* ── Global rank badge (lobby topbar + profile) ── */
+.lobby-global-rank {
+  display: none;
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.42);
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+.lobby-rank-num {
+  font-weight: 900;
+  transition: color 0.3s;
+}
+/* Colour the number by rank tier */
+.lobby-rank-num.rank-gold   { color: #fbbf24; }
+.lobby-rank-num.rank-silver { color: #c4b5fd; }
+.lobby-rank-num.rank-bronze { color: #fb923c; }
+.lobby-rank-num.rank-other  { color: #a78bfa; }
+
+/* Profile screen version — slightly larger */
+.profile-global-rank {
+  display: none;
+  font-size: 12px; font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+}
+.profile-rank-num {
+  font-weight: 900;
+}
+.profile-rank-num.rank-gold   { color: #fbbf24; }
+.profile-rank-num.rank-silver { color: #c4b5fd; }
+.profile-rank-num.rank-bronze { color: #fb923c; }
+.profile-rank-num.rank-other  { color: #a78bfa; }
 </style>
 </head>
 <body>
@@ -11214,6 +11248,7 @@ body.total-chaos-entering #total-chaos-bleed {
           <div class="lobby-topbar-info">
             <div class="lobby-username" id="lobby-username-display">Guest</div>
             <div class="lobby-rating-badge">⚡ <span id="lobby-rating-display">—</span></div>
+            <div class="lobby-global-rank" id="lobby-global-rank"></div>
             <div class="lobby-stats" id="lobby-stats-display"></div>
             <div id="lobby-privacy-container" style="margin-top:4px;">
               <select id="lobby-privacy-select" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:1px 3px; border-radius:2px; font-size:10px;">
@@ -11820,6 +11855,7 @@ body.total-chaos-entering #total-chaos-bleed {
             <div style="font-size:11px;color:rgba(251,191,36,0.5);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:1px;">
               Peak <span id="profile-peak-rating-val" style="color:rgba(251,191,36,0.75);">—</span>
             </div>
+            <div class="profile-global-rank" id="profile-global-rank"></div>
             <div class="profile-games-played" id="profile-games-played">0 games played</div>
             <div id="profile-privacy-container" style="margin-top:8px; display:none;">
               <label style="font-size:11px; color:rgba(255,255,255,0.6); margin-right:6px;">Privacy:</label>
@@ -23963,6 +23999,19 @@ function updateLobbyUI(){
   document.getElementById('lobby-stats-display').textContent =
     `${wins}W / ${losses}L / ${draws}D`;
 
+  // Global rank (async — fires and forgets, updates when ready)
+  const _lgrEl = document.getElementById('lobby-global-rank');
+  if (_lgrEl && (p.gamesPlayed || 0) > 0) {
+    _lgrEl.style.display = 'block';
+    _lgrEl.innerHTML = 'Global Rank <span class="lobby-rank-num rank-other">…</span>';
+    fetchGlobalRank(p.rating).then(rank => {
+      if (rank == null || !_lgrEl) return;
+      _lgrEl.innerHTML = `Global Rank <span class="lobby-rank-num ${_rankNumClass(rank)}">${_rankLabel(rank)}</span>`;
+    });
+  } else if (_lgrEl) {
+    _lgrEl.style.display = 'none';
+  }
+
   // Profile snapshot panel
   const snapWR = document.getElementById('lobby-snap-winrate');
   const snapWins = document.getElementById('lobby-snap-wins');
@@ -25822,6 +25871,19 @@ function renderProfile(){
   const peakEl = document.getElementById('profile-peak-rating-val');
   if(peakEl) peakEl.textContent = p.peakRating || p.rating || 1000;
   document.getElementById('profile-games-played').textContent = `${p.gamesPlayed || 0} games played`;
+
+  // Global rank on profile
+  const _pgrEl = document.getElementById('profile-global-rank');
+  if (_pgrEl && (p.gamesPlayed || 0) > 0) {
+    _pgrEl.style.display = 'block';
+    _pgrEl.innerHTML = 'Global Rank <span class="profile-rank-num rank-other">…</span>';
+    fetchGlobalRank(p.rating).then(rank => {
+      if (rank == null || !_pgrEl) return;
+      _pgrEl.innerHTML = `Global Rank <span class="profile-rank-num ${_rankNumClass(rank)}">${_rankLabel(rank)}</span>`;
+    });
+  } else if (_pgrEl) {
+    _pgrEl.style.display = 'none';
+  }
 
   // Privacy settings
   const privacyContainer = document.getElementById('profile-privacy-container');
@@ -31260,6 +31322,34 @@ function _renderLeaderboard(list, players, tab) {
 
 function _lbEsc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Global rank fetching ────────────────────────────────────────────────────
+async function fetchGlobalRank(rating) {
+  if (!fbDb || rating == null) return null;
+  try {
+    // Count how many players have a strictly higher rating (and have actually played)
+    const snap = await fbDb.collection('users')
+      .where('rating', '>', Number(rating))
+      .get();
+    const above = snap.docs.filter(d => (d.data().gamesPlayed || 0) > 0).length;
+    return above + 1;
+  } catch(e) {
+    console.warn('fetchGlobalRank:', e);
+    return null;
+  }
+}
+
+function _rankNumClass(rank) {
+  if (rank === 1) return 'rank-gold';
+  if (rank <= 3)  return 'rank-silver';
+  if (rank <= 10) return 'rank-bronze';
+  return 'rank-other';
+}
+
+function _rankLabel(rank) {
+  const prefix = rank === 1 ? '👑 ' : rank === 2 ? '🥈 ' : rank === 3 ? '🥉 ' : '';
+  return prefix + '#' + rank;
 }
 
 // ── Lobby top-5 preview ─────────────────────────────────────
