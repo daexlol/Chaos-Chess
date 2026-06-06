@@ -10612,6 +10612,208 @@ body.total-chaos-entering #total-chaos-bleed {
 .lb-preview-loading, .lb-preview-empty {
   font-size: 12px; color: rgba(255,255,255,0.22); text-align: center; padding: 10px 0;
 }
+
+/* ===== LEADERBOARD PODIUM ===== */
+.lb-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 0 2px;
+}
+
+/* Each card is a column: flex content area on top, coloured step on the bottom.
+   align-items:flex-end on the parent makes shorter cards "sit" at the same floor. */
+.lb-pod-card {
+  flex: 1;
+  max-width: 230px;
+  min-width: 0;
+  border-radius: 14px 14px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+.lb-pod-card:hover { transform: translateY(-5px); }
+
+/* Content zone (avatar / name / CR) - same height for all three */
+.lb-pod-content {
+  padding: 18px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+/* Step/platform at the bottom - different heights create the podium silhouette */
+.lb-pod-step {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+/* Avatar circle */
+.lb-pod-avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.lb-pod-badge { line-height: 1; }
+
+.lb-pod-name {
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+  padding: 0 6px;
+}
+
+.lb-pod-cr-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  opacity: 0.6;
+}
+
+.lb-pod-cr-val {
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+}
+
+/* ── 1st Place ── */
+.lb-pod-1st {
+  background: linear-gradient(170deg, rgba(251,191,36,0.16) 0%, rgba(245,158,11,0.07) 100%);
+  border: 1px solid rgba(251,191,36,0.38);
+  animation: lb-rank1-glow 3s ease-in-out infinite;
+}
+.lb-pod-1st .lb-pod-step {
+  height: 66px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.38), rgba(245,158,11,0.28));
+  border-top: 1px solid rgba(251,191,36,0.45);
+  color: #fef3c7;
+  font-size: 15px;
+}
+.lb-pod-1st .lb-pod-avatar {
+  width: 54px; height: 54px; font-size: 21px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 0 22px rgba(251,191,36,0.45);
+}
+.lb-pod-1st .lb-pod-badge  { font-size: 22px; }
+.lb-pod-1st .lb-pod-name   { font-size: 14px; color: #fef3c7; }
+.lb-pod-1st .lb-pod-cr-val { font-size: 20px; text-shadow: 0 0 14px rgba(251,191,36,0.5); }
+
+/* ── 2nd Place ── */
+.lb-pod-2nd {
+  background: linear-gradient(170deg, rgba(196,181,253,0.1) 0%, rgba(124,92,255,0.05) 100%);
+  border: 1px solid rgba(196,181,253,0.22);
+}
+.lb-pod-2nd .lb-pod-step {
+  height: 46px;
+  background: rgba(196,181,253,0.18);
+  border-top: 1px solid rgba(196,181,253,0.25);
+  color: #c4b5fd;
+  font-size: 14px;
+}
+.lb-pod-2nd .lb-pod-avatar {
+  width: 44px; height: 44px; font-size: 17px;
+  background: linear-gradient(135deg, #a78bfa, #7c5cff);
+}
+.lb-pod-2nd .lb-pod-badge  { font-size: 18px; }
+.lb-pod-2nd .lb-pod-name   { font-size: 13px; }
+.lb-pod-2nd .lb-pod-cr-val { font-size: 16px; }
+
+/* ── 3rd Place ── */
+.lb-pod-3rd {
+  background: rgba(217,119,6,0.07);
+  border: 1px solid rgba(217,119,6,0.22);
+}
+.lb-pod-3rd .lb-pod-step {
+  height: 30px;
+  background: rgba(217,119,6,0.18);
+  border-top: 1px solid rgba(217,119,6,0.28);
+  color: #fbbf24;
+  font-size: 13px;
+}
+.lb-pod-3rd .lb-pod-avatar {
+  width: 38px; height: 38px; font-size: 15px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.lb-pod-3rd .lb-pod-badge  { font-size: 16px; }
+.lb-pod-3rd .lb-pod-name   { font-size: 12px; }
+.lb-pod-3rd .lb-pod-cr-val { font-size: 14px; }
+
+@media (max-width: 540px) {
+  .lb-pod-content { padding: 12px 6px 8px; gap: 4px; }
+  .lb-pod-1st .lb-pod-avatar { width: 42px; height: 42px; font-size: 16px; }
+  .lb-pod-2nd .lb-pod-avatar { width: 34px; height: 34px; font-size: 13px; }
+  .lb-pod-3rd .lb-pod-avatar { width: 30px; height: 30px; font-size: 12px; }
+}
+
+/* Podium card stats strip */
+.lb-pod-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px 0;
+  width: 100%;
+}
+.lb-pod-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+.lb-pod-stat-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  color: rgba(255,255,255,0.3);
+  white-space: nowrap;
+}
+.lb-pod-stat-val {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  white-space: nowrap;
+}
+.lb-pod-1st .lb-pod-stat-val { color: rgba(254,243,199,0.65); }
+.lb-pod-2nd .lb-pod-stat-val { color: rgba(196,181,253,0.65); }
+.lb-pod-3rd .lb-pod-stat-val { color: rgba(251,191,36,0.6);   }
+.lb-pod-stat-sep {
+  font-size: 11px;
+  color: rgba(255,255,255,0.12);
+  align-self: center;
+  padding-bottom: 1px;
+}
+@media (max-width: 540px) {
+  .lb-pod-stats { gap: 4px; }
+  .lb-pod-stat-val { font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -11823,6 +12025,9 @@ body.total-chaos-entering #total-chaos-bleed {
             <span>🌍</span> Global
           </button>
         </div>
+
+        <!-- PODIUM -->
+        <div class="lb-podium" id="lb-podium" style="display:none;"></div>
 
         <div class="lb-header-row lb-cols-global" id="lb-header-row">
           <div>#</div>
@@ -18412,6 +18617,7 @@ const MODIFIER_LORE = {
 
 
              'It doesn’t move. It doesn’t react. It just… exists. And somehow, that feels deliberate.',
+  'Cleaning Sponge': 'Something about the board felt cluttered — too many rules piled on top of each other, too many exceptions demanding attention. It arrived quietly, absorbed one of them, and left. The game continued. Nobody agreed on whether that was a relief.',
   'Fast Pawn (Evolved)':   'It stopped counting squares. Three, now. And tomorrow, who knows. Movement like this doesn’t accelerate—it just keeps forgetting where it started.',
   'Pegasus (Evolved)':     'The second leap no longer cares where it lands—only that it lands. Direction lost its meaning somewhere between the first jump and the second. It moves because it can.',
   'Royal Guard (Evolved)': 'It no longer waits to be repositioned. The King moves, and so does it—not commanded, but aware. It follows its own path now, within a radius it seems to have chosen itself.',
@@ -19225,6 +19431,7 @@ const allMods=[
   {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️',stackable:true},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
+  {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 random active modifier',icon:'🧽',stackable:true},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
   {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
   {name:'Bounty Hunter Pawn',rarity:'rare',desc:'Each pawn permanently gains +1 square of movement for every piece it captures',icon:'♟'},
@@ -19422,6 +19629,7 @@ const CODEX_EXAMPLES = {
   'Time Bomb': 'The marked square becomes a countdown threat that both players must route around.',
   'Bottomless Pit': 'A single forbidden square can decide whether a path is safe at all.',
   'Cookie': 'Sometimes the strongest statement is refusing to help.',
+  'Cleaning Sponge': 'Draft it when the modifier pool has become too stacked with a dangerous combo — removing one key piece at random can break an otherwise unbeatable synergy.',
   'Hive Mind Pawns (Evolved)': 'A diagonal pawn capture simultaneously captures on every matching diagonal across the whole formation.',
   'Jester Knight (Evolved)': 'Two decoys spread across the board double the number of squares the opponent must verify before committing.',
   'Storm Rook (Evolved)': 'Three simultaneous strikes make it nearly impossible to predict which squares are safe when the rook moves.',
@@ -22006,7 +22214,8 @@ function chaosDraft(){
     const _available = allMods.filter(m =>
       (!modifiers.includes(m.name) || m.stackable) &&
       !settings.bannedMods.includes(m.name) &&
-      !_evolvedBaseNames.includes(m.name)
+      !_evolvedBaseNames.includes(m.name) &&
+      !(m.name === 'Cleaning Sponge' && modifiers.filter(n => n !== 'Cleaning Sponge').length === 0)
     );
     const _evolutionPool = evolvedMods.filter(ev =>
       !modifiers.includes(ev.name) && modifiers.includes(ev.baseModifier)
@@ -22174,7 +22383,8 @@ function chaosDraft(){
   let available = allMods.filter(m =>
     (!modifiers.includes(m.name) || m.stackable) &&
     !settings.bannedMods.includes(m.name) &&
-    !evolvedBaseNames.includes(m.name)
+    !evolvedBaseNames.includes(m.name) &&
+    !(m.name === 'Cleaning Sponge' && modifiers.filter(n => n !== 'Cleaning Sponge').length === 0)
   );
 
   let evolutionPool = evolvedMods.filter(ev => {
@@ -22447,6 +22657,7 @@ function chaosDraft(){
       if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
       if(mod.name === 'Portal Pair') spawnPortalPair();
       if(mod.name === 'The Impawnster') ensureSleeperPawns();
+      if(mod.name === 'Cleaning Sponge') applyCleaningSponge('you');
 
       if(mod.name === 'Tornado de Caballos') {
         draft.classList.remove('active');
@@ -26312,6 +26523,7 @@ const MOD_AGGRESSION = {
   "Sovereign's Blessing": -2,
   'Sprinting King': -1, 'Coward Knight': -2, 'Decoy Rook': -1,
   'Phoenix Pawn': -1, 'Boomerang Bishop': 0, 'Phase Rook': 0, 'Phase Bishop': 0,
+  'Cleaning Sponge': 0,
 };
 
 function countPiecesOnBoard(pieceType, isWhitePlayer) {
@@ -26426,6 +26638,26 @@ function aiScoreDraftPicks(picks, color) {
   return scored[0].mod;
 }
 
+// Cleaning Sponge: remove 1 random active modifier, excluding all Cleaning Sponge instances.
+// Called by both the player draft and aiApplyDraftPick immediately after the sponge is added
+// to modifiers. Returns the name of the removed modifier, or null if nothing was removed.
+// Note: if a removed modifier would normally trigger cleanup on removal (e.g. Portal Pair squares,
+// tornados, nuclear zones) that cleanup does NOT currently fire — a future pass could handle that.
+function applyCleaningSponge(who) {
+  const pool = modifiers.filter(m => m !== 'Cleaning Sponge');
+  if (pool.length === 0) {
+    logChaos(who, 'ability', '🧽 Cleaning Sponge — nothing left to wipe!');
+    return null;
+  }
+  const target = pool[Math.floor(Math.random() * pool.length)];
+  const idx = modifiers.lastIndexOf(target);
+  if (idx !== -1) modifiers.splice(idx, 1);
+  logChaos(who, 'ability', `🧽 Cleaning Sponge wiped away: ${target}!`);
+  showToast(`🧽 Removed: ${target}`, 2200);
+  syncModifierDisplays();
+  return target;
+}
+
 function aiApplyDraftPick(mod) {
   const isEvo = mod.isEvolution === true;
   if (isEvo) {
@@ -26444,6 +26676,7 @@ function aiApplyDraftPick(mod) {
   if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
   if (mod.name === 'Portal Pair') spawnPortalPair();
   if (mod.name === 'The Impawnster') ensureSleeperPawns();
+  if (mod.name === 'Cleaning Sponge') applyCleaningSponge('opponent');
   if (mod.name === 'Tornado de Caballos') {
     // Place tornado on a random empty square
     tornadoPlacementMode = false;
@@ -30857,6 +31090,8 @@ window.switchLbTab = async function(tab) {
 async function loadLeaderboard(tab) {
   const list = document.getElementById('lb-list');
   if (!list) return;
+  const pod = document.getElementById('lb-podium');
+  if (pod) pod.style.display = 'none';
   list.innerHTML = '<div class="lb-loading"><div class="lb-loading-spinner"></div><div>Loading rankings…</div></div>';
   try {
     const players = tab === 'global'
@@ -30896,7 +31131,57 @@ async function _fetchFriendsLeaderboard() {
   return players.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 }
 
+function _podiumCard(p, rank) {
+  const cls    = rank === 1 ? 'lb-pod-1st' : rank === 2 ? 'lb-pod-2nd' : 'lb-pod-3rd';
+  const badge  = rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉';
+  const label  = rank === 1 ? '#1' : rank === 2 ? '#2' : '#3';
+  const init   = (p.id || '?')[0].toUpperCase();
+  const cr     = p.rating || 0;
+  const peak   = p.peakRating || cr;
+  const wins   = p.wins   || 0;
+  const losses = p.losses || 0;
+  const draws  = p.draws  || 0;
+  const games  = p.gamesPlayed || (wins + losses + draws) || 0;
+  const winPct = games > 0 ? Math.round((wins / games) * 100) : 0;
+  return `<div class="lb-pod-card ${cls}" onclick="showProfile('${p.id}')">
+    <div class="lb-pod-content">
+      <div class="lb-pod-badge">${badge}</div>
+      <div class="lb-pod-avatar">${init}</div>
+      <div class="lb-pod-name">${_lbEsc(p.id || '?')}</div>
+      <div class="lb-pod-cr-label">CR</div>
+      <div class="lb-pod-cr-val">${cr}</div>
+      <div class="lb-pod-stats">
+        <div class="lb-pod-stat-item">
+          <span class="lb-pod-stat-label">Peak</span>
+          <span class="lb-pod-stat-val">${peak}</span>
+        </div>
+        <div class="lb-pod-stat-sep">·</div>
+        <div class="lb-pod-stat-item">
+          <span class="lb-pod-stat-label">W / L / D</span>
+          <span class="lb-pod-stat-val">${wins} / ${losses} / ${draws}</span>
+        </div>
+        <div class="lb-pod-stat-sep">·</div>
+        <div class="lb-pod-stat-item">
+          <span class="lb-pod-stat-label">Win%</span>
+          <span class="lb-pod-stat-val">${winPct}%</span>
+        </div>
+      </div>
+    </div>
+    <div class="lb-pod-step">${label}</div>
+  </div>`;
+}
+
+function _renderPodium(players) {
+  const pod = document.getElementById('lb-podium');
+  if (!pod) return;
+  if (players.length < 3) { pod.style.display = 'none'; return; }
+  // Order: 2nd | 1st | 3rd  (left → centre → right)
+  pod.innerHTML = _podiumCard(players[1], 2) + _podiumCard(players[0], 1) + _podiumCard(players[2], 3);
+  pod.style.display = 'flex';
+}
+
 function _renderLeaderboard(list, players, tab) {
+  _renderPodium(players);
   if (!players.length) {
     const msg = tab === 'friends'
       ? '<div class="lb-empty-icon">👥</div>Add friends to see the friends leaderboard!'
@@ -30908,8 +31193,18 @@ function _renderLeaderboard(list, players, tab) {
   const myUsername = currentProfile ? currentProfile.username : null;
   const colClass = tab === 'global' ? 'lb-cols-global' : 'lb-cols-friends';
 
-  list.innerHTML = players.map((p, i) => {
-    const rank   = i + 1;
+  // Top 3 are on the podium — list starts at #4
+  const hasPodium   = players.length >= 3;
+  const listPlayers = hasPodium ? players.slice(3) : players;
+  const rankOffset  = hasPodium ? 3 : 0;
+
+  if (!listPlayers.length) {
+    list.innerHTML = '<div class="lb-empty" style="padding:20px 20px;font-size:12px;">All ranked players shown on the podium above</div>';
+    return;
+  }
+
+  list.innerHTML = listPlayers.map((p, i) => {
+    const rank   = i + 1 + rankOffset;
     const wins   = p.wins   || 0;
     const losses = p.losses || 0;
     const draws  = p.draws  || 0;
