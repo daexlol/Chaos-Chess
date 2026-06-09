@@ -504,7 +504,7 @@ h1 {
   100% { transform: translateY(var(--pp-dy,-55px)) translateX(var(--pp-dx,0px)) scale(0.3); opacity: 0; }
 }
 
-/* Sovereign's Blessing aura around a king — subtle purple tint on adjacent squares */
+/* Sovereign’s Blessing aura around a king — subtle purple tint on adjacent squares */
 /* Use a tiny gradient overlay as part of the square background so it tints
    the underlying square colour without covering highlights or piece glows. */
 .square.sovereign-aura {
@@ -1175,6 +1175,31 @@ h1 {
   transition: opacity 0.5s ease 2s, background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 #draft-view-board-btn.visible { opacity: 1; }
+#draft-surprise-btn {
+  position: relative;
+  z-index: 10;
+  margin-top: 14px;
+  padding: 9px 28px;
+  background: rgba(15,5,30,0.7);
+  border: 1px solid rgba(168,85,247,0.35);
+  border-radius: 30px;
+  color: rgba(196,155,255,0.75);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.5s ease 2s, background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+#draft-surprise-btn.visible { opacity: 1; }
+#draft-surprise-btn:hover {
+  background: rgba(168,85,247,0.2);
+  border-color: rgba(168,85,247,0.7);
+  color: #e9d5ff;
+  transform: translateY(-2px);
+}
 #draft-view-board-btn:hover {
   background: rgba(168,85,247,0.2);
   border-color: rgba(168,85,247,0.7);
@@ -1940,6 +1965,49 @@ h1 {
   height: 50px;
   display: block;
   margin: 0 auto 8px;
+}
+
+/* Promotion → draft option */
+#promotion-modal .promotion-options {
+  flex-wrap: wrap;
+}
+#promotion-modal .promotion-draft-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(124,92,255,0.18) 0%, rgba(91,33,182,0.12) 100%);
+  border: 2px solid rgba(124,92,255,0.35);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  color: #fff;
+  font-family: inherit;
+}
+#promotion-modal .promotion-draft-btn:hover {
+  background: linear-gradient(135deg, rgba(124,92,255,0.32) 0%, rgba(91,33,182,0.22) 100%);
+  border-color: rgba(167,139,250,0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124,92,255,0.3);
+}
+#promotion-modal .promo-draft-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+#promotion-modal .promo-draft-text { flex: 1; min-width: 0; }
+#promotion-modal .promo-draft-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c4b5fd;
+  letter-spacing: 0.3px;
+}
+#promotion-modal .promo-draft-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
 }
 
 #promotion-modal::before {
@@ -3414,28 +3482,52 @@ button:active {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   scrollbar-width: thin;
   scrollbar-color: rgba(251,191,36,0.2) transparent;
 }
 .sbx-mod-list::-webkit-scrollbar { width: 4px; }
 .sbx-mod-list::-webkit-scrollbar-thumb { background: rgba(251,191,36,0.25); border-radius: 4px; }
 .sbx-mod-check-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 8px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 6px;
   border-radius: 7px;
-  cursor: pointer;
   transition: background 0.15s;
   user-select: none;
 }
 .sbx-mod-check-row:hover { background: rgba(255,255,255,0.05); }
-.sbx-mod-check-row input[type=checkbox] {
+.sbx-mod-check-label { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.3; flex: 1; min-width: 0; }
+.sbx-mod-check-icon { font-size: 13px; flex-shrink: 0; }
+/* Environmental mods — single checkbox, whole label is clickable */
+.sbx-env-check-label {
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; flex: 1;
+}
+.sbx-env-cb {
   accent-color: #f59e0b;
-  width: 14px; height: 14px;
+  width: 13px; height: 13px;
   cursor: pointer; flex-shrink: 0;
 }
-.sbx-mod-check-label { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.3; }
-.sbx-mod-check-icon { font-size: 14px; flex-shrink: 0; }
+/* Personal mods — two colour checkboxes */
+.sbx-mod-color-checks {
+  display: flex; gap: 2px; flex-shrink: 0;
+}
+.sbx-color-check {
+  display: flex; align-items: center; gap: 2px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+.sbx-color-check:hover { background: rgba(255,255,255,0.1); }
+.sbx-color-check input[type=checkbox] {
+  accent-color: #f59e0b;
+  width: 13px; height: 13px;
+  cursor: pointer; margin: 0; flex-shrink: 0;
+}
+.sbx-color-sym { font-size: 11px; line-height: 1; }
+.sbx-color-white .sbx-color-sym { color: rgba(255,255,255,0.85); }
+.sbx-color-black .sbx-color-sym { color: rgba(255,255,255,0.4); }
 
 /* NUMBER INPUTS */
 .sbx-field-row {
@@ -4851,11 +4943,13 @@ button:active {
   height: 18px; width: 18px; left: 3px; top: 3px;
   background: white; border-radius: 50%; transition: 0.2s;
 }
-.pvt-toggle-switch input:checked + .pvt-toggle-slider {
+.pvt-toggle-switch input:checked + .pvt-toggle-slider,
+.pvt-toggle-label input:checked + .pvt-toggle-slider {
   background: #7c5cff;
   box-shadow: 0 0 12px rgba(124,92,255,0.5);
 }
-.pvt-toggle-switch input:checked + .pvt-toggle-slider:before {
+.pvt-toggle-switch input:checked + .pvt-toggle-slider:before,
+.pvt-toggle-label input:checked + .pvt-toggle-slider:before {
   transform: translateX(20px);
 }
 
@@ -6304,6 +6398,129 @@ body.total-chaos-entering #total-chaos-bleed {
   padding: 10px 0; font-style: italic; user-select: none;
 }
 
+.game-mods-section-label {
+  width: 100%;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  padding: 6px 0 2px;
+  margin-top: 2px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.game-mods-section-label:first-child { border-top: none; padding-top: 2px; }
+
+/* Personal-mode vertical layout — three columns side by side */
+.game-mods-personal-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  width: 100%;
+  align-items: flex-start;
+}
+.game-mods-personal-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 6px;
+  min-width: 0;
+}
+.game-mods-personal-col + .game-mods-personal-col {
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+.game-mods-personal-col .game-mods-section-label {
+  width: 100%;
+  text-align: center;
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.game-mods-personal-col .mod {
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* "Waiting for P2 draft" overlay — same visual system as opp-draft-reveal */
+#personal-draft-waiting {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#personal-draft-waiting.active {
+  opacity: 1;
+  pointer-events: all;
+}
+#personal-draft-waiting-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.4s ease;
+}
+#personal-draft-waiting.active #personal-draft-waiting-dim {
+  background: rgba(0,0,0,0.6);
+}
+#personal-draft-waiting-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+}
+#personal-draft-waiting.active #personal-draft-waiting-inner {
+  transform: translateY(0);
+  opacity: 1;
+}
+#personal-draft-waiting-title {
+  font-size: clamp(13px, 1.6vw, 17px);
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(196,155,255,0.85);
+  text-align: center;
+}
+#personal-draft-waiting-sub {
+  font-size: clamp(11px, 1.2vw, 13px);
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 1px;
+  text-align: center;
+}
+#personal-draft-waiting-dots span {
+  animation: personal-dot-blink 1.4s ease-in-out infinite;
+  opacity: 0;
+}
+#personal-draft-waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+#personal-draft-waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes personal-dot-blink {
+  0%, 80%, 100% { opacity: 0; }
+  40%           { opacity: 1; }
+}
+#personal-draft-waiting-icon {
+  font-size: 48px;
+  animation: personal-waiting-float 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(139,92,246,0.6));
+}
+@keyframes personal-waiting-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
 /* Move history in right panel */
 #game-move-history-panel {
   flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
@@ -6625,15 +6842,15 @@ body.total-chaos-entering #total-chaos-bleed {
   }
   
   #board {
-    grid-template-columns: repeat(8, 13.75vw);
-    grid-template-rows: repeat(8, 13.75vw);
-    max-width: 110vw;
-    max-height: 110vw;
+    grid-template-columns: repeat(8, calc((100vw - 16px) / 8));
+    grid-template-rows: repeat(8, calc((100vw - 16px) / 8));
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vw - 16px);
   }
-  
+
   .square {
-    width: 13.75vw;
-    height: 13.75vw;
+    width: calc((100vw - 16px) / 8);
+    height: calc((100vw - 16px) / 8);
   }
   
   #info {
@@ -8529,6 +8746,28 @@ body.total-chaos-entering #total-chaos-bleed {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.tc-personal-row {
+  display: flex; flex-direction: column; align-items: flex-start;
+  width: 100%; padding: 12px 14px; margin-top: 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; gap: 4px;
+}
+.tc-personal-top {
+  display: flex; flex-direction: row; align-items: center;
+  justify-content: space-between; width: 100%; gap: 8px;
+}
+.tc-personal-label {
+  font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; flex: 1;
+}
+.tc-personal-sub {
+  font-size: 12px; color: rgba(255,255,255,0.45);
+}
+/* The toggle inside tc-personal-row — same rules as pvt-toggle-switch */
+.pvt-toggle-label {
+  position: relative; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer;
+  display: inline-block;
+}
+.pvt-toggle-label input { opacity: 0; width: 0; height: 0; position: absolute; }
 .tc-actions {
   display: flex; gap: 10px; margin-top: 18px; width: 100%;
   animation: tc-actions-in 0.38s 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -9407,11 +9646,12 @@ body.total-chaos-entering #total-chaos-bleed {
 }
 
 
+/* ─── TABLET (≤ 900px): stack into a single column ──────────────────── */
 @media (max-width: 900px) {
   #game-main {
     flex-direction: column;
     padding: 12px;
-    gap: 12px;
+    gap: 10px;
   }
   #game-left-panel {
     width: 100%;
@@ -9424,17 +9664,139 @@ body.total-chaos-entering #total-chaos-bleed {
   #game-right-panel {
     width: 100%;
     padding-left: 0;
+    margin-top: 0 !important; /* reset the 350px desktop offset */
     flex-direction: row;
     flex-wrap: wrap;
   }
   #game-right-panel .game-panel-box { flex: 1; min-width: 160px; }
   #game-center { width: 100%; }
+  /* Chaos rail needs vertical space — collapse when layout is stacked */
+  #chaos-level-rail { display: none; }
+  /* Compact player cards for side-by-side tablet row */
+  .game-player-card { padding: 14px 16px; gap: 8px; }
+  .gpc-header { gap: 12px; }
+  .gpc-avatar { width: 52px; height: 52px; font-size: 20px; }
+  .gpc-name { font-size: 18px; }
+  .gpc-rating { font-size: 14px; }
 }
-@media (max-width: 560px) {
-  #game-topbar { padding: 0 12px; }
+
+/* ─── MOBILE PHONE (≤ 640px): full single-column overhaul ────────────── */
+@media (max-width: 640px) {
+  /* Sidebar is position:fixed and overlays the board on small screens.
+     Topbar buttons (settings, codex) and action bar (Back to Menu) cover
+     all navigation needs during gameplay. */
+  #ingame-sidebar,
+  #ingame-sidebar-sbx {
+    display: none !important;
+  }
+
+  /* Allow the stacked game layout to scroll past 100vh */
+  body { overflow-y: auto; }
+
+  /* ── Topbar ── */
+  #game-topbar { padding: 0 10px; height: 48px; }
+  #game-topbar-logo { font-size: 18px; }
   #game-topbar-user { display: none; }
-  #game-left-panel { flex-direction: column; }
-  #game-right-panel { flex-direction: column; }
+
+  /* ── Outer stack ── */
+  #game-main {
+    flex-direction: column;
+    padding: 6px 8px 16px;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* ── Left panel: full-width vertical column ── */
+  #game-left-panel {
+    width: 100%;
+    flex-direction: column;
+    padding-right: 0;
+    gap: 4px;
+    justify-content: flex-start;
+  }
+
+  /* Compact player cards */
+  .game-player-card { padding: 9px 12px; border-radius: 12px; gap: 6px; }
+  .gpc-header { gap: 10px; }
+  .gpc-avatar { width: 34px; height: 34px; font-size: 13px; }
+  .gpc-name { font-size: 14px; }
+  .gpc-rating { font-size: 12px; }
+  .gpc-label { font-size: 10px; letter-spacing: 1px; }
+  .gpc-turn-badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; }
+  .gpc-turn-dot { width: 6px; height: 6px; }
+  .game-timer-box { padding: 4px 8px; }
+  .gtb-value { font-size: 18px; }
+
+  /* Compact capture strips */
+  .gpc-captured-strip { padding: 3px 6px; min-height: 0; }
+  .gpc-captured-strip .cap-pieces img { width: 13px; height: 13px; }
+  .gpc-captured-strip .cap-empty { font-size: 10px; }
+
+  /* ── Center: board fills usable width (8px margin each side) ── */
+  #game-center { width: 100%; gap: 4px; }
+  #game-center-title { display: none; }
+
+  #board {
+    grid-template-columns: repeat(8, calc((100vw - 16px) / 8));
+    grid-template-rows: repeat(8, calc((100vw - 16px) / 8));
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vw - 16px);
+  }
+  .square {
+    width: calc((100vw - 16px) / 8);
+    height: calc((100vw - 16px) / 8);
+  }
+
+  /* Compact mods bar */
+  #game-mods-bar {
+    min-height: 32px;
+    padding: 5px 8px;
+    gap: 5px;
+    margin-bottom: 4px;
+    max-height: 64px;
+    overflow-y: auto;
+  }
+  #game-mods-bar .mod { font-size: 11px; padding: 4px 8px; }
+  #game-mods-bar .game-mods-empty { font-size: 11px; }
+
+  /* Compact action buttons */
+  #game-actions-bar { margin-top: 6px; gap: 6px; }
+  #game-actions-bar .game-action-btn { padding: 10px 12px; font-size: 12px; }
+
+  /* ── Right panel: full-width column below board ── */
+  #game-right-panel {
+    width: 100%;
+    padding-left: 0;
+    margin-top: 0 !important;
+    flex-direction: column;
+    gap: 6px;
+  }
+  /* Cap scrollable panels so they don't eat all screen space */
+  #chaos-log-panel { max-height: 160px; }
+  #chaos-log-list { max-height: 110px; }
+  #game-move-history-panel { max-height: 160px; }
+  #new-move-list { max-height: 110px; }
+
+  /* Tighter panel boxes */
+  .game-panel-box { padding: 10px 12px; border-radius: 10px; }
+  .game-panel-title { font-size: 9px; margin-bottom: 8px; }
+
+  /* Notation labels */
+  .notation { font-size: 9px; }
+
+  /* Draft cards: 3-across on phone */
+  .draft-card-wrap {
+    width: clamp(90px, 26vw, 130px);
+    height: clamp(140px, 40vw, 200px);
+  }
+}
+
+/* ─── SMALL PHONE (≤ 430px): minor additional tightening ────────────── */
+@media (max-width: 430px) {
+  .game-player-card { padding: 7px 10px; }
+  .gpc-avatar { width: 28px; height: 28px; font-size: 11px; }
+  .gpc-name { font-size: 13px; }
+  #game-actions-bar .game-action-btn { padding: 9px 10px; font-size: 11px; }
 }
 
 /* ================================================================
@@ -13268,7 +13630,7 @@ function awardChaosForMove(opts = {}){
   if(opts.enPassant) addChaos(3, 'en-passant');
   if(opts.effect) addChaos(4, 'modifier-effect');
   if(opts.modifierOnly) addChaos(3, 'modifier-move');
-  if(opts.draft) addChaos(opts.evolvedDraft ? 7 : 5, 'draft');
+  if(opts.draft) addChaos(opts.evolvedDraft ? 3.5 : 2.5, 'draft');
 }
 
 // Puzzle mode state
@@ -13978,6 +14340,43 @@ let timerInterval = null;
 let draftTimerInterval = null;
 let draftTimeRemaining = 0;
 let currentDrafter = 'white'; // alternates each draft, white goes first
+let _p2PersonalDraftPending = false; // set when local 2-player personal mode needs a second pick
+let _promoDraftCallback = null;       // onComplete callback for pawn-sacrifice promo draft
+let _draftInProgress    = false;      // true while the human's draft overlay is open
+let _pendingAiReveal    = null;       // AI's pick stored until human finishes (AI+personal)
+let _pendingOnlineReveal = null;      // opponent's pick stored until we finish (online+personal)
+
+// ── Personal Modifier Mode ────────────────────────────────────────────────
+// When true: each player maintains their own modifier stack.
+// Environmental mods (portals, time bombs, etc.) always go in the shared `modifiers` array.
+// Personal mods go into whiteModifiers / blackModifiers based on who drafted them.
+let personalModifiers = true;
+let whiteModifiers = [];
+let blackModifiers = [];
+
+// Modifiers that affect the whole board regardless of who owns them.
+// These always land in the shared `modifiers` array even in personal mode.
+const ENVIRONMENTAL_MODS = new Set([
+  'Portal Pair', 'Portal Pair (Evolved)',
+  'Time Bomb', 'Bottomless Pit',
+  'Duck of Eternal Blocking', 'Duck of Eternal Blocking (Evolved)',
+  'Tornado de Caballos', 'Magnetic Poles',
+  'Cookie',
+]);
+
+// Returns the active modifier array for a given player colour.
+// In shared mode this is always the global `modifiers`.
+// In personal mode it's environmental mods (modifiers) + that player's personal stack.
+function activeMods(color) {
+  if (!personalModifiers) return modifiers;
+  const personal = color === 'white' ? whiteModifiers : blackModifiers;
+  return personal.length ? modifiers.concat(personal) : modifiers;
+}
+
+// Returns the personal stack for a drafter colour (the array that should receive a personal pick).
+function personalArray(color) {
+  return color === 'white' ? whiteModifiers : blackModifiers;
+}
 
 function initBoard(){
   board = [
@@ -14054,7 +14453,15 @@ function draw(){
   const wrapper = document.getElementById('board-wrapper');
   updateChaosLevelUI();
   b.innerHTML = '';
-  const activeMods = new Set(modifiers || []);
+  // Build a Set of ALL active modifier names for rendering checks.
+  // In personal mode we union all three arrays so visual indicators (fog, evolved glows, etc.)
+  // fire correctly regardless of which player owns the modifier.
+  // Named allModsSet (not activeMods) to avoid shadowing the activeMods() function.
+  const allModsSet = new Set([
+    ...(modifiers || []),
+    ...(personalModifiers ? (whiteModifiers || []) : []),
+    ...(personalModifiers ? (blackModifiers  || []) : []),
+  ]);
   let heavyPawnGlowCount = 0;
   
   // Chaos theme flickering
@@ -14244,7 +14651,7 @@ function draw(){
       }
 
       // Magnetic Poles
-      if(activeMods.has('Magnetic Poles')){
+      if(allModsSet.has('Magnetic Poles')){
         if((x === 0 && y === 0) || (x === 7 && y === 7)){
           sq.classList.add('magnetic-attract');
         }
@@ -14253,12 +14660,12 @@ function draw(){
         }
       }
 
-      // Sovereign's Blessing: aura applied to king and all adjacent squares
-      if(activeMods.has("Sovereign's Blessing")){
-        let wk = findKing(true);
-        let bk = findKing(false);
-        if(wk){ let dx = Math.abs(x - wk.x), dy = Math.abs(y - wk.y); if(dx <= 1 && dy <= 1) sq.classList.add('sovereign-aura'); }
-        if(bk){ let dx = Math.abs(x - bk.x), dy = Math.abs(y - bk.y); if(dx <= 1 && dy <= 1) sq.classList.add('sovereign-aura'); }
+      // Sovereign’s Blessing: aura only around the king whose owner has the modifier
+      {
+        const _whiteHasSov = activeMods('white').includes("Sovereign’s Blessing");
+        const _blackHasSov = activeMods('black').includes("Sovereign’s Blessing");
+        if(_whiteHasSov){ let wk = findKing(true);  if(wk){ let dx=Math.abs(x-wk.x),dy=Math.abs(y-wk.y); if(dx<=1&&dy<=1) sq.classList.add('sovereign-aura'); } }
+        if(_blackHasSov){ let bk = findKing(false); if(bk){ let dx=Math.abs(x-bk.x),dy=Math.abs(y-bk.y); if(dx<=1&&dy<=1) sq.classList.add('sovereign-aura'); } }
       }
 
       // King in check
@@ -14284,6 +14691,14 @@ function draw(){
         let pieceType = piece.toLowerCase();
         let data = getPieceData(x, y);
 
+        // In personal mode, glows for personal modifiers should only apply to the piece
+        // owner's pieces. Build pieceMods from the owner's active stack so glow checks
+        // are colour-aware. Environmental mods (shared) are always included via activeMods().
+        const _pieceColor = isWhite(piece) ? 'white' : 'black';
+        const pieceMods = personalModifiers
+          ? new Set(activeMods(_pieceColor))
+          : allModsSet; // non-personal: reuse the pre-built union Set
+
         if(data.phantom) {
           sq.classList.add('phantom');
           let phantomCounter = document.createElement('div');
@@ -14296,7 +14711,7 @@ function draw(){
           img.style.filter = 'drop-shadow(0 0 8px rgba(100, 116, 139, 0.5))';
         } 
         else if(data.jesterDecoy) {
-          if(activeMods.has('Jester Knight (Evolved)')){
+          if(pieceMods.has('Jester Knight (Evolved)')){
             sq.classList.add('glow-evolved');
           } else {
             sq.classList.add('glow-legendary');
@@ -14304,18 +14719,19 @@ function draw(){
         } 
         else {
           // Evolved glows (rainbow — highest priority after phantom/decoy/jesterDecoy)
-          if((activeMods.has('Fast Pawn (Evolved)') && pieceType==='p') ||
-             (activeMods.has('Viral Pawn (Evolved)') && pieceType==='p') ||
-             (activeMods.has('Hive Mind Pawns (Evolved)') && pieceType==='p') ||
-             (activeMods.has('Pawn Bayonet (Evolved)') && pieceType==='p') ||
-             (activeMods.has('Pegasus (Evolved)') && pieceType==='n') ||
-             (activeMods.has('Jester Knight (Evolved)') && pieceType==='n') ||
-             (activeMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
-             (activeMods.has('Pinballing Bishop (Evolved)') && pieceType==='b') ||
-             (activeMods.has('Storm Rook (Evolved)') && pieceType==='r') ||
-             (activeMods.has('Royal Guard (Evolved)') && pieceType==='k') ||
-             (activeMods.has('Magnetic Queen (Evolved)') && pieceType==='q') ||
-             (activeMods.has('Nuclear Queen (Evolved)') && pieceType==='q')) {
+          // pieceMods is colour-aware in personal mode — only the owner's pieces glow.
+          if((pieceMods.has('Fast Pawn (Evolved)') && pieceType==='p') ||
+             (pieceMods.has('Viral Pawn (Evolved)') && pieceType==='p') ||
+             (pieceMods.has('Hive Mind Pawns (Evolved)') && pieceType==='p') ||
+             (pieceMods.has('Pawn Bayonet (Evolved)') && pieceType==='p') ||
+             (pieceMods.has('Pegasus (Evolved)') && pieceType==='n') ||
+             (pieceMods.has('Jester Knight (Evolved)') && pieceType==='n') ||
+             (pieceMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
+             (pieceMods.has('Pinballing Bishop (Evolved)') && pieceType==='b') ||
+             (pieceMods.has('Storm Rook (Evolved)') && pieceType==='r') ||
+             (pieceMods.has('Royal Guard (Evolved)') && pieceType==='k') ||
+             (pieceMods.has('Magnetic Queen (Evolved)') && pieceType==='q') ||
+             (pieceMods.has('Nuclear Queen (Evolved)') && pieceType==='q')) {
             sq.classList.add('glow-evolved');
             if(pieceType === 'p') {
               sq.classList.add('pawn-glow');
@@ -14324,16 +14740,16 @@ function draw(){
           }
           // Mythic glows
           // Evolved duck glow
-          else if(activeMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') {
+          else if(pieceMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') {
             sq.classList.add('glow-evolved');
           }
           // Mythic glows
-          else if((activeMods.has('Nuclear Queen') && pieceType==='q') ||
-             (activeMods.has('Duck of Eternal Blocking') && !activeMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') ||
-             (activeMods.has('Hive Mind Pawns') && pieceType==='p') ||
-             (activeMods.has('The Impawnster') && pieceType==='p') ||
-             (activeMods.has('Berserker Queen') && pieceType==='q') ||
-             (activeMods.has('Pegasus') && pieceType==='n')) {
+          else if((pieceMods.has('Nuclear Queen') && pieceType==='q') ||
+             (pieceMods.has('Duck of Eternal Blocking') && !pieceMods.has('Duck of Eternal Blocking (Evolved)') && piece === 'D') ||
+             (pieceMods.has('Hive Mind Pawns') && pieceType==='p') ||
+             (pieceMods.has('The Impawnster') && pieceType==='p') ||
+             (pieceMods.has('Berserker Queen') && pieceType==='q') ||
+             (pieceMods.has('Pegasus') && pieceType==='n')) {
             sq.classList.add('glow-mythic');
             if(pieceType === 'p') {
               sq.classList.add('pawn-glow');
@@ -14341,55 +14757,55 @@ function draw(){
             }
           }
           // Legendary glows
-          else if((activeMods.has('Phantom Knight') && pieceType==='n') ||
-		              (activeMods.has('Jester Knight') && pieceType==='n') ||
-                  (activeMods.has('Necromancer Knight') && pieceType==='n') ||
-                  (activeMods.has('Sanctuary Bishop') && pieceType==='b') ||
-                  (activeMods.has('Storm Rook') && pieceType==='r') ||
-                  (activeMods.has('Railgun Rook') && pieceType==='r') ||
-                  (activeMods.has('Decoy Rook') && pieceType==='r') ||
-                  (activeMods.has('Phoenix Pawn') && pieceType==='p') ||
-                  (activeMods.has('Royal Guard') && pieceType==='k') ||
-                  (activeMods.has('Kamikaze Pawn') && pieceType==='p')) {
+          else if((pieceMods.has('Phantom Knight') && pieceType==='n') ||
+		              (pieceMods.has('Jester Knight') && pieceType==='n') ||
+                  (pieceMods.has('Necromancer Knight') && pieceType==='n') ||
+                  (pieceMods.has('Sanctuary Bishop') && pieceType==='b') ||
+                  (pieceMods.has('Storm Rook') && pieceType==='r') ||
+                  (pieceMods.has('Railgun Rook') && pieceType==='r') ||
+                  (pieceMods.has('Decoy Rook') && pieceType==='r') ||
+                  (pieceMods.has('Phoenix Pawn') && pieceType==='p') ||
+                  (pieceMods.has('Royal Guard') && pieceType==='k') ||
+                  (pieceMods.has('Kamikaze Pawn') && pieceType==='p')) {
             sq.classList.add('glow-legendary');
             if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
           // Rare glows
-            else if((activeMods.has('Mind Control Bishop') && pieceType==='b') ||
-              (activeMods.has('Sniper Pawn') && pieceType==='p') ||
-              (activeMods.has('Viral Pawn') && pieceType==='p') ||
-              (activeMods.has('Magnetic Queen') && pieceType==='q') ||
-              (activeMods.has('The Amazon') && pieceType==='q') ||
-              (activeMods.has('Double Strike Rook') && pieceType==='r') ||
-              (activeMods.has('Copycat Knight') && pieceType==='n') ||
-              (activeMods.has('Coward Knight') && pieceType==='n') ||
-              (activeMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
-              (activeMods.has('Boomerang Bishop') && pieceType==='b') ||
-              (activeMods.has('Pinballing Bishop') && pieceType==='b') ||
-              (activeMods.has('Sprinting King') && pieceType==='k') ||
-              (activeMods.has("Sovereign's Blessing") && pieceType==='k') ||
-              (activeMods.has('Longbow Knight') && pieceType==='n') ||
-              (activeMods.has('Heavy Rook') && pieceType==='r') ||
-              (activeMods.has('Bounty Hunter Pawn') && pieceType==='p') ||
-              (activeMods.has('Tectonic Rook') && pieceType==='r')) {
+            else if((pieceMods.has('Mind Control Bishop') && pieceType==='b') ||
+              (pieceMods.has('Sniper Pawn') && pieceType==='p') ||
+              (pieceMods.has('Viral Pawn') && pieceType==='p') ||
+              (pieceMods.has('Magnetic Queen') && pieceType==='q') ||
+              (pieceMods.has('The Amazon') && pieceType==='q') ||
+              (pieceMods.has('Double Strike Rook') && pieceType==='r') ||
+              (pieceMods.has('Copycat Knight') && pieceType==='n') ||
+              (pieceMods.has('Coward Knight') && pieceType==='n') ||
+              (pieceMods.has('Copycat Knight (Evolved)') && pieceType==='n') ||
+              (pieceMods.has('Boomerang Bishop') && pieceType==='b') ||
+              (pieceMods.has('Pinballing Bishop') && pieceType==='b') ||
+              (pieceMods.has('Sprinting King') && pieceType==='k') ||
+              (pieceMods.has("Sovereign’s Blessing") && pieceType==='k') ||
+              (pieceMods.has('Longbow Knight') && pieceType==='n') ||
+              (pieceMods.has('Heavy Rook') && pieceType==='r') ||
+              (pieceMods.has('Bounty Hunter Pawn') && pieceType==='p') ||
+              (pieceMods.has('Tectonic Rook') && pieceType==='r')) {
             sq.classList.add('glow-rare');
             if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
           // Common glows
-          else if((activeMods.has('Fast Pawn') && pieceType==='p') ||
-                  (activeMods.has('Trench Pawn') && pieceType==='p') ||
-                  (activeMods.has('Pawn Bayonet') && pieceType==='p') ||
-                  (activeMods.has('Reinforced Pawn') && pieceType==='p') ||
-                  (activeMods.has('Crab Pawn') && pieceType==='p') ||
-                  (activeMods.has('Grey Bishop') && pieceType==='b') ||
-                  (activeMods.has('Dragon Rook') && pieceType==='r')) {
+          else if((pieceMods.has('Fast Pawn') && pieceType==='p') ||
+                  (pieceMods.has('Trench Pawn') && pieceType==='p') ||
+                  (pieceMods.has('Pawn Bayonet') && pieceType==='p') ||
+                  (pieceMods.has('Reinforced Pawn') && pieceType==='p') ||
+                  (pieceMods.has('Crab Pawn') && pieceType==='p') ||
+                  (pieceMods.has('Grey Bishop') && pieceType==='b') ||
+                  (pieceMods.has('Dragon Rook') && pieceType==='r')) {
             sq.classList.add('glow-common');
             if(pieceType === 'p') sq.classList.add('pawn-glow');
           }
         }
 
         // Copycat Knight (Evolved): show a small icon of the currently-adopted piece
-        if(activeMods.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && data.copycatEvolved) {
+        if(pieceMods.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && data.copycatEvolved) {
           // Use the knight's own colour for the icon so it's clear which side it is
           let iconKey = isWhite(piece) ? data.copycatPiece.toUpperCase() : data.copycatPiece.toLowerCase();
           let iconSrc = pieceImages[iconKey];
@@ -14401,7 +14817,7 @@ function draw(){
           }
         }
 
-        if(activeMods.has('The Impawnster') && pieceType === 'p' && data.sleeperPawn && canViewerSeeSleeperPawn(piece)) {
+        if(pieceMods.has('The Impawnster') && pieceType === 'p' && data.sleeperPawn && canViewerSeeSleeperPawn(piece)) {
           let sleeperIcon = document.createElement('div');
           sleeperIcon.className = 'sleeper-pawn-icon';
           sleeperIcon.textContent = 'Q';
@@ -14409,8 +14825,8 @@ function draw(){
         }
 
         // Viral Pawn: show 🦠 badge on pawns that can still duplicate (not on duplicates themselves)
-        if(settings.showBadges && (activeMods.has('Viral Pawn') || activeMods.has('Viral Pawn (Evolved)')) && pieceType === 'p') {
-          let canDuplicate = activeMods.has('Viral Pawn (Evolved)') || !data.viralDuplicate;
+        if(settings.showBadges && (pieceMods.has('Viral Pawn') || pieceMods.has('Viral Pawn (Evolved)')) && pieceType === 'p') {
+          let canDuplicate = pieceMods.has('Viral Pawn (Evolved)') || !data.viralDuplicate;
           if(canDuplicate) {
             sq.classList.add('has-viral-badge');
             let viralBadge = document.createElement('div');
@@ -14421,7 +14837,7 @@ function draw(){
         }
 
         // Phoenix Pawn: show 🐦‍🔥 badge on pawns that haven't respawned yet
-        if(settings.showBadges && activeMods.has('Phoenix Pawn') && pieceType === 'p' && !data.hasRespawned) {
+        if(settings.showBadges && pieceMods.has('Phoenix Pawn') && pieceType === 'p' && !data.hasRespawned) {
           sq.classList.add('has-phoenix-badge');
           let phoenixBadge = document.createElement('div');
           phoenixBadge.className = 'phoenix-pawn-icon';
@@ -14430,7 +14846,7 @@ function draw(){
         }
 
         // Bounty Hunter Pawn: show stacking 🎯 badge for each kill that pawn has
-        if(settings.showBadges && activeMods.has('Bounty Hunter Pawn') && pieceType === 'p'){
+        if(settings.showBadges && pieceMods.has('Bounty Hunter Pawn') && pieceType === 'p'){
           let kills = data.bountyKills || 0;
           if(kills > 0){
             sq.classList.add('has-bounty-badge');
@@ -14443,7 +14859,7 @@ function draw(){
 
         // Reinforced Pawn: show 🛡️ badge only on pawns whose shield hasn't been burned yet
         // shieldBurned is set on the DEFENDING pawn when its block fires
-        if(settings.showBadges && activeMods.has('Reinforced Pawn') && pieceType === 'p' && !data.shieldBurned) {
+        if(settings.showBadges && pieceMods.has('Reinforced Pawn') && pieceType === 'p' && !data.shieldBurned) {
           sq.classList.add('has-shield-badge');
           let shieldBadge = document.createElement('div');
           shieldBadge.className = 'shield-pawn-icon';
@@ -14452,7 +14868,7 @@ function draw(){
         }
 
         // Base Copycat Knight: show icon of currently mimicked piece (same as evolved, but only during active turns)
-        if(activeMods.has('Copycat Knight') && !activeMods.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && !data.copycatEvolved) {
+        if(allModsSet.has('Copycat Knight') && !allModsSet.has('Copycat Knight (Evolved)') && pieceType === 'n' && data.copycatPiece && !data.copycatEvolved) {
           let iconKey = isWhite(piece) ? data.copycatPiece.toUpperCase() : data.copycatPiece.toLowerCase();
           let iconSrc = pieceImages[iconKey];
           if(iconSrc) {
@@ -14466,70 +14882,77 @@ function draw(){
         // ── Fog of War Bishop ───────────────────────────────────────────────
         // Bishops owned by the Fog player are hidden from the enemy unless
         // at least one enemy piece can capture the square they're on.
-        if(activeMods.has('Fog of War Bishop') && pieceType === 'b'){
+        if(allModsSet.has('Fog of War Bishop') && pieceType === 'b'){
           let bishopIsWhite = isWhite(piece);
-          let inEnemyVision = isBishopInEnemyCaptureVision(x, y, bishopIsWhite);
+          // In personal modifier mode, only apply fog to a bishop whose OWNER has the modifier.
+          // allModsSet unions both players' stacks, so without this check the opponent having
+          // Fog of War Bishop would incorrectly fog your bishops too.
+          const _ownerHasFog = !personalModifiers ||
+            activeMods(bishopIsWhite ? 'white' : 'black').includes('Fog of War Bishop');
+          if(_ownerHasFog){
+            let inEnemyVision = isBishopInEnemyCaptureVision(x, y, bishopIsWhite);
 
-          // Determine whether THIS render should show or hide the bishop.
-          // In online mode: always show your own bishops; only fog enemy bishops.
-          // In vs-AI mode: always show the player's own bishops; fog the AI's bishops.
-          // In local pass & play: fog ALL bishops when not in enemy vision (both sides,
-          //   since both players share the same screen — hiding your own is the balance).
-          let shouldHide;
-          if(gameMode === 'online' && myColor){
-            let viewerIsWhite = (myColor === 'white');
-            if(viewerIsWhite === bishopIsWhite){
-              shouldHide = false;
+            // Determine whether THIS render should show or hide the bishop.
+            // In online mode: always show your own bishops; only fog enemy bishops.
+            // In vs-AI mode: always show the player's own bishops; fog the AI's bishops.
+            // In local pass & play: fog ALL bishops when not in enemy vision (both sides,
+            //   since both players share the same screen — hiding your own is the balance).
+            let shouldHide;
+            if(gameMode === 'online' && myColor){
+              let viewerIsWhite = (myColor === 'white');
+              if(viewerIsWhite === bishopIsWhite){
+                shouldHide = false;
+              } else {
+                shouldHide = !inEnemyVision;
+              }
+            } else if(aiActive && gameMode === 'local'){
+              // Player always sees their own bishops; AI bishops only appear when in vision
+              let playerIsWhite = (aiColor === 'white') ? false : true; // player is opposite of AI
+              if(bishopIsWhite === playerIsWhite){
+                shouldHide = false;
+              } else {
+                shouldHide = !inEnemyVision;
+              }
             } else {
+              // Local pass & play — fog both sides' bishops when not in enemy vision
               shouldHide = !inEnemyVision;
             }
-          } else if(aiActive && gameMode === 'local'){
-            // Player always sees their own bishops; AI bishops only appear when in vision
-            let playerIsWhite = (aiColor === 'white') ? false : true; // player is opposite of AI
-            if(bishopIsWhite === playerIsWhite){
-              shouldHide = false;
-            } else {
-              shouldHide = !inEnemyVision;
-            }
-          } else {
-            // Local pass & play — fog both sides' bishops when not in enemy vision
-            shouldHide = !inEnemyVision;
-          }
 
-          // Detect visibility transition and log it
-          const _fogKey = `${x},${y}`;
-          const _fogPrevVisible = fogBishopVisibility[_fogKey];
-          const _fogNowVisible = !shouldHide;
-          if(_fogPrevVisible !== undefined && _fogPrevVisible !== _fogNowVisible) {
-            const _fogBishopOwner = (gameMode === 'online')
-              ? (bishopIsWhite === (myColor === 'white') ? 'your' : "opponent's")
-              : (bishopIsWhite ? "white's" : "black's");
-            const _fogCapital = _fogBishopOwner.charAt(0).toUpperCase() + _fogBishopOwner.slice(1);
-            const _fogWho = (gameMode === 'online')
-              ? (bishopIsWhite === (myColor === 'white') ? 'you' : 'opponent')
-              : 'sys';
-            if(_fogNowVisible) {
-              logChaos(_fogWho, 'ability', `${_fogCapital} bishop appeared!`);
-            } else {
-              logChaos(_fogWho, 'ability', `${_fogCapital} bishop vanished into the fog!`);
+            // Detect visibility transition and log it
+            const _fogKey = `${x},${y}`;
+            const _fogPrevVisible = fogBishopVisibility[_fogKey];
+            const _fogNowVisible = !shouldHide;
+            if(_fogPrevVisible !== undefined && _fogPrevVisible !== _fogNowVisible) {
+              const _fogBishopOwner = (gameMode === 'online')
+                ? (bishopIsWhite === (myColor === 'white') ? 'your' : "opponent's")
+                : (bishopIsWhite ? "white's" : "black's");
+              const _fogCapital = _fogBishopOwner.charAt(0).toUpperCase() + _fogBishopOwner.slice(1);
+              const _fogWho = (gameMode === 'online')
+                ? (bishopIsWhite === (myColor === 'white') ? 'you' : 'opponent')
+                : 'sys';
+              if(_fogNowVisible) {
+                logChaos(_fogWho, 'ability', `${_fogCapital} bishop appeared!`);
+              } else {
+                logChaos(_fogWho, 'ability', `${_fogCapital} bishop vanished into the fog!`);
+              }
             }
-          }
-          fogBishopVisibility[_fogKey] = _fogNowVisible;
+            fogBishopVisibility[_fogKey] = _fogNowVisible;
 
-          // Strip any glow classes already applied, then apply fog class
-          sq.classList.remove('glow-legendary','glow-mythic','glow-rare','glow-evolved');
-          if(shouldHide){
-            sq.classList.add('fog-bishop-hidden');
-          } else {
-            // Visible — apply the reveal glow (only when actively seen)
-            sq.classList.add('fog-bishop-visible');
+            // Strip any glow classes already applied, then apply fog class
+            sq.classList.remove('glow-legendary','glow-mythic','glow-rare','glow-evolved');
+            if(shouldHide){
+              sq.classList.add('fog-bishop-hidden');
+            } else {
+              // Visible — apply the reveal glow (only when actively seen)
+              sq.classList.add('fog-bishop-visible');
+            }
           }
         }
       }
 
 
       // Royal Guard (Evolved): show rainbow glow on bodyguard piece itself
-      if(activeMods.has('Royal Guard (Evolved)') && (piece === 'G' || piece === 'g')){
+      if(allModsSet.has('Royal Guard (Evolved)') && (piece === 'G' || piece === 'g')){
         sq.classList.add('glow-evolved');
       }
       sq.onclick = () => clickSquare(x, y);
@@ -14925,6 +15348,8 @@ function loadPuzzle(index){
 }
 
 function startPuzzle(index = 0){
+  const GUEST_PUZZLE_LIMIT = 3;
+  if (index >= GUEST_PUZZLE_LIMIT && !requireLogin({ icon:'🧩', title:'Sign In to Continue', sub:'You\'ve played the free puzzles! Create a free account to unlock all puzzle challenges.' })) return;
   loadPuzzle(index);
 }
 
@@ -14933,6 +15358,8 @@ function startNextPuzzle(){
     showToast('No more puzzles yet.', 1500);
     return;
   }
+  const GUEST_PUZZLE_LIMIT = 3;
+  if (currentPuzzleIndex + 1 >= GUEST_PUZZLE_LIMIT && !requireLogin({ icon:'🧩', title:'Sign In to Continue', sub:'You\'ve played the free puzzles! Create a free account to unlock all puzzle challenges.' })) return;
   loadPuzzle(currentPuzzleIndex + 1);
 }
 
@@ -15255,7 +15682,7 @@ function isOrthogonallyAdjacent(x1,y1,x2,y2){
 
 function isSanctuaryBishopAt(x,y){
   const piece = board[y]?.[x];
-  return modifiers.includes('Sanctuary Bishop') && piece && piece.toLowerCase() === 'b';
+  return activeMods(isWhite(piece) ? 'white' : 'black').includes('Sanctuary Bishop') && piece && piece.toLowerCase() === 'b';
 }
 
 function canCaptureTargetFrom(x1,y1,x2,y2){
@@ -15265,7 +15692,7 @@ function canCaptureTargetFrom(x1,y1,x2,y2){
 
 function isHeavyRookAt(x,y){
   const piece = board[y]?.[x];
-  return modifiers.includes('Heavy Rook') && piece && piece.toLowerCase() === 'r';
+  return activeMods(isWhite(piece) ? 'white' : 'black').includes('Heavy Rook') && piece && piece.toLowerCase() === 'r';
 }
 
 function canViewerSeeSleeperPawn(piece){
@@ -15281,8 +15708,13 @@ function canViewerSeeSleeperPawn(piece){
 }
 
 function ensureSleeperPawns(){
-  if(!modifiers.includes('The Impawnster')) return;
+  // In personal mode only give the sleeper queen to the owner's pawns.
+  const whiteSleeper = activeMods('white').includes('The Impawnster');
+  const blackSleeper = activeMods('black').includes('The Impawnster');
+  if(!whiteSleeper && !blackSleeper) return;
   ['white','black'].forEach(color => {
+    if(color === 'white' && !whiteSleeper) return;
+    if(color === 'black' && !blackSleeper) return;
     let hasSleeper = false;
     let candidates = [];
     for(let y=0; y<8; y++){
@@ -15503,6 +15935,8 @@ function applyPortalMoveTransforms(fromX, fromY, piece, moves){
  * Accounts for ALL movement-modifying modifiers.
  */
 function isBishopInEnemyCaptureVision(bx, by, bishopIsWhite){
+  // In personal mode the enemy uses their own modifier stack, not the bishop owner's.
+  const modifiers = activeMods(bishopIsWhite ? 'black' : 'white');
   const knightOffsets = [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
 
   // Helper: slide ray from (sx,sy) in direction (dx,dy), can the ray reach (bx,by)?
@@ -15966,10 +16400,18 @@ function getLegalMoves(x,y){
     return !inCheck;
   });
 
-  // Tag modifier-only moves in purple by computing base moves without modifiers
-  if(modifiers.length > 0) {
+  // Tag modifier-only moves in purple by computing base moves without modifiers.
+  // In personal mode the piece owner may have only personal mods and no shared mods,
+  // so we check whether any mods are active for this piece's colour, not just modifiers[].
+  const _pieceColor = isWhite(piece) ? 'white' : 'black';
+  const _hasMods = modifiers.length > 0 ||
+    (personalModifiers && personalArray(_pieceColor).length > 0);
+  if(_hasMods) {
     const savedModifiers = modifiers;
+    const savedWhite = personalModifiers ? [...whiteModifiers] : null;
+    const savedBlack = personalModifiers ? [...blackModifiers] : null;
     modifiers = [];
+    if(personalModifiers) { whiteModifiers.length = 0; blackModifiers.length = 0; }
     let baseMoves = getLegalMovesRaw(x,y,true,currentlyInCheck);
     baseMoves = baseMoves.filter(move=>{
       let oldPiece = board[move.y][move.x];
@@ -15979,6 +16421,8 @@ function getLegalMoves(x,y){
       return !inCheck;
     });
     modifiers = savedModifiers;
+    if(personalModifiers && savedWhite) { savedWhite.forEach(m => whiteModifiers.push(m)); }
+    if(personalModifiers && savedBlack) { savedBlack.forEach(m => blackModifiers.push(m)); }
     const baseSet = new Set(baseMoves.map(m => `${m.x},${m.y}`));
     moves.forEach(m => { if(!baseSet.has(`${m.x},${m.y}`)) m.modifierOnly = true; });
   }
@@ -15989,6 +16433,9 @@ function getLegalMoves(x,y){
 function getLegalMovesRaw(x,y,allowPegasus,inCheck){
   let piece=board[y][x];
   if(!piece) return [];
+  // Shadow the global `modifiers` with the moving piece's owner's active modifier set.
+  // Every modifiers.includes() call in this function automatically uses the right stack.
+  const modifiers = activeMods(isWhite(piece) ? 'white' : 'black');
 
   let moves=[];
   let dir=isWhite(piece)?-1:1;
@@ -16405,8 +16852,8 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
       break;
   }
 
-  // Sovereign's Blessing: allied pieces adjacent to their king gain a king-like 1-square move
-  if(modifiers.includes("Sovereign's Blessing")){
+  // Sovereign’s Blessing: allied pieces adjacent to their king gain a king-like 1-square move
+  if(activeMods(isWhite(piece) ? 'white' : 'black').includes("Sovereign’s Blessing")){
     try {
       let myKing = findKing(isWhite(piece));
       if(myKing){
@@ -16691,6 +17138,7 @@ function addPinballEvolvedMoves(x, y, piece, moves) {
 }
 
 function addSlides(x,y,piece,moves,dirs){
+  const modifiers = activeMods(isWhite(piece) ? 'white' : 'black'); // shadow global
   let isBishop = piece.toLowerCase() === 'b';
   let isRook = piece.toLowerCase() === 'r';
   let canHop = (isBishop && modifiers.includes('Phase Bishop')) || (isRook && modifiers.includes('Phase Rook'));
@@ -17292,6 +17740,10 @@ function playTotalChaosSound() {
 function move(x1,y1,x2,y2,castleType){
   let piece=board[y1][x1];
   let captured=board[y2][x2];
+  // Shadow global `modifiers` with the moving piece owner's active mod stack.
+  // Captured-piece checks that need the *captured* piece's owner use activeMods() directly.
+  const moverColor = isWhite(piece) ? 'white' : 'black';
+  const modifiers = activeMods(moverColor);
 
   // Always update lastMove so AI moves get the highlight too
   lastMove = { fromX: x1, fromY: y1, toX: x2, toY: y2 };
@@ -17448,7 +17900,7 @@ function move(x1,y1,x2,y2,castleType){
   let castleMove = castleType ? { castle: castleType } : null;
   
   // Reinforced Pawn: 50% chance to survive first capture
-  if(!puzzleModeActive && captured && captured.toLowerCase()==='p' && modifiers.includes('Reinforced Pawn')){
+  if(!puzzleModeActive && captured && captured.toLowerCase()==='p' && activeMods(isWhite(captured)?'white':'black').includes('Reinforced Pawn')){
     let data = getPieceData(x2,y2);
     if(!data.shieldBurned && Math.random() < chaosChance(0.5)){
       // Board hasn't been updated yet at this point — piece is still at x1,y1 in data.
@@ -17484,7 +17936,7 @@ function move(x1,y1,x2,y2,castleType){
       whiteCaptured.push(captured);
       
       // Phoenix Pawn: respawn captured pawn
-      if(captured.toLowerCase()==='p' && modifiers.includes('Phoenix Pawn')){
+      if(captured.toLowerCase()==='p' && activeMods(isWhite(captured)?'white':'black').includes('Phoenix Pawn')){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
           const _ppSpot = respawnPhoenixPawn(captured);
@@ -17494,7 +17946,7 @@ function move(x1,y1,x2,y2,castleType){
       }
       
       // Kamikaze Pawn: place bomb on capture square
-      if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
+      if(captured.toLowerCase()==='p' && activeMods(isWhite(captured)?'white':'black').includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
         const _kzWho = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
         logChaos(_kzWho, 'ability', (_kzWho==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
@@ -17504,7 +17956,7 @@ function move(x1,y1,x2,y2,castleType){
       blackCaptured.push(captured);
       
       // Phoenix Pawn: respawn captured pawn
-      if(captured.toLowerCase()==='p' && modifiers.includes('Phoenix Pawn')){
+      if(captured.toLowerCase()==='p' && activeMods(isWhite(captured)?'white':'black').includes('Phoenix Pawn')){
         let capturedData = getPieceData(x2,y2);
         if(!capturedData.hasRespawned){
           const _ppSpot2 = respawnPhoenixPawn(captured);
@@ -17514,7 +17966,7 @@ function move(x1,y1,x2,y2,castleType){
       }
       
       // Kamikaze Pawn: place bomb on capture square
-      if(captured.toLowerCase()==='p' && modifiers.includes('Kamikaze Pawn')){
+      if(captured.toLowerCase()==='p' && activeMods(isWhite(captured)?'white':'black').includes('Kamikaze Pawn')){
         kamikazeBombs.push({x: x2, y: y2, turnsLeft: 3});
         const _kzWho2 = isWhite(captured) ? (gameMode==='online' || myColor ? (myColor==='white' ? 'you' : 'opponent') : 'you') : (gameMode==='online' || myColor ? (myColor==='black' ? 'you' : 'opponent') : 'opponent');
         logChaos(_kzWho2, 'ability', (_kzWho2==='you'?'Your':'Opponent\'s') + ` Kamikaze Pawn — bomb armed at ${sqNotation(x2,y2)}! 💣`);
@@ -17623,11 +18075,11 @@ function move(x1,y1,x2,y2,castleType){
       // for the *real* piece being captured, not a fake being traded away normally.
       const _capData = getPieceData(x2, y2);
       if(!_capData.decoy && !_capData.jesterDecoy) {
-        if(captured.toLowerCase() === 'r' && modifiers.includes('Decoy Rook')) {
+        if(captured.toLowerCase() === 'r' && activeMods(isWhite(captured)?'white':'black').includes('Decoy Rook')) {
           removeDecoyRook(captured);
         }
         if(captured.toLowerCase() === 'n' &&
-           (modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)'))) {
+           (activeMods(isWhite(captured)?'white':'black').includes('Jester Knight') || activeMods(isWhite(captured)?'white':'black').includes('Jester Knight (Evolved)'))) {
           removeJesterDecoys(captured);
         }
       }
@@ -17651,8 +18103,8 @@ function move(x1,y1,x2,y2,castleType){
         // but call the guards for consistency in case future modifiers change that)
         const _epPd = getPieceData(x2, _epCapturedY);
         if(!_epPd.decoy && !_epPd.jesterDecoy) {
-          if(_epCapturedPawn.toLowerCase() === 'r' && modifiers.includes('Decoy Rook')) removeDecoyRook(_epCapturedPawn);
-          if(_epCapturedPawn.toLowerCase() === 'n' && (modifiers.includes('Jester Knight') || modifiers.includes('Jester Knight (Evolved)'))) removeJesterDecoys(_epCapturedPawn);
+          if(_epCapturedPawn.toLowerCase() === 'r' && activeMods(isWhite(_epCapturedPawn)?'white':'black').includes('Decoy Rook')) removeDecoyRook(_epCapturedPawn);
+          if(_epCapturedPawn.toLowerCase() === 'n' && (activeMods(isWhite(_epCapturedPawn)?'white':'black').includes('Jester Knight') || activeMods(isWhite(_epCapturedPawn)?'white':'black').includes('Jester Knight (Evolved)'))) removeJesterDecoys(_epCapturedPawn);
         }
         board[_epCapturedY][x2] = '';
         clearPieceData(x2, _epCapturedY);
@@ -17817,7 +18269,7 @@ function move(x1,y1,x2,y2,castleType){
       clearPieceData(_ncSpot.x, _ncSpot.y);
       const _ncWho = (gameMode==='online') ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (myColor ? (isWhite(piece)===(myColor==='white') ? 'you' : 'opponent') : (isWhite(piece) ? 'you' : 'opponent'));
       const _ncPieceName = {p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen'}[captured.toLowerCase()] || captured.toLowerCase();
-      logChaos(_ncWho, 'ability', (_ncWho==='you'?'Your':'Opponent\'s') + ` Necromancer Knight resurrected a ${_ncPieceName} at ${sqNotation(_ncSpot.x,_ncSpot.y)}! 💀`);
+      logChaos(_ncWho, 'ability', (_ncWho==='you'?'Your':'Opponent\'s') + ` Necromancer Knight resurrected a ${_ncPieceName} at ${sqNotation(_ncSpot.x,_ncSpot.y)}!`);
     }
   }
 
@@ -18121,11 +18573,16 @@ function move(x1,y1,x2,y2,castleType){
     // No empty adjacent squares — fall through normally
   }
 
-  // Check for pawn promotion — recordMove is deferred until piece is chosen
+  // Check for pawn promotion — recordMove is deferred until piece is chosen.
+  // Guard: only enter this path if the pawn is still a raw pawn on the destination square
+  // (i.e. promotion/sacrifice hasn't resolved yet). When completeTurn fires as a
+  // post-sacrifice callback the square is null, and when it fires post-promotion the
+  // square holds the promoted piece — both cases must fall through to recordMove below.
   if(piece.toLowerCase()==='p'){
     let promotionRow = isWhite(piece) ? 0 : 7;
-    if(y2 === promotionRow){
-      // Don't recordMove yet — promotePawn will do it once the piece is known
+    const _squareNow = board[y2] && board[y2][x2];
+    if(y2 === promotionRow && _squareNow && _squareNow.toLowerCase() === 'p'){
+      // Still an unresolved pawn — defer recordMove until promotePawn resolves it
       finishTurn(piece, x1, y1, x2, y2, captured, castleMove, /*skipRecord*/true);
       return;
     }
@@ -18790,8 +19247,60 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
     </div>
   `;
   
+  // Append the "draft instead" option (only when Chaos modifiers are active)
+  if(modifiers.length > 0 || (personalModifiers && (whiteModifiers.length > 0 || blackModifiers.length > 0 || allMods.length > 0))) {
+    const draftBtn = document.createElement('button');
+    draftBtn.className = 'promotion-draft-btn';
+    draftBtn.innerHTML = `
+      <div class="promo-draft-icon">✦</div>
+      <div class="promo-draft-text">
+        <div class="promo-draft-title">Draft a Modifier</div>
+        <div class="promo-draft-sub">Sacrifice this pawn — choose a chaos modifier for yourself</div>
+      </div>
+    `;
+    modal.querySelector('.promotion-options').after(draftBtn);
+
+    draftBtn.onclick = () => {
+      modal.style.display = 'none';
+      // Remove the pawn — it's gone, nothing promoted
+      board[y][x] = '';
+      clearPieceData(x, y);
+
+      // Record move with ✦ suffix (e.g. "e8✦")
+      if(origPiece !== undefined){
+        const _pdNotation = (captured
+          ? fileOf(x1) + 'x' + coordToAlgebraic(x, y)
+          : coordToAlgebraic(x, y)) + '❖';
+        moveHistory.push({
+          notation: _pdNotation,
+          color: white ? 'white' : 'black',
+          moveNumber: Math.floor(moveHistory.length / 2) + 1
+        });
+        updateMoveDisplay();
+      }
+
+      // Chaos log
+      const _pdWho = (gameMode === 'online')
+        ? (white === (myColor === 'white') ? 'you' : 'opponent')
+        : (white ? 'you' : 'opponent');
+      logChaos(_pdWho, 'ability',
+        `${white ? 'White' : 'Black'} sacrificed a pawn for a modifier draft! ❖`);
+
+      awardChaosForMove({ move: false, promotion: true });
+
+      // Store the turn-completion callback — the draft will call it after the pick,
+      // so completeTurn() only fires once the draft is fully resolved.
+      _promoDraftCallback = onComplete || null;
+
+      // Open the promo draft for the promoting player only.
+      // Passing isPromoDraft=true prevents P2 secondary drafts and keeps the
+      // drafter flag clean regardless of personalModifiers / game mode.
+      chaosDraft(white ? 'white' : 'black', true);
+    };
+  }
+
   modal.style.display = 'block';
-  
+
   document.querySelectorAll('.promotion-choice').forEach(choice => {
     choice.onclick = () => {
       let pieceType = choice.dataset.piece;
@@ -18804,7 +19313,6 @@ function promotePawn(x, y, onComplete, origPiece, x1, y1, captured, castleMove){
         cfPushEmotion('playerPromotes');
         setTimeout(() => cfSay('playerPromotes', 3000), 600);
       }
-      // Call completion callback to finish the turn (includes draw() and sendGameState())
       if(onComplete) onComplete();
     };
   });
@@ -19462,12 +19970,12 @@ const allMods=[
   {name:'Kamikaze Pawn',rarity:'legendary',desc:'Captured pawns explode after 1 turn, destroying any piece on the armed square',icon:'♟'},
   {name:'Viral Pawn',rarity:'rare',desc:'When a pawn captures, a duplicate spawns on its original square. Duplicates cannot duplicate again',icon:'♟',evolvesTo:'Viral Pawn (Evolved)'},
   {name:'Hive Mind Pawns',rarity:'mythic',desc:'When you move a pawn, ALL your pawns move the same direction if legal',icon:'♟',evolvesTo:'Hive Mind Pawns (Evolved)'},
-  {name:'The Impawnster',rarity:'mythic',desc:'One pawn per side secretly moves like a queen. Only its owner sees the hidden queen marker',icon:'♟'},
+  {name:'The Impawnster',rarity:'mythic',desc:'One of your pawns secretly moves like a queen',icon:'♟'},
   {name:'Sprinting King',rarity:'rare',desc:'King can move up to 2 squares in any direction while not in check (cannot leap)',icon:'♚'},
-  {name:"Sovereign's Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
+  {name:"Sovereign’s Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️',stackable:true},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
-  {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 random active modifier',icon:'🧽',stackable:true},
+  {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 of your enemies active modifiers',icon:'🧽',stackable:true},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
   {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
   {name:'Bounty Hunter Pawn',rarity:'rare',desc:'Each pawn permanently gains +1 square of movement for every piece it captures',icon:'♟'},
@@ -19813,6 +20321,7 @@ function getCodexCombo(mod){
 }
 
 function openModifierCodex(category){
+  if (!requireLogin({ icon:'📚', title:'Sign In to Browse the Library', sub:'Create a free account to explore all modifiers, abilities, and evolutions.' })) return;
   markActiveModifiersDiscovered();
   codexActiveCategory = category || codexActiveCategory || 'all';
   codexSearchQuery = '';
@@ -22221,7 +22730,7 @@ function placeRoyalGuard(x, y){
   }
 }
 
-function chaosDraft(){
+function chaosDraft(drafterOverride, isPromoDraft = false){
   if(puzzleModeActive) return;
   ensureGlobalOverlayHosts();
   console.log('=== CHAOS DRAFT TRIGGERED ===');
@@ -22231,30 +22740,61 @@ function chaosDraft(){
   console.log('currentDrafter:', currentDrafter);
 
   // ── Determine whose draft this is ────────────────────────────────────
-  const drafter = currentDrafter; // snapshot before we advance it
-  currentDrafter = (currentDrafter === 'white') ? 'black' : 'white'; // advance for next time
+  // _isP2PersonalPick: true when this draft was triggered as the second player's
+  // pick in local 2-player personal mode. Card handler uses it to show P1 a reveal.
+  // isPromoDraft uses drafterOverride to name the promoting colour, but it is NOT a P2 pick.
+  const _isP2PersonalPick = !isPromoDraft && !!drafterOverride && personalModifiers && gameMode === 'local';
+  let drafter;
+  if (drafterOverride) {
+    // Explicit override — used by the P2 personal draft in local 2-player mode.
+    drafter = drafterOverride;
+  } else if (personalModifiers) {
+    // Personal mode: EVERY player picks on EVERY draft — no alternation.
+    // Online: always draft for the local client's own colour.
+    // Local: draft for the player whose turn it is (or the non-AI player).
+    drafter = (gameMode === 'online')
+      ? myColor
+      : (aiActive ? (aiColor === 'white' ? 'black' : 'white') : turn);
+  } else {
+    drafter = currentDrafter; // snapshot before we advance it
+    currentDrafter = (currentDrafter === 'white') ? 'black' : 'white'; // advance for next time
+  }
 
   // Online mode: only show draft to the player whose turn it is
   if(gameMode === 'online'){
     if(drafter !== myColor){
-      showToast(`Opponent is drafting a modifier...`, 3000);
+      if(isPromoDraft){
+        showToast(`Opponent sacrificed a pawn for a modifier! ❖`, 3500);
+      } else {
+        showToast(`Opponent is drafting a modifier...`, 3000);
+      }
       return;
     }
   }
 
-  // AI mode: if drafter is the AI colour, build picks silently and return
-  // before touching the backdrop or glitch DOM — must happen before any DOM work
-  if (aiActive && gameMode === 'local' && drafter === aiColor) {
-    // Build available pool (same logic as main path)
-    const _evolvedBaseNames = evolvedMods.filter(ev => modifiers.includes(ev.name)).map(ev => ev.baseModifier);
-    const _available = allMods.filter(m =>
-      (!modifiers.includes(m.name) || m.stackable) &&
-      !settings.bannedMods.includes(m.name) &&
-      !_evolvedBaseNames.includes(m.name) &&
-      !(m.name === 'Cleaning Sponge' && modifiers.filter(n => n !== 'Cleaning Sponge').length === 0)
-    );
+  // AI mode silent pick ─────────────────────────────────────────────────
+  // Shared mode: if it's the AI's turn to draft, pick silently and return.
+  // Personal mode: always run the AI pick silently FIRST, then fall through
+  //   so the human player also gets to pick in the same draft event.
+  if (aiActive && gameMode === 'local' && (drafter === aiColor || personalModifiers)) {
+    // Build available pool (same logic as main path, personal-mode aware)
+    const _drafterPersonal = personalModifiers ? personalArray(drafter) : [];
+    const _drafterAll      = personalModifiers ? modifiers.concat(_drafterPersonal) : modifiers;
+    const _opponentPersonal = personalModifiers ? personalArray(drafter === 'white' ? 'black' : 'white') : [];
+    const _evolvedBaseNames = evolvedMods.filter(ev => _drafterAll.includes(ev.name)).map(ev => ev.baseModifier);
+    const _available = allMods.filter(m => {
+      const inDrafter = ENVIRONMENTAL_MODS.has(m.name) ? modifiers.includes(m.name) : _drafterPersonal.includes(m.name);
+      if (!personalModifiers && modifiers.includes(m.name) && !m.stackable) return false;
+      if (personalModifiers && inDrafter && !m.stackable) return false;
+      if (settings.bannedMods.includes(m.name)) return false;
+      if (_evolvedBaseNames.includes(m.name)) return false;
+      if (m.name === 'Cleaning Sponge') {
+        if (personalModifiers ? _opponentPersonal.length === 0 : modifiers.filter(n => n !== 'Cleaning Sponge').length === 0) return false;
+      }
+      return true;
+    });
     const _evolutionPool = evolvedMods.filter(ev =>
-      !modifiers.includes(ev.name) && modifiers.includes(ev.baseModifier)
+      !_drafterAll.includes(ev.name) && _drafterAll.includes(ev.baseModifier)
     );
     // Build picks with same rarity weighting
     const _EVOLUTION_CHANCE = getEvolutionDraftChance();
@@ -22273,19 +22813,23 @@ function chaosDraft(){
         if (_available.length === 0) continue;
         const _byRarity = { mythic: [], legendary: [], rare: [], common: [] };
         _available.forEach(m => { if (_byRarity[m.rarity]) _byRarity[m.rarity].push(m); });
-        // Draft escalation: weights shift toward higher rarities as the game goes on.
+        // Draft escalation: weights shift heavily toward higher rarities as the game goes on.
         // draftIndex 0 = first draft ever, increases every current draft interval.
-        // Base weights (early game): mythic 10, legendary 16, rare 28, common 18
-        // Peak weights (late game):  mythic 22, legendary 26, rare 18, common 10
-        // Each draft index shifts +1.5 from common+rare toward legendary+mythic,
-        // capped so weights never go negative.
+        //
+        // Draft  0 → common 50%  rare 35%  legendary 10%  mythic  5%
+        // Draft  5 → common 30%  rare 28%  legendary 25%  mythic 18%
+        // Draft 10 → common 10%  rare 20%  legendary 40%  mythic 30%  (curve caps here)
+        //
+        // The early game is intentionally common/rare-heavy so players learn the basics
+        // before higher-rarity chaos gets introduced. Mythics are deliberately rare until
+        // mid-game. Total Chaos pushes mythic/legendary up by a flat +8 each.
         const _draftIndex = Math.floor(moveCount / getCurrentDraftFrequency());
-        const _escalation = Math.min(_draftIndex, 8); // caps at draft 8
+        const _escalation = Math.min(_draftIndex, 10); // caps at draft 10
         const _chaosBoost = totalChaosActive ? 8 : 0;
-        const _wMythic    = 10 + _escalation * 1.5 + _chaosBoost;
-        const _wLegendary = 16 + _escalation * 1.25 + _chaosBoost;
-        const _wRare      = 28 - _escalation * 1.25;
-        const _wCommon    = 18 - _escalation * 1.5 - (totalChaosActive ? 6 : 0);
+        const _wMythic    =  5 + _escalation * 2.5 + _chaosBoost;
+        const _wLegendary = 10 + _escalation * 3   + _chaosBoost;
+        const _wRare      = 35 - _escalation * 1.5;
+        const _wCommon    = 50 - _escalation * 4   - (totalChaosActive ? 6 : 0);
         const _weights = [
           { rarity: 'mythic',    w: _byRarity.mythic.length    > 0 ? _wMythic    : 0 },
           { rarity: 'legendary', w: _byRarity.legendary.length > 0 ? _wLegendary : 0 },
@@ -22322,23 +22866,53 @@ function chaosDraft(){
     _picks.forEach(p => { draftCooldowns[p.name] = 2 + Math.floor(Math.random() * 2); }); // 2 or 3 drafts
     if (_picks.length > 0) {
       const _chosen = aiScoreDraftPicks(_picks, aiColor);
-      aiApplyDraftPick(_chosen);
+      aiApplyDraftPick(_chosen, aiColor);
       cfLastDraftedModifier = _chosen.name || null;
       if (aiActive && gameMode === 'local' && Math.random() < 0.55) {
         setTimeout(() => cfSayChaosDraft(cfLastDraftedModifier), 1800);
       }
       playDraftPickSound(_chosen.isEvolution ? 'evolved' : (_chosen.rarity || 'common'));
       showToast(`AI drafted a modifier...`, 2000);
-      showOpponentDraftReveal(_chosen);
+      if (personalModifiers) {
+        // In personal mode the human draft opens immediately after this block.
+        // showOpponentDraftReveal attaches a capture-phase stopPropagation listener
+        // that would swallow every click on the human's draft cards, locking the game.
+        // Log the AI pick directly instead — the Chaos Log still shows it.
+        const _rv = _chosen;
+        const _rvEvo = _rv.isEvolution === true;
+        const _rvRk  = _rvEvo ? 'evolved' : (_rv.rarity || 'common');
+        const _rvRl  = _rvEvo ? 'Evolved' : (_rv.rarity ? _rv.rarity[0].toUpperCase() + _rv.rarity.slice(1) : 'Common');
+        const _rvNm  = (_rvEvo ? _rv.name.replace(' (Evolved)', '') + ' (Evolved)' : _rv.name);
+        logChaos('opponent', 'draft', `AI drafted ${_rvNm} (${_rvRl})!`, `chaos-rarity-${_rvRk}`);
+        // Defer the reveal card until after the human picks — showing it now
+        // would attach a stopPropagation capture listener that blocks draft clicks.
+        _pendingAiReveal = _chosen;
+      } else {
+        showOpponentDraftReveal(_chosen);
+      }
       draw();
     }
-    return;
+    // Shared mode: AI handles this whole draft, we're done.
+    // Personal mode: fall through so the human player also gets to pick.
+    if (!personalModifiers) return;
+    // In personal mode the drafter for the player UI is the human's colour.
+    drafter = (aiColor === 'white') ? 'black' : 'white';
   }
 
   let draft = document.getElementById('draft');
   draft.innerHTML = '';
 
+  // In local 2-player personal mode both players pick every draft.
+  // Flag the second pick as pending; the pick handler will re-invoke
+  // chaosDraft() after the first player finishes.
+  // Guard: drafterOverride means this IS the P2 pick — don't set the flag again
+  // or we get an infinite ping-pong between P1 and P2 drafts.
+  if (!isPromoDraft && personalModifiers && gameMode === 'local' && !aiActive && !drafterOverride) {
+    _p2PersonalDraftPending = true;
+  }
+
   // ── Build cinematic DOM ──────────────────────────────────────────────
+  _draftInProgress = true; // cleared when the pick handler closes the overlay
   draft.style.display = 'block';
 
   // Spotlight
@@ -22360,8 +22934,8 @@ function chaosDraft(){
   const titleWrap = document.createElement('div');
   titleWrap.id = 'draft-title-wrap';
   titleWrap.innerHTML = `
-    <div id="draft-title">CHAOS DRAFT</div>
-    <div id="draft-subtitle">REALITY IS REWRITING ITSELF — CHOOSE YOUR FATE</div>
+    <div id="draft-title">${isPromoDraft ? 'PAWN SACRIFICE' : 'CHAOS DRAFT'}</div>
+    <div id="draft-subtitle">${isPromoDraft ? 'YOUR PAWN IS GONE — CHOOSE YOUR REWARD' : 'REALITY IS REWRITING ITSELF — CHOOSE YOUR FATE'}</div>
   `;
   inner.appendChild(titleWrap);
 
@@ -22402,6 +22976,16 @@ function chaosDraft(){
   };
   inner.appendChild(viewBoardBtn);
 
+  // Surprise Me button
+  const surpriseBtn = document.createElement('button');
+  surpriseBtn.id = 'draft-surprise-btn';
+  surpriseBtn.textContent = '🎲 SURPRISE ME!';
+  surpriseBtn.onclick = () => {
+    const revealed = cardElements.filter(c => c.closest('.draft-card-wrap') && c.closest('.draft-card-wrap').dataset.revealed);
+    if (revealed.length > 0) revealed[Math.floor(Math.random() * revealed.length)].click();
+  };
+  inner.appendChild(surpriseBtn);
+
   // Start chaos glitch + backdrop
   startDraftGlitch();
   setTimeout(() => draft.classList.add('active'), 10);
@@ -22413,19 +22997,28 @@ function chaosDraft(){
   }
 
   // ── Filter modifiers ────────────────────────────────────────────────
+  const _pDrafterPersonal  = personalModifiers ? personalArray(drafter) : [];
+  const _pDrafterAll       = personalModifiers ? modifiers.concat(_pDrafterPersonal) : modifiers;
+  const _pOpponentPersonal = personalModifiers ? personalArray(drafter === 'white' ? 'black' : 'white') : [];
+
   let evolvedBaseNames = evolvedMods
-    .filter(ev => modifiers.includes(ev.name))
+    .filter(ev => _pDrafterAll.includes(ev.name))
     .map(ev => ev.baseModifier);
-  let available = allMods.filter(m =>
-    (!modifiers.includes(m.name) || m.stackable) &&
-    !settings.bannedMods.includes(m.name) &&
-    !evolvedBaseNames.includes(m.name) &&
-    !(m.name === 'Cleaning Sponge' && modifiers.filter(n => n !== 'Cleaning Sponge').length === 0)
-  );
+  let available = allMods.filter(m => {
+    const inDrafter = ENVIRONMENTAL_MODS.has(m.name) ? modifiers.includes(m.name) : _pDrafterPersonal.includes(m.name);
+    if (!personalModifiers && modifiers.includes(m.name) && !m.stackable) return false;
+    if (personalModifiers && inDrafter && !m.stackable) return false;
+    if (settings.bannedMods.includes(m.name)) return false;
+    if (evolvedBaseNames.includes(m.name)) return false;
+    if (m.name === 'Cleaning Sponge') {
+      if (personalModifiers ? _pOpponentPersonal.length === 0 : modifiers.filter(n => n !== 'Cleaning Sponge').length === 0) return false;
+    }
+    return true;
+  });
 
   let evolutionPool = evolvedMods.filter(ev => {
-    if(modifiers.includes(ev.name)) return false;
-    if(!modifiers.includes(ev.baseModifier)) return false;
+    if(_pDrafterAll.includes(ev.name)) return false;
+    if(!_pDrafterAll.includes(ev.baseModifier)) return false;
     return true;
   });
 
@@ -22617,7 +23210,7 @@ function chaosDraft(){
         'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
         'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
         'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
-        "Sovereign's Blessing":'k',
+        "Sovereign’s Blessing":'k',
       };
       const pieceNames = {p:'PAWNS',b:'BISHOPS',n:'KNIGHTS',r:'ROOKS',q:'QUEENS',k:'KINGS'};
       const pt = modPieceType[mod.name];
@@ -22667,11 +23260,18 @@ function chaosDraft(){
       playDraftPickSound(_pickRarity);
 
       if(isEvo){
-        let baseIdx = modifiers.indexOf(mod.baseModifier);
-        if(baseIdx !== -1) modifiers.splice(baseIdx, 1);
-        modifiers.push(mod.name);
+        // Evolved mods: remove base from wherever it lives, push evolved to same destination
+        const _evoTarget = (personalModifiers && !ENVIRONMENTAL_MODS.has(mod.name))
+          ? personalArray(drafter) : modifiers;
+        const _evoBase   = (personalModifiers && !ENVIRONMENTAL_MODS.has(mod.baseModifier))
+          ? personalArray(drafter) : modifiers;
+        let baseIdx = _evoBase.indexOf(mod.baseModifier);
+        if(baseIdx !== -1) _evoBase.splice(baseIdx, 1);
+        _evoTarget.push(mod.name);
       } else {
-        modifiers.push(mod.name);
+        const _target = (personalModifiers && !ENVIRONMENTAL_MODS.has(mod.name))
+          ? personalArray(drafter) : modifiers;
+        _target.push(mod.name);
       }
       cfLastDraftedModifier = mod.name;
       if (aiActive && gameMode === 'local' && Math.random() < 0.55) {
@@ -22684,7 +23284,18 @@ function chaosDraft(){
       const _rarityKey = isEvo ? 'evolved' : (mod.rarity || 'common');
       const _rarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
       const _displayName = isEvo ? mod.name.replace(' (Evolved)', '') + ' (Evolved)' : mod.name;
-      logChaos('you', 'draft', `You drafted ${_displayName} (${_rarityLabel})!`, `chaos-rarity-${_rarityKey}`);
+      // Determine log perspective from drafter rather than always saying 'you':
+      //   - Online / vs-AI: the draft UI only ever shows to the local player → always 'you'
+      //   - P&P personal, P2 pick (_isP2PersonalPick): skip here entirely — showOpponentDraftReveal
+      //     fires right after and logs "Opponent drafted X", so logging here too would duplicate it
+      //   - P&P shared (non-personal): white = P1 = 'you', black = P2 = 'opponent'
+      if(!_isP2PersonalPick) {
+        const _draftWho = (gameMode === 'online' || aiActive)
+          ? 'you'
+          : (drafter === 'white' ? 'you' : 'opponent');
+        const _draftLabel = _draftWho === 'you' ? 'You' : 'Opponent';
+        logChaos(_draftWho, 'draft', `${_draftLabel} drafted ${_displayName} (${_rarityLabel})!`, `chaos-rarity-${_rarityKey}`);
+      }
       awardChaosForMove({ move: false, draft: true, evolvedDraft: isEvo });
 
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
@@ -22693,7 +23304,7 @@ function chaosDraft(){
       if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
       if(mod.name === 'Portal Pair') spawnPortalPair();
       if(mod.name === 'The Impawnster') ensureSleeperPawns();
-      if(mod.name === 'Cleaning Sponge') applyCleaningSponge('you');
+      if(mod.name === 'Cleaning Sponge') applyCleaningSponge('you', drafter);
 
       if(mod.name === 'Tornado de Caballos') {
         draft.classList.remove('active');
@@ -22716,6 +23327,44 @@ function chaosDraft(){
         draft.innerHTML = '';
         if(gameMode === 'online') sendGameState();
         draw();
+
+        // Mark draft closed first so receiveGameState knows we've finished.
+        _draftInProgress = false;
+
+        if(isPromoDraft) {
+          // Promo draft is done — fire the stored turn-completion callback
+          // (completeTurn was deliberately deferred until now).
+          if(_promoDraftCallback) {
+            const _cb = _promoDraftCallback;
+            _promoDraftCallback = null;
+            _cb();
+          }
+        } else if(_p2PersonalDraftPending) {
+          // P1 just finished — P2 still needs to pick.
+          _p2PersonalDraftPending = false;
+          const _p2Color = drafter === 'white' ? 'black' : 'white';
+          // Show "Waiting for opponent..." while P1 reads the board
+          showPersonalDraftWaiting();
+          setTimeout(() => {
+            hidePersonalDraftWaiting();
+            setTimeout(() => chaosDraft(_p2Color), 250);
+          }, 1800);
+
+        } else if(_isP2PersonalPick) {
+          // P2 just finished — show P1 a reveal card of what P2 drafted.
+          // Small delay so the board has a chance to settle first.
+          setTimeout(() => showOpponentDraftReveal(mod), 300);
+        }
+
+        // Show any deferred opponent reveal now that we've finished picking.
+        // _pendingAiReveal:     AI's pick in AI+personal mode.
+        // _pendingOnlineReveal: opponent's pick received while we were still drafting.
+        if (!_p2PersonalDraftPending) { // don't reveal yet if P2 still needs to pick
+          const _revToShow = _pendingAiReveal || _pendingOnlineReveal;
+          _pendingAiReveal    = null;
+          _pendingOnlineReveal = null;
+          if (_revToShow) setTimeout(() => showOpponentDraftReveal(_revToShow), 350);
+        }
       }, 400);
     });
 
@@ -22799,6 +23448,7 @@ function chaosDraft(){
   setTimeout(() => {
     timerDiv.classList.add('visible');
     viewBoardBtn.classList.add('visible');
+    surpriseBtn.classList.add('visible');
     // Start timer only after cards are revealed
     draftTimeRemaining = 15;
     startDraftTimer();
@@ -22868,6 +23518,8 @@ function restart(){
   pieceData={};
   initBoard();
   modifiers=[];
+  whiteModifiers=[];
+  blackModifiers=[];
   moveCount=0;
   turn='white';
   selected=null;
@@ -22898,6 +23550,7 @@ function restart(){
   cowardRetreatActive=false; cowardKnightX=-1; cowardKnightY=-1;
   positionHistory=[];
   currentDrafter = 'white';
+  _p2PersonalDraftPending = false;
   // Reset per-game stat counters
   gameEffectsTriggered = 0;
   myMovesThisGame = 0;
@@ -22951,6 +23604,9 @@ function ensureGlobalOverlayHosts() {
 
 function resetDraftUIState(opts = {}) {
   const instant = !!opts.instant;
+  _draftInProgress     = false;
+  _pendingAiReveal     = null;
+  _pendingOnlineReveal = null;
   if (typeof stopDraftTimer === 'function') stopDraftTimer();
   if (typeof stopDraftGlitch === 'function') stopDraftGlitch();
   const draft = document.getElementById('draft');
@@ -23085,7 +23741,8 @@ function setupConnection(){
         increment: increment,
         bannedMods: settings.bannedMods,
         draftFreq: DRAFT_FREQUENCY,
-        rated: privateMatchRated
+        rated: privateMatchRated,
+        personalModifiers: personalModifiers
       };
       console.log('[HOST] Sending gameConfig:', config);
       connection.send(config);
@@ -23137,6 +23794,7 @@ function setupConnection(){
       settings.draftFreq = DRAFT_FREQUENCY;
       if(data.rated !== undefined) privateMatchRated = data.rated;
       else privateMatchRated = true;
+      if(data.personalModifiers !== undefined) personalModifiers = data.personalModifiers;
 
       const incStr = increment > 0 ? `+${increment}s` : '';
       const timeLabel = timeControl === 0 ? 'No timer'
@@ -23151,6 +23809,7 @@ function setupConnection(){
         : bannedCount === allMods.length ? 'All disabled'
         : `${bannedCount} banned`;
       const ratedLabel = privateMatchRated ? '⚡ Rated' : '🎮 Unrated';
+      const modStyleLabel = '🎭 Personal Modifiers';
 
       let countdown = 5;
       const infoHtml = `
@@ -23159,6 +23818,7 @@ function setupConnection(){
           <div>🎲 <strong>Draft frequency:</strong> Every ${DRAFT_FREQUENCY} moves</div>
           <div>🚫 <strong>Modifiers:</strong> ${bannedLabel}</div>
           <div>${ratedLabel}</div>
+          <div>${modStyleLabel}</div>
         </div>`;
       const updateCountdown = () => {
         showStatus(`Host's settings — starting in <strong>${countdown}</strong>s...${infoHtml}`);
@@ -23424,17 +24084,43 @@ function handleRemoteData(data){
   moveCount = data.moveCount;
   
   modifiers = data.modifiers;
+  if (data.whiteModifiers !== undefined) whiteModifiers = data.whiteModifiers;
+  if (data.blackModifiers !== undefined) blackModifiers = data.blackModifiers;
   if(data.chaosLevel !== undefined) chaosLevel = data.chaosLevel;
   if(data.totalChaosActive !== undefined) totalChaosActive = data.totalChaosActive;
   updateChaosLevelUI();
 
-  // Show opponent draft reveal if they just picked a new modifier
+  // Show opponent draft reveal if they just picked a new modifier.
+  // In personal mode the opponent's pick lands in their personal array.
   if (data.modifiers && oldModifiers) {
-    const newlyDrafted = data.modifiers.filter(m => !oldModifiers.includes(m));
-    if (newlyDrafted.length > 0) {
-      const modName = newlyDrafted[newlyDrafted.length - 1]; // take the last one
+    const opponentColor = myColor === 'white' ? 'black' : 'white';
+    const oldOpponentPersonal = personalModifiers
+      ? (opponentColor === 'white' ? whiteModifiers : blackModifiers).slice()
+      : oldModifiers;
+    const newOpponentPersonal = personalModifiers
+      ? (opponentColor === 'white' ? (data.whiteModifiers || []) : (data.blackModifiers || []))
+      : data.modifiers;
+    const newlyDrafted = newOpponentPersonal.filter(m => !oldOpponentPersonal.includes(m));
+    if (newlyDrafted.length === 0 && !personalModifiers) {
+      // fallback: shared mode comparison
+      const newlyShared = data.modifiers.filter(m => !oldModifiers.includes(m));
+      if (newlyShared.length > 0) {
+        const modName2 = newlyShared[newlyShared.length - 1];
+        const modData2 = (allMods.find(m => m.name === modName2)) || (evolvedMods.find(m => m.name === modName2));
+        if (modData2) showOpponentDraftReveal(modData2);
+      }
+    } else if (newlyDrafted.length > 0) {
+      const modName = newlyDrafted[newlyDrafted.length - 1];
       const modData = (allMods.find(m => m.name === modName)) || (evolvedMods.find(m => m.name === modName));
-      if (modData) showOpponentDraftReveal(modData);
+      if (modData) {
+        if (_draftInProgress) {
+          // We're still picking — store and show after we finish.
+          _pendingOnlineReveal = modData;
+        } else {
+          // We've already picked (or this isn't a personal-mode draft event).
+          showOpponentDraftReveal(modData);
+        }
+      }
     }
   }
   if(data.castleRights) castleRights = data.castleRights;
@@ -23561,6 +24247,8 @@ function sendGameState(){
       chaosLevel: chaosLevel,
       totalChaosActive: totalChaosActive,
       modifiers: modifiers,
+      whiteModifiers: whiteModifiers,
+      blackModifiers: blackModifiers,
       castleRights: castleRights,
       epSquare: epSquare,
       timeBombs: timeBombs,
@@ -25229,14 +25917,15 @@ async function joinMatchmakingQueue(){
   // Write ourselves to the queue — include both timeControl and increment for exact matching
   const queueRef = fbDb.collection('matchmaking_queue');
   const myDoc = await queueRef.add({
-    uid:         currentUser.uid,
-    username:    currentProfile.username,
-    rating:      currentProfile.rating,
-    peerId:      myPeerId,
-    timeControl: mmSelectedTC,
-    increment:   mmSelectedIncrement,
-    status:      'searching',
-    createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+    uid:              currentUser.uid,
+    username:         currentProfile.username,
+    rating:           currentProfile.rating,
+    peerId:           myPeerId,
+    timeControl:      mmSelectedTC,
+    increment:        mmSelectedIncrement,
+    personalModifiers: personalModifiers,
+    status:           'searching',
+    createdAt:        firebase.firestore.FieldValue.serverTimestamp()
   });
   mmDocId = myDoc.id;
 
@@ -25317,6 +26006,7 @@ async function tryMatchFromQueue(myPeerId, myDocId){
     // Must match on both base time AND increment — these are distinct formats
     if(d.timeControl !== mmSelectedTC) continue;
     if((d.increment || 0) !== mmSelectedIncrement) continue;
+    if(!!d.personalModifiers !== personalModifiers) continue;
 
     const batch = fbDb.batch();
     batch.update(doc.ref, {
@@ -26527,7 +27217,7 @@ const MOD_PIECE_TYPE = {
   'Magnetic Queen':'q', 'Magnetic Queen (Evolved)':'q', 'Berserker Queen':'q',
   'Nuclear Queen':'q', 'Nuclear Queen (Evolved)':'q', 'The Amazon':'q',
   'Sprinting King':'k', 'Royal Guard':'k', 'Royal Guard (Evolved)':'k',
-  "Sovereign's Blessing":'k',
+  "Sovereign’s Blessing":'k',
 };
 
 // Synergy pairs — if AI already has modA, modB scores higher
@@ -26555,8 +27245,8 @@ const MOD_SYNERGIES = {
   'Pinballing Bishop': ['Phase Bishop', 'Boomerang Bishop'],
   'Pinballing Bishop (Evolved)': ['Phase Bishop', 'Boomerang Bishop', 'Fog of War Bishop'],
   'Sanctuary Bishop': ['Grey Bishop', 'Fog of War Bishop', 'Phase Bishop'],
-  'Royal Guard':      ["Sovereign's Blessing", 'Sprinting King'],
-  "Sovereign's Blessing": ['Royal Guard', 'Sprinting King'],
+  'Royal Guard':      ["Sovereign’s Blessing", 'Sprinting King'],
+  "Sovereign’s Blessing": ['Royal Guard', 'Sprinting King'],
   'Kamikaze Pawn':    ['Viral Pawn', 'Fast Pawn'],
   'Phoenix Pawn':     ['Kamikaze Pawn', 'Viral Pawn'],
 };
@@ -26582,7 +27272,7 @@ const MOD_AGGRESSION = {
   'Phantom Knight': 0, 'Fog of War Bishop': 0,
   'Reinforced Pawn': -1, 'Sanctuary Bishop': -2, 'Heavy Rook': -1,
   'Royal Guard': -2, 'Royal Guard (Evolved)': -2,
-  "Sovereign's Blessing": -2,
+  "Sovereign’s Blessing": -2,
   'Sprinting King': -1, 'Coward Knight': -2, 'Decoy Rook': -1,
   'Phoenix Pawn': -1, 'Boomerang Bishop': 0, 'Phase Rook': 0, 'Phase Bishop': 0,
   'Cleaning Sponge': 0,
@@ -26613,6 +27303,8 @@ function countMaterialBalance() {
 }
 
 function aiScoreDraftPicks(picks, color) {
+  // Use the AI's own active mods for synergy scoring in personal mode.
+  const modifiers = activeMods(color);
   const diff      = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
   const isAiWhite = (color === 'white');
   const material  = countMaterialBalance();
@@ -26705,7 +27397,24 @@ function aiScoreDraftPicks(picks, color) {
 // to modifiers. Returns the name of the removed modifier, or null if nothing was removed.
 // Note: if a removed modifier would normally trigger cleanup on removal (e.g. Portal Pair squares,
 // tornados, nuclear zones) that cleanup does NOT currently fire — a future pass could handle that.
-function applyCleaningSponge(who) {
+function applyCleaningSponge(who, draftingColor) {
+  if (personalModifiers) {
+    // Personal mode: strip a random modifier from the opponent's personal stack.
+    const opponentColor  = (draftingColor === 'white') ? 'black' : 'white';
+    const opponentArr    = personalArray(opponentColor);
+    if (opponentArr.length === 0) {
+      logChaos(who, 'ability', '🧽 Cleaning Sponge — opponent has nothing to wipe!');
+      return null;
+    }
+    const target = opponentArr[Math.floor(Math.random() * opponentArr.length)];
+    const idx = opponentArr.lastIndexOf(target);
+    if (idx !== -1) opponentArr.splice(idx, 1);
+    logChaos(who, 'ability', `🧽 Cleaning Sponge stripped opponent's ${target}!`);
+    showToast(`🧽 Stripped: ${target}`, 2200);
+    syncModifierDisplays();
+    return target;
+  }
+  // Shared mode: remove any random active modifier excluding Cleaning Sponge itself.
   const pool = modifiers.filter(m => m !== 'Cleaning Sponge');
   if (pool.length === 0) {
     logChaos(who, 'ability', '🧽 Cleaning Sponge — nothing left to wipe!');
@@ -26720,13 +27429,17 @@ function applyCleaningSponge(who) {
   return target;
 }
 
-function aiApplyDraftPick(mod) {
+function aiApplyDraftPick(mod, drafterColor) {
   const isEvo = mod.isEvolution === true;
+  const _target = (personalModifiers && !ENVIRONMENTAL_MODS.has(mod.name))
+    ? personalArray(drafterColor) : modifiers;
   if (isEvo) {
-    const baseIdx = modifiers.indexOf(mod.baseModifier);
-    if (baseIdx !== -1) modifiers.splice(baseIdx, 1);
+    const _baseArr = (personalModifiers && !ENVIRONMENTAL_MODS.has(mod.baseModifier))
+      ? personalArray(drafterColor) : modifiers;
+    const baseIdx = _baseArr.indexOf(mod.baseModifier);
+    if (baseIdx !== -1) _baseArr.splice(baseIdx, 1);
   }
-  modifiers.push(mod.name);
+  _target.push(mod.name);
   markModifierDiscovered(mod.name);
   syncModifierDisplays();
   awardChaosForMove({ move: false, draft: true, evolvedDraft: isEvo });
@@ -26738,7 +27451,7 @@ function aiApplyDraftPick(mod) {
   if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
   if (mod.name === 'Portal Pair') spawnPortalPair();
   if (mod.name === 'The Impawnster') ensureSleeperPawns();
-  if (mod.name === 'Cleaning Sponge') applyCleaningSponge('opponent');
+  if (mod.name === 'Cleaning Sponge') applyCleaningSponge('opponent', drafterColor);
   if (mod.name === 'Tornado de Caballos') {
     // Place tornado on a random empty square
     tornadoPlacementMode = false;
@@ -28429,6 +29142,16 @@ function cfStopCommentary() {
 }
 
 function startVsAI() {
+  // Guests get 1 free game against Chaosfish. Block on the second attempt.
+  if (isGuest || !currentProfile) {
+    const _played = parseInt(localStorage.getItem('guestAiGamesPlayed') || '0');
+    if (_played >= 1) {
+      showGuestModal({ icon:'🤖', title:'Sign In to Play vs AI', sub:'You\'ve had your free game! Create a free account to keep playing against Chaosfish and track your wins.' });
+      return;
+    }
+    // First game — let them through and increment the counter
+    localStorage.setItem('guestAiGamesPlayed', String(_played + 1));
+  }
   const diff = parseInt(document.getElementById('local-ai-difficulty').value) || 5;
   const _thinkIdx = parseInt((document.getElementById('local-ai-think-time') || {value:'4'}).value) ?? 4;
   const _rawThinkMs = AI_THINK_STEPS[_thinkIdx] ?? 1000;
@@ -28771,32 +29494,63 @@ function updateGameModsList() {
   if (!container) return;
   markActiveModifiersDiscovered();
 
-  if (!modifiers || modifiers.length === 0) {
-    container.innerHTML = '<div class="game-mods-empty">No modifiers yet</div>';
-    if (countEl) countEl.textContent = '0';
+  // Helper: build HTML chips for a list of mod names
+  function _modChips(list) {
+    const counts = {}, order = [];
+    list.forEach(name => {
+      if (counts[name] === undefined) { counts[name] = 0; order.push(name); }
+      counts[name]++;
+    });
+    return order.map(name => {
+      const modData    = allMods    ? allMods.find(m => m.name === name)    : null;
+      const evolvedData = evolvedMods ? evolvedMods.find(m => m.name === name) : null;
+      const isEvo  = !!evolvedData;
+      const rarity = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
+      const icon   = isEvo ? evolvedData.icon : (modData ? modData.icon : '');
+      const badge  = counts[name] > 1 ? `<span class='mod-stack-badge'>\xd7${counts[name]}</span>` : '';
+      return `<div class='mod mod-${rarity}' onclick='showModifierInfo("${name}")' style='cursor:pointer;' title="Click for details">${icon} ${name}${badge}</div>`;
+    }).join('');
+  }
+
+  if (!personalModifiers) {
+    // Shared mode: existing single-list display
+    if (!modifiers || modifiers.length === 0) {
+      container.innerHTML = '<div class="game-mods-empty">No modifiers yet</div>';
+      if (countEl) countEl.textContent = '0';
+      return;
+    }
+    if (countEl) countEl.textContent = modifiers.length;
+    container.innerHTML = _modChips(modifiers);
     return;
   }
 
-  if (countEl) countEl.textContent = modifiers.length;
+  // Personal mode: split into Your / Opponent / Shared sections
+  const myColor_    = (typeof myColor !== 'undefined' && myColor) ? myColor : 'white';
+  const myPersonal  = myColor_ === 'white' ? whiteModifiers : blackModifiers;
+  const oppPersonal = myColor_ === 'white' ? blackModifiers : whiteModifiers;
+  const totalCount  = modifiers.length + myPersonal.length + oppPersonal.length;
 
-  // Count stacked duplicates so we show (×N) instead of repeating chips
-  const _modCounts = {};
-  const _modOrder = [];
-  modifiers.forEach(modName => {
-    if (_modCounts[modName] === undefined) { _modCounts[modName] = 0; _modOrder.push(modName); }
-    _modCounts[modName]++;
-  });
+  if (countEl) countEl.textContent = totalCount;
 
-  container.innerHTML = _modOrder.map(modName => {
-    const modData = allMods ? allMods.find(m => m.name === modName) : null;
-    const evolvedData = evolvedMods ? evolvedMods.find(m => m.name === modName) : null;
-    const isEvo = !!evolvedData;
-    const rarity = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
-    const icon = isEvo ? evolvedData.icon : (modData ? modData.icon : '');
-    const count = _modCounts[modName];
-    const stackBadge = count > 1 ? `<span class='mod-stack-badge'>×${count}</span>` : '';
-    return `<div class='mod mod-${rarity}' onclick='showModifierInfo("${modName}")' style='cursor:pointer;' title="Click for details">${icon} ${modName}${stackBadge}</div>`;
-  }).join('');
+  if (totalCount === 0) {
+    container.innerHTML = '<div class="game-mods-empty">No modifiers yet</div>';
+    return;
+  }
+
+  // Vertical three-column layout: Yours | Opponent | Shared
+  const _col = (label, chips, emptyMsg) => `
+    <div class="game-mods-personal-col">
+      <div class="game-mods-section-label">${label}</div>
+      ${chips || `<div class="game-mods-empty" style="font-size:12px;">${emptyMsg}</div>`}
+    </div>`;
+
+  const html = `<div class="game-mods-personal-grid">
+    ${_col('Yours',    _modChips(myPersonal),  '—')}
+    ${_col('Opponent', _modChips(oppPersonal), '—')}
+    ${modifiers.length > 0 ? _col('Shared', _modChips(modifiers), '—') : ''}
+  </div>`;
+
+  container.innerHTML = html;
 }
 
 // Update match info panel
@@ -28944,6 +29698,31 @@ setupHUD = function(myUsername, myRating, oppUsername, oppRating) {
 // ════════════════════════════════════════════════════════════════
 //  OPPONENT DRAFT REVEAL — show what the opponent just picked
 // ════════════════════════════════════════════════════════════════
+function showPersonalDraftWaiting() {
+  hidePersonalDraftWaiting(); // clear any stale instance
+  const overlay = document.createElement('div');
+  overlay.id = 'personal-draft-waiting';
+  overlay.innerHTML = `
+    <div id="personal-draft-waiting-dim"></div>
+    <div id="personal-draft-waiting-inner">
+      <div id="personal-draft-waiting-icon">🎭</div>
+      <div id="personal-draft-waiting-title">
+        Waiting for opponent<span id="personal-draft-waiting-dots"><span>.</span><span>.</span><span>.</span></span>
+      </div>
+      <div id="personal-draft-waiting-sub">Your pick is locked in — their draft is up next</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('active')));
+}
+
+function hidePersonalDraftWaiting() {
+  const existing = document.getElementById('personal-draft-waiting');
+  if (!existing) return;
+  existing.classList.remove('active');
+  setTimeout(() => existing.remove(), 450);
+}
+
 function showOpponentDraftReveal(mod) {
   // Don't show if we're currently drafting ourselves
   const ourDraft = document.getElementById('draft');
@@ -30127,11 +30906,22 @@ function stopDraftGlitch() {
     const hostCard    = document.getElementById('pvt-host-card');
     const waitingCard = document.getElementById('pvt-waiting-card');
     const codeDisplay = document.getElementById('pvt-code-display');
+    const settingsEl  = document.getElementById('pvt-waiting-settings');
 
     if (hostCard)    hostCard.style.display    = 'none';
     if (waitingCard) waitingCard.style.display = 'flex';
     if (waitingCard) waitingCard.style.flexDirection = 'column';
     if (codeDisplay && peerCode) codeDisplay.textContent = peerCode;
+
+    // Populate settings summary chips in the waiting room
+    if (settingsEl) {
+      const tcLabel = (typeof timeControl !== 'undefined' && timeControl > 0)
+        ? (timeControl < 60 ? timeControl + 's' : (timeControl/60) + 'min')
+        : 'No timer';
+      const ratedLbl  = (typeof privateMatchRated !== 'undefined' && privateMatchRated) ? '⚡ Rated' : '🎮 Unrated';
+      const modeLbl   = '🎭 Personal Mods';
+      settingsEl.innerHTML = `<div>${tcLabel}</div><div>${ratedLbl}</div><div>${modeLbl}</div>`;
+    }
   };
 
   // ── UPDATE WAITING ROOM STATE ─────────────────────────────────
@@ -30469,6 +31259,7 @@ const SBX_PIECE_NAMES  = {P:'Pawn',R:'Rook',N:'Knight',B:'Bishop',Q:'Queen',K:'K
                            p:'Pawn',r:'Rook',n:'Knight',b:'Bishop',q:'Queen',k:'King'};
 
 function startSandbox() {
+  if (!requireLogin({ icon:'🧪', title:'Sign In for Sandbox Mode', sub:'Create a free account to experiment with any board setup you can imagine.' })) return;
   ensureGlobalOverlayHosts();
   resetDraftUIState({ instant: true });
   sandboxMode = true;
@@ -30701,37 +31492,91 @@ function sbxBuildModList() {
   if (!container) return;
   container.innerHTML = '';
   [...allMods, ...evolvedMods].forEach(mod => {
-    let row = document.createElement('label');
+    const isEnv = ENVIRONMENTAL_MODS.has(mod.name);
+    let row = document.createElement('div');
     row.className = 'sbx-mod-check-row';
-    let cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = modifiers.includes(mod.name);
-    cb.onchange = () => sbxToggleModifier(mod.name, cb.checked);
-    let icon = document.createElement('span');
-    icon.className = 'sbx-mod-check-icon';
-    icon.textContent = mod.icon;
-    let lbl = document.createElement('span');
-    lbl.className = 'sbx-mod-check-label';
-    lbl.textContent = mod.name;
-    row.appendChild(cb); row.appendChild(icon); row.appendChild(lbl);
+
+    if (isEnv) {
+      // Environmental mod: single checkbox → shared modifiers[]
+      let envLabel = document.createElement('label');
+      envLabel.className = 'sbx-env-check-label';
+      let cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'sbx-env-cb';
+      cb.checked = modifiers.includes(mod.name);
+      cb.onchange = () => sbxToggleModifier(mod.name, cb.checked, null);
+      let icon = document.createElement('span');
+      icon.className = 'sbx-mod-check-icon';
+      icon.textContent = mod.icon;
+      let lbl = document.createElement('span');
+      lbl.className = 'sbx-mod-check-label';
+      lbl.textContent = mod.name;
+      envLabel.appendChild(cb);
+      envLabel.appendChild(icon);
+      envLabel.appendChild(lbl);
+      row.appendChild(envLabel);
+    } else {
+      // Personal mod: ♔ checkbox → whiteModifiers[], ♚ checkbox → blackModifiers[]
+      let checks = document.createElement('div');
+      checks.className = 'sbx-mod-color-checks';
+      ['white', 'black'].forEach(color => {
+        let colorLabel = document.createElement('label');
+        colorLabel.className = 'sbx-color-check sbx-color-' + color;
+        colorLabel.title = (color === 'white' ? '♔ White' : '♚ Black');
+        let cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = (color === 'white' ? whiteModifiers : blackModifiers).includes(mod.name);
+        cb.onchange = () => sbxToggleModifier(mod.name, cb.checked, color);
+        let sym = document.createElement('span');
+        sym.className = 'sbx-color-sym';
+        sym.textContent = color === 'white' ? '♔' : '♚';
+        colorLabel.appendChild(cb);
+        colorLabel.appendChild(sym);
+        checks.appendChild(colorLabel);
+      });
+      let icon = document.createElement('span');
+      icon.className = 'sbx-mod-check-icon';
+      icon.textContent = mod.icon;
+      let lbl = document.createElement('span');
+      lbl.className = 'sbx-mod-check-label';
+      lbl.textContent = mod.name;
+      row.appendChild(checks);
+      row.appendChild(icon);
+      row.appendChild(lbl);
+    }
+
     container.appendChild(row);
   });
 }
 
-function sbxToggleModifier(name, on) {
-  if (on) {
-    if (!modifiers.includes(name)) modifiers.push(name);
-    markModifierDiscovered(name);
-    if (name === 'Duck of Eternal Blocking') spawnDuck();
-    if (name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
-    if (name === 'Time Bomb') spawnTimeBomb();
-    if (name === 'Bottomless Pit') spawnBottomlessPit();
-    if (name === 'Portal Pair') spawnPortalPair();
-    if (name === 'The Impawnster') ensureSleeperPawns();
+function sbxToggleModifier(name, on, color) {
+  if (color === null || ENVIRONMENTAL_MODS.has(name)) {
+    // Environmental / board-wide mod → shared modifiers[]
+    if (on) {
+      if (!modifiers.includes(name)) modifiers.push(name);
+      markModifierDiscovered(name);
+      if (name === 'Duck of Eternal Blocking') spawnDuck();
+      if (name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
+      if (name === 'Time Bomb') spawnTimeBomb();
+      if (name === 'Bottomless Pit') spawnBottomlessPit();
+      if (name === 'Portal Pair') spawnPortalPair();
+    } else {
+      modifiers = modifiers.filter(m => m !== name);
+      if (name === 'Portal Pair') portalPairs = [];
+      if (name === 'Bottomless Pit') pitSquares = [];
+    }
   } else {
-    modifiers = modifiers.filter(m => m !== name);
-    if (name === 'Portal Pair') portalPairs = [];
-    if (name === 'Bottomless Pit') pitSquares = [];
+    // Personal mod → whiteModifiers[] or blackModifiers[]
+    const isWhite = color === 'white';
+    if (on) {
+      const arr = isWhite ? whiteModifiers : blackModifiers;
+      if (!arr.includes(name)) arr.push(name);
+      markModifierDiscovered(name);
+      if (name === 'The Impawnster') ensureSleeperPawns();
+    } else {
+      if (isWhite) whiteModifiers = whiteModifiers.filter(m => m !== name);
+      else         blackModifiers = blackModifiers.filter(m => m !== name);
+    }
   }
   syncModifierDisplays();
   draw();
@@ -30742,33 +31587,41 @@ function sbxUpdateModsBar() {
   let emptyLabel = document.getElementById('sandbox-mods-empty-label');
   if (!bar) return;
   bar.querySelectorAll('.mod').forEach(el => el.remove());
-  if (modifiers.length === 0) {
+
+  const allActive = [...modifiers, ...whiteModifiers, ...blackModifiers];
+  if (allActive.length === 0) {
     if (emptyLabel) emptyLabel.style.display = '';
-  } else {
-    if (emptyLabel) emptyLabel.style.display = 'none';
-    // Count stacked duplicates
-    const _sbxCounts = {};
-    const _sbxOrder = [];
-    modifiers.forEach(name => {
-      if (_sbxCounts[name] === undefined) { _sbxCounts[name] = 0; _sbxOrder.push(name); }
-      _sbxCounts[name]++;
+    return;
+  }
+  if (emptyLabel) emptyLabel.style.display = 'none';
+
+  const _addChips = (list, prefix) => {
+    const counts = {}, order = [];
+    list.forEach(name => {
+      if (counts[name] === undefined) { counts[name] = 0; order.push(name); }
+      counts[name]++;
     });
-    _sbxOrder.forEach(name => {
+    order.forEach(name => {
       const modData = allMods.find(m => m.name === name);
       const evoData = evolvedMods.find(m => m.name === name);
-      const isEvo   = !!evoData;
-      const rarity  = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
-      const icon    = isEvo ? evoData.icon : (modData ? modData.icon : '');
-      const count   = _sbxCounts[name];
+      const isEvo  = !!evoData;
+      const rarity = isEvo ? 'evolved' : (modData ? modData.rarity : 'common');
+      const icon   = isEvo ? evoData.icon : (modData ? modData.icon : '');
+      const count  = counts[name];
       let chip = document.createElement('div');
       chip.className = 'mod mod-' + rarity;
       chip.style.cursor = 'pointer';
       chip.title = 'Click for details';
-      chip.innerHTML = icon + ' ' + name + (count > 1 ? `<span class='mod-stack-badge'>×${count}</span>` : '');
+      const prefixHtml = prefix ? `<span style="opacity:0.55;font-size:10px;margin-right:2px;">${prefix}</span>` : '';
+      chip.innerHTML = prefixHtml + icon + ' ' + name + (count > 1 ? `<span class='mod-stack-badge'>×${count}</span>` : '');
       chip.onclick = () => showModifierInfo(name);
       bar.appendChild(chip);
     });
-  }
+  };
+
+  _addChips(whiteModifiers, '♔');
+  _addChips(blackModifiers, '♚');
+  _addChips(modifiers, null);
 }
 
 function sbxClearBoard() {
