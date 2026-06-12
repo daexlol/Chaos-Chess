@@ -16807,9 +16807,22 @@ function getLegalMovesRaw(x,y,allowPegasus,inCheck){
       
       // Sprinting King: can also move up to 2 squares in any direction, but only when not in check
       if(modifiers.includes('Sprinting King') && !inCheck){
+        // Pre-compute castling destination squares so we don't add a plain sprint move there
+        // (castling is added separately with the castle property; a duplicate plain move
+        //  would shadow it and skip the rook, breaking castling entirely).
+        const _castleRow = isWhite(piece) ? 7 : 0;
+        const _castleDestX = new Set();
+        if(y === _castleRow && x === 4) {
+          const _kr = isWhite(piece) ? castleRights.whiteRookK : castleRights.blackRookK;
+          const _qr = isWhite(piece) ? castleRights.whiteRookQ : castleRights.blackRookQ;
+          if(_kr && board[_castleRow][7]?.toLowerCase()==='r' && !board[_castleRow][5] && !board[_castleRow][6]) _castleDestX.add(6);
+          if(_qr && board[_castleRow][0]?.toLowerCase()==='r' && !board[_castleRow][1] && !board[_castleRow][2] && !board[_castleRow][3]) _castleDestX.add(2);
+        }
         [[2,0],[-2,0],[0,2],[0,-2],[2,2],[2,-2],[-2,2],[-2,-2]].forEach(([dx,dy])=>{
           let nx=x+dx, ny=y+dy;
           if(board[ny]?.[nx]===undefined) return;
+          // Skip if this is a castling destination — castling handles it with the castle property
+          if(ny === _castleRow && _castleDestX.has(nx)) return;
           // Must pass through the intermediate square (can't leap)
           let midX = x + dx/2, midY = y + dy/2;
           if(board[midY][midX]) return; // Blocked by piece in the middle
@@ -24132,6 +24145,9 @@ function handleRemoteData(data){
   moveCount = data.moveCount;
   
   modifiers = data.modifiers;
+  // Capture old personal arrays BEFORE overwriting — needed for opponent draft detection below
+  const _oldWhiteModifiers = whiteModifiers ? [...whiteModifiers] : [];
+  const _oldBlackModifiers = blackModifiers ? [...blackModifiers] : [];
   if (data.whiteModifiers !== undefined) whiteModifiers = data.whiteModifiers;
   if (data.blackModifiers !== undefined) blackModifiers = data.blackModifiers;
   if(data.chaosLevel !== undefined) chaosLevel = data.chaosLevel;
@@ -24143,7 +24159,7 @@ function handleRemoteData(data){
   if (data.modifiers && oldModifiers) {
     const opponentColor = myColor === 'white' ? 'black' : 'white';
     const oldOpponentPersonal = personalModifiers
-      ? (opponentColor === 'white' ? whiteModifiers : blackModifiers).slice()
+      ? (opponentColor === 'white' ? _oldWhiteModifiers : _oldBlackModifiers)
       : oldModifiers;
     const newOpponentPersonal = personalModifiers
       ? (opponentColor === 'white' ? (data.whiteModifiers || []) : (data.blackModifiers || []))
@@ -28115,7 +28131,12 @@ function applyCleaningSponge(who, draftingColor) {
     const target = opponentArr[Math.floor(Math.random() * opponentArr.length)];
     const idx = opponentArr.lastIndexOf(target);
     if (idx !== -1) opponentArr.splice(idx, 1);
-    logChaos(who, 'ability', `🧽 Cleaning Sponge stripped opponent's ${target}!`);
+    // "who" = perspective of the drafter. From their view they stripped opponent's mod.
+    // From the opponent's view (who==='opponent'), their own mod was stripped.
+    const _spongeMsg = who === 'you'
+      ? `🧽 Your Cleaning Sponge stripped opponent's ${target}!`
+      : `🧽 Opponent's Cleaning Sponge stripped your ${target}!`;
+    logChaos(who, 'ability', _spongeMsg);
     showToast(`🧽 Stripped: ${target}`, 2200);
     syncModifierDisplays();
     return target;
@@ -28129,7 +28150,10 @@ function applyCleaningSponge(who, draftingColor) {
   const target = pool[Math.floor(Math.random() * pool.length)];
   const idx = modifiers.lastIndexOf(target);
   if (idx !== -1) modifiers.splice(idx, 1);
-  logChaos(who, 'ability', `🧽 Cleaning Sponge wiped away: ${target}!`);
+  const _sharedMsg = who === 'you'
+    ? `🧽 Your Cleaning Sponge wiped away: ${target}!`
+    : `🧽 Opponent's Cleaning Sponge wiped away: ${target}!`;
+  logChaos(who, 'ability', _sharedMsg);
   showToast(`🧽 Removed: ${target}`, 2200);
   syncModifierDisplays();
   return target;
