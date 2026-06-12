@@ -13551,7 +13551,9 @@ function getCurrentDraftFrequency(){
 
 function chaosChance(baseChance){
   if(puzzleModeActive) return baseChance;
-  return totalChaosActive ? Math.min(0.95, baseChance * 2.2 + 0.12) : baseChance;
+  let chance = totalChaosActive ? Math.min(0.95, baseChance * 2.2 + 0.12) : baseChance;
+  if(_rainOverlay) chance = Math.min(1, chance * 1.5); // It's Raining: +50% to all modifier procs
+  return chance;
 }
 
 function getEvolutionDraftChance(){
@@ -14362,7 +14364,7 @@ const ENVIRONMENTAL_MODS = new Set([
   'Duck of Eternal Blocking', 'Duck of Eternal Blocking (Evolved)',
   'Tornado de Caballos', 'Magnetic Poles',
   'Cookie',
-  'Clown Parade',
+  "It’s Raining",
 ]);
 
 // Returns the active modifier array for a given player colour.
@@ -19112,6 +19114,7 @@ const MODIFIER_LORE = {
 
              'It doesn’t move. It doesn’t react. It just… exists. And somehow, that feels deliberate.',
   'Clown Parade': 'They arrived between moves. Nobody sent for them. Nobody could explain the horns, the tiny car, or why there were so many. The board was still there, technically. Just\u2026 occupied.',
+  "It’s Raining": 'It started during the endgame. Nobody called it. Nobody stopped it. The pieces stayed where they were. The rain kept going.',
   'Cleaning Sponge': 'Something about the board felt cluttered — too many rules piled on top of each other, too many exceptions demanding attention. It arrived quietly, absorbed one of them, and left. The game continued. Nobody agreed on whether that was a relief.',
   'Fast Pawn (Evolved)':   'It stopped counting squares. Three, now. And tomorrow, who knows. Movement like this doesn’t accelerate—it just keeps forgetting where it started.',
   'Pegasus (Evolved)':     'The second leap no longer cares where it lands—only that it lands. Direction lost its meaning somewhere between the first jump and the second. It moves because it can.',
@@ -19977,7 +19980,8 @@ const allMods=[
   {name:"Sovereign’s Blessing",rarity:'rare',desc:'King emits an aura; allied pieces adjacent to the King gain a king-like 1-square move',icon:'♚'},
   {name:'Tornado de Caballos',rarity:'legendary',desc:'Place a tornado which pulls in nearby enemy pieces for 3 turns',icon:'🌪️',stackable:true},
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
-  {name:'Clown Parade',rarity:'rare',desc:'A troupe of honking clowns invades the opponent\'s board view, obscuring key squares',icon:'🤡'},
+  {name:'Clown Parade',rarity:'rare',desc:"A troupe of honking clowns invades the opponent's board view and log panel, blocking key squares with chaotic circus energy",icon:'🤡'},
+  {name:"It’s Raining",rarity:'rare',desc:'Rain falls across the board. All modifier proc chances increase by 50%',icon:'🌧️'},
   {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 of your enemies active modifiers',icon:'🧽',stackable:true},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
   {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
@@ -20123,6 +20127,7 @@ const CODEX_ENVIRONMENTAL_MODS = new Set([
   'Time Bomb',
   'Bottomless Pit',
   'Clown Parade',
+  "It’s Raining",
 ]);
 const CODEX_EXAMPLES = {
   'Pawn Bayonet': 'A pawn can turn a blocked file into a direct capture threat, especially when an enemy pawn sits immediately ahead.',
@@ -20178,6 +20183,7 @@ const CODEX_EXAMPLES = {
   'Bottomless Pit': 'A single forbidden square can decide whether a path is safe at all.',
   'Cookie': 'Sometimes the strongest statement is refusing to help.',
   'Clown Parade': 'Best deployed when your opponent is trying to calculate. Nothing disrupts concentration like a honking clown blocking their view of the e-file.',
+  "It’s Raining": 'Sets the mood for both players equally. Neither an advantage nor a disadvantage — just weather.',
   'Cleaning Sponge': 'Draft it when the modifier pool has become too stacked with a dangerous combo — removing one key piece at random can break an otherwise unbeatable synergy.',
   'Hive Mind Pawns (Evolved)': 'A diagonal pawn capture simultaneously captures on every matching diagonal across the whole formation.',
   'Jester Knight (Evolved)': 'Two decoys spread across the board double the number of squares the opponent must verify before committing.',
@@ -20243,6 +20249,18 @@ function saveDiscoveredModifiers(list){
   _syncDiscoveredModifiersToFirestore(deduped);
 }
 
+// Remove any discovered-modifier entries that no longer exist in allMods/evolvedMods
+// (e.g. mods that were renamed). Cleans both localStorage and Firestore.
+function purgeStaleDiscoveredModifiers(){
+  const current = loadDiscoveredModifiers();
+  const valid   = current.filter(name => !!findModByName(name));
+  if(valid.length < current.length){
+    const removed = current.filter(n => !valid.includes(n));
+    console.log('[Codex] Purging stale discovered modifiers:', removed);
+    saveDiscoveredModifiers(valid);
+  }
+}
+
 // Sync discovered modifiers up to the user's Firestore doc (fire-and-forget)
 function _syncDiscoveredModifiersToFirestore(list){
   if(!currentProfile || !fbDb) return;
@@ -20273,6 +20291,8 @@ async function loadDiscoveredModifiersFromFirestore(){
     try { localStorage.setItem(CODEX_DISCOVERY_KEY, JSON.stringify(merged)); } catch(e) {}
     // Push merged back to Firestore if it grew
     if(merged.length > remote.length) _syncDiscoveredModifiersToFirestore(merged);
+    // Strip any stale entries (renamed/removed mods) from both localStorage and Firestore
+    purgeStaleDiscoveredModifiers();
   } catch(e) {}
 }
 
@@ -20327,6 +20347,7 @@ function getCodexCombo(mod){
 
 function openModifierCodex(category){
   if (!requireLogin({ icon:'📚', title:'Sign In to Browse the Library', sub:'Create a free account to explore all modifiers, abilities, and evolutions.' })) return;
+  purgeStaleDiscoveredModifiers();
   markActiveModifiersDiscovered();
   codexActiveCategory = category || codexActiveCategory || 'all';
   codexSearchQuery = '';
@@ -23220,7 +23241,11 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
       const pieceNames = {p:'PAWNS',b:'BISHOPS',n:'KNIGHTS',r:'ROOKS',q:'QUEENS',k:'KINGS'};
       const pt = modPieceType[mod.name];
       if(!pt) return '';
-      const playerIsWhite = (gameMode === 'online') ? (myColor === 'white') : true;
+      const playerIsWhite = (gameMode === 'online')
+        ? (myColor === 'white')
+        : (typeof aiActive !== 'undefined' && aiActive)
+          ? (aiColor !== 'white')   // vs AI: player is opposite of aiColor
+          : (drafter === 'white');  // pass & play: use whichever side is drafting
       let count = 0;
       for(let cy=0; cy<8; cy++){
         for(let cx=0; cx<8; cx++){
@@ -23310,6 +23335,7 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
       if(mod.name === 'Portal Pair') spawnPortalPair();
       if(mod.name === 'The Impawnster') ensureSleeperPawns();
       if(mod.name === 'Cleaning Sponge') applyCleaningSponge('you', drafter);
+      if(mod.name === "It’s Raining") spawnRain();
       if(mod.name === 'Clown Parade') {
         const _isPassAndPlay = gameMode === 'local' && !(typeof aiActive !== 'undefined' && aiActive);
         // Pass & play: both players share the screen, so always spawn clowns
@@ -23528,6 +23554,7 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
 
 function restart(){
   removeClownParade();
+  removeRain();
   if(puzzleModeActive && currentPuzzleIndex >= 0){
     loadPuzzle(currentPuzzleIndex);
     return;
@@ -23584,6 +23611,7 @@ function restart(){
 
 function backToMenu(){
   removeClownParade();
+  removeRain();
   clearPuzzleState();
   resetDraftUIState({ instant: true });
   resetChaosLevel(); // Ensure chaos state is wiped when returning to the main menu
@@ -24368,6 +24396,7 @@ function stopTimer(){
 
 function endGame(message, delay = 3000){
   removeClownParade();
+  removeRain();
   // Show lore message first
   const loreMsg = getLoremessage('gameEnd', 'any');
   showToast(loreMsg, 1500);
@@ -26966,7 +26995,13 @@ clickSquare = function(x, y) {
     const piece = board[y][x];
     if (!piece) return [];
     if (isWhite(piece) !== (turn === 'white')) return [];
-    return getLegalMoves(x, y);
+    let moves = getLegalMoves(x, y);
+    // Phantom knights can't capture — mirror the filter applied in clickSquare
+    const data = getPieceData(x, y);
+    if (data.phantom && piece.toLowerCase() === 'n') {
+      moves = moves.filter(m => !board[m.y][m.x]);
+    }
+    return moves;
   }
 
   function removeDragHoverClass() {
@@ -27780,6 +27815,292 @@ function removeClownParade() {
   if (_clownRAF) { cancelAnimationFrame(_clownRAF); _clownRAF = null; }
   if (_clownOverlay) { _clownOverlay.remove(); _clownOverlay = null; }
   _clownEntities = [];
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  IT'S RAINING — Environmental Modifier
+// ══════════════════════════════════════════════════════════════════════
+(function injectRainCSS() {
+  const style = document.createElement('style');
+  style.id = 'rain-style';
+  style.textContent = `
+  #rain-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7800;
+    overflow: hidden;
+  }
+  /* Individual raindrop — thin diagonal streak */
+  .rain-drop {
+    position: absolute;
+    top: -120px;
+    width: 1.5px;
+    border-radius: 9px;
+    background: linear-gradient(
+      to bottom,
+      rgba(160,200,255,0) 0%,
+      rgba(160,200,255,0.55) 40%,
+      rgba(200,225,255,0.85) 100%
+    );
+    animation: rain-fall linear infinite;
+    will-change: transform;
+  }
+  @keyframes rain-fall {
+    from { transform: translateY(0px) translateX(0px); }
+    to   { transform: translateY(calc(100vh + 160px)) translateX(var(--rain-drift)); }
+  }
+
+  /* Ripple on the board surface */
+  .rain-ripple {
+    position: fixed;
+    border-radius: 50%;
+    border: 1.5px solid rgba(180,215,255,0.45);
+    pointer-events: none;
+    animation: rain-ripple-expand 0.9s ease-out forwards;
+    z-index: 7801;
+  }
+  @keyframes rain-ripple-expand {
+    0%   { width: 0px;  height: 0px;  opacity: 0.7; transform: translate(-50%,-50%) scaleX(2.2); }
+    100% { width: 40px; height: 40px; opacity: 0;   transform: translate(-50%,-50%) scaleX(2.2); }
+  }
+
+  /* Atmospheric fog/mist layer over the board */
+  #rain-mist {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7799;
+    background: linear-gradient(
+      160deg,
+      rgba(30,50,90,0.13) 0%,
+      rgba(20,35,70,0.08) 50%,
+      rgba(30,50,90,0.11) 100%
+    );
+    animation: rain-mist-drift 8s ease-in-out infinite alternate;
+  }
+  @keyframes rain-mist-drift {
+    from { opacity: 0.6; transform: translateX(0px); }
+    to   { opacity: 1.0; transform: translateX(6px); }
+  }
+
+  /* Subtle dark vignette to make it feel overcast */
+  #rain-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7798;
+    background: radial-gradient(ellipse at 50% 40%,
+      rgba(0,0,0,0)    30%,
+      rgba(10,15,40,0.22) 100%
+    );
+  }
+
+  /* Flash of distant lightning — rare, subtle */
+  #rain-lightning {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7802;
+    background: rgba(200,220,255,0.0);
+    transition: background 0.04s;
+  }
+  #rain-lightning.flash {
+    background: rgba(200,220,255,0.09);
+  }
+  `;
+  document.head.appendChild(style);
+})();
+
+let _rainOverlay = null;
+let _rainRAF     = null;
+let _rainRippleTimer = null;
+let _rainLightningTimer = null;
+
+function spawnRain() {
+  if (_rainOverlay) return; // already raining
+
+  logChaos('sys', 'ability', "🌧️ It's Raining… the board grows dark.");
+
+  // Mist + vignette layers
+  const mist = document.createElement('div');
+  mist.id = 'rain-mist';
+  document.body.appendChild(mist);
+
+  const vignette = document.createElement('div');
+  vignette.id = 'rain-vignette';
+  document.body.appendChild(vignette);
+
+  const lightning = document.createElement('div');
+  lightning.id = 'rain-lightning';
+  document.body.appendChild(lightning);
+
+  // Main drop container
+  const overlay = document.createElement('div');
+  overlay.id = 'rain-overlay';
+  document.body.appendChild(overlay);
+  _rainOverlay = overlay;
+
+  const DROP_COUNT = 120;
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  for (let i = 0; i < DROP_COUNT; i++) {
+    _spawnDrop(overlay, W, H, true);
+  }
+
+  // Ripple spawner — land on the board area
+  const boardWrap = document.getElementById('board-wrapper');
+  function spawnRipple() {
+    if (!_rainOverlay) return;
+    const rect = boardWrap ? boardWrap.getBoundingClientRect() : { left: W*0.2, top: H*0.1, width: W*0.5, height: H*0.7 };
+    const rx = rect.left + Math.random() * rect.width;
+    const ry = rect.top  + Math.random() * rect.height;
+    const ripple = document.createElement('div');
+    ripple.className = 'rain-ripple';
+    ripple.style.left = rx + 'px';
+    ripple.style.top  = ry + 'px';
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 950);
+    _rainRippleTimer = setTimeout(spawnRipple, 80 + Math.random() * 180);
+  }
+  _rainRippleTimer = setTimeout(spawnRipple, 400);
+
+  // Lightning — very occasional, subtle, distant
+  function doLightning() {
+    if (!_rainOverlay) return;
+    // Brief double-flash like real lightning
+    lightning.classList.add('flash');
+    setTimeout(() => {
+      lightning.classList.remove('flash');
+      setTimeout(() => {
+        lightning.classList.add('flash');
+        setTimeout(() => lightning.classList.remove('flash'), 60);
+      }, 80);
+    }, 55);
+    // Schedule next lightning — rare (15–45 seconds)
+    _rainLightningTimer = setTimeout(doLightning, 15000 + Math.random() * 30000);
+  }
+  _rainLightningTimer = setTimeout(doLightning, 6000 + Math.random() * 10000);
+
+  // Web Audio — continuous rain ambience
+  _startRainAudio();
+}
+
+function _spawnDrop(overlay, W, H, initialised) {
+  const drop = document.createElement('div');
+  drop.className = 'rain-drop';
+
+  const length   = 40  + Math.random() * 80;   // px
+  const speed    = 0.55 + Math.random() * 0.7;  // seconds per 100vh
+  const drift    = -30 + Math.random() * 20;    // diagonal px
+  const opacity  = 0.25 + Math.random() * 0.55;
+  const duration = (H / 100) * speed * (1 / (speed * 0.8));
+
+  drop.style.left    = (Math.random() * (W + 100) - 50) + 'px';
+  drop.style.height  = length + 'px';
+  drop.style.opacity = opacity;
+  drop.style.setProperty('--rain-drift', drift + 'px');
+  drop.style.animationDuration  = (0.5 + Math.random() * 0.7) + 's';
+  drop.style.animationDelay     = initialised ? (-Math.random() * 1.5) + 's' : '0s';
+  drop.style.animationTimingFunction = 'linear';
+
+  overlay.appendChild(drop);
+
+  // Self-remove and respawn on completion
+  drop.addEventListener('animationiteration', () => {
+    // Randomise position slightly each loop for organic feel
+    drop.style.left = (Math.random() * (W + 100) - 50) + 'px';
+  });
+}
+
+// ── Rain Audio ────────────────────────────────────────────────────────
+let _rainAudioNodes = [];
+function _startRainAudio() {
+  try {
+    initAudio();
+    const ctx = audioContext;
+
+    // Layer 1: white-noise rain hiss (filtered)
+    const bufSize  = ctx.sampleRate * 2;
+    const buffer   = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data     = buffer.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise    = ctx.createBufferSource();
+    noise.buffer   = buffer;
+    noise.loop     = true;
+
+    // Band-pass → sounds like rain, not static
+    const bp1      = ctx.createBiquadFilter();
+    bp1.type       = 'bandpass';
+    bp1.frequency.value = 1800;
+    bp1.Q.value    = 0.4;
+
+    const bp2      = ctx.createBiquadFilter();
+    bp2.type       = 'bandpass';
+    bp2.frequency.value = 800;
+    bp2.Q.value    = 0.3;
+
+    const lp       = ctx.createBiquadFilter();
+    lp.type        = 'lowpass';
+    lp.frequency.value = 3500;
+
+    // Master gain — quiet, ambient
+    const gain     = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.055, ctx.currentTime + 3.5); // fade in
+
+    noise.connect(bp1);
+    bp1.connect(bp2);
+    bp2.connect(lp);
+    lp.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+
+    _rainAudioNodes = [noise, gain];
+
+    // Layer 2: occasional low rumble for thunder ambience (very subtle)
+    function scheduleRumble() {
+      if (!_rainOverlay) return;
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 40 + Math.random() * 30;
+      const rGain = ctx.createGain();
+      rGain.gain.setValueAtTime(0, ctx.currentTime);
+      rGain.gain.linearRampToValueAtTime(0.018, ctx.currentTime + 0.8);
+      rGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.5);
+      osc.connect(rGain);
+      rGain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 4);
+      _rainLightningTimer && setTimeout(scheduleRumble, 18000 + Math.random() * 28000);
+    }
+    setTimeout(scheduleRumble, 8000 + Math.random() * 12000);
+
+  } catch(e) { /* silent fail */ }
+}
+
+function removeRain() {
+  if (_rainRippleTimer)   { clearTimeout(_rainRippleTimer);   _rainRippleTimer   = null; }
+  if (_rainLightningTimer){ clearTimeout(_rainLightningTimer); _rainLightningTimer= null; }
+
+  // Fade audio out
+  try {
+    if (_rainAudioNodes.length) {
+      const gain = _rainAudioNodes[1];
+      gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 2);
+      setTimeout(() => { try { _rainAudioNodes[0].stop(); } catch(e){} }, 2100);
+      _rainAudioNodes = [];
+    }
+  } catch(e) {}
+
+  // Remove DOM elements
+  ['rain-overlay','rain-mist','rain-vignette','rain-lightning'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
+  _rainOverlay = null;
 }
 
 function applyCleaningSponge(who, draftingColor) {
