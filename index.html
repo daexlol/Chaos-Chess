@@ -29833,10 +29833,11 @@ function cfShowBubble(msg, durationMs) {
   requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('show')));
 
   const dur = durationMs || 3200;
+  const adjustedDur = dur < 5000 ? dur * 1.5 : dur;
   cfBubbleTimeout = setTimeout(() => {
     bubble.classList.remove('show');
     setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 300);
-  }, dur);
+  }, adjustedDur);
 }
 
 function cfSay(scenario, durationMs) {
