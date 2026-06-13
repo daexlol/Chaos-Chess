@@ -18584,6 +18584,11 @@ function move(x1,y1,x2,y2,castleType){
       };
       showToast(modifiers.includes('Royal Guard (Evolved)') ? '💂 Place or keep the Royal Guard (can move next turn)' : '💂 Choose an adjacent square for the Royal Guard', 0);
       draw();
+      // If the AI's king just moved, let requestAiMove handle the placement —
+      // don't wait for human input.
+      if (typeof aiActive !== 'undefined' && aiActive && gameMode === 'local' && isWhite(piece) === (aiColor === 'white')) {
+        setTimeout(requestAiMove, 250);
+      }
       return; // Pause here — placeRoyalGuard() will resume
     }
     // No empty adjacent squares — fall through normally
@@ -19995,7 +20000,7 @@ const allMods=[
   {name:'Cookie',rarity:'mythic',desc:'Does nothing',icon:'🍪'},
   {name:'Clown Parade',rarity:'rare',desc:"A troupe of honking clowns invades the opponent's board view, blocking key squares",icon:'🤡'},
   {name:"It’s Raining",rarity:'rare',desc:'Rain falls across the board. All modifier proc chances increase by 50%',icon:'🌧️'},
-  {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 of your enemies’ active modifiers',icon:'🧽',stackable:true},
+  {name:'Cleaning Sponge',rarity:'rare',desc:'Removes 1 of your enemies active modifiers',icon:'🧽',stackable:true},
   {name:'Railgun Rook',rarity:'legendary',desc:'Rooks pierce through consecutive enemy pieces in a line, capturing each one, and land on the first empty square after the chain',icon:'♜'},
   {name:'Trench Pawn',rarity:'common',desc:'Pawns can also move 1 square backwards',icon:'♟'},
   {name:'Bounty Hunter Pawn',rarity:'rare',desc:'Each pawn permanently gains +1 square of movement for every piece it captures',icon:'♟'},
@@ -20107,7 +20112,7 @@ const evolvedMods = [
   {
     name: 'Duck of Eternal Blocking (Evolved)',
     rarity: 'mythic',
-    desc: 'Spawns 3 ducks. After each move, each duck independently has a chance to waddle 1 square in a random direction',
+    desc: 'Spawns 3 ducks. After each move, each duck independently has a chance to waddle 1 square in a random direction. Uncapturable. Uncontrollable. Inevitable.',
     icon: '🦆',
     isEvolution: true,
     stackable: true,
@@ -22816,24 +22821,28 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
   // Personal mode: always run the AI pick silently FIRST, then fall through
   //   so the human player also gets to pick in the same draft event.
   if (aiActive && gameMode === 'local' && (drafter === aiColor || personalModifiers)) {
-    // Build available pool (same logic as main path, personal-mode aware)
-    const _drafterPersonal = personalModifiers ? personalArray(drafter) : [];
-    const _drafterAll      = personalModifiers ? modifiers.concat(_drafterPersonal) : modifiers;
-    const _opponentPersonal = personalModifiers ? personalArray(drafter === 'white' ? 'black' : 'white') : [];
-    const _evolvedBaseNames = evolvedMods.filter(ev => _drafterAll.includes(ev.name)).map(ev => ev.baseModifier);
+    // Build the AI's pool from aiColor's own personal array.
+    // In personal mode drafter is the HUMAN's colour for the main-path UI,
+    // so we must NOT use drafter here or the AI would see evolutions of the
+    // human's personal mods (and the human's Cleaning Sponge target check
+    // would also be wrong).
+    const _aiPersonal    = personalModifiers ? personalArray(aiColor) : [];
+    const _aiAll         = personalModifiers ? modifiers.concat(_aiPersonal) : modifiers;
+    const _humanPersonal = personalModifiers ? personalArray(drafter) : []; // drafter == human colour
+    const _evolvedBaseNames = evolvedMods.filter(ev => _aiAll.includes(ev.name)).map(ev => ev.baseModifier);
     const _available = allMods.filter(m => {
-      const inDrafter = ENVIRONMENTAL_MODS.has(m.name) ? modifiers.includes(m.name) : _drafterPersonal.includes(m.name);
+      const inDrafter = ENVIRONMENTAL_MODS.has(m.name) ? modifiers.includes(m.name) : _aiPersonal.includes(m.name);
       if (!personalModifiers && modifiers.includes(m.name) && !m.stackable) return false;
       if (personalModifiers && inDrafter && !m.stackable) return false;
       if (settings.bannedMods.includes(m.name)) return false;
       if (_evolvedBaseNames.includes(m.name)) return false;
       if (m.name === 'Cleaning Sponge') {
-        if (personalModifiers ? _opponentPersonal.length === 0 : modifiers.filter(n => n !== 'Cleaning Sponge').length === 0) return false;
+        if (personalModifiers ? _humanPersonal.length === 0 : modifiers.filter(n => n !== 'Cleaning Sponge').length === 0) return false;
       }
       return true;
     });
     const _evolutionPool = evolvedMods.filter(ev =>
-      !_drafterAll.includes(ev.name) && _drafterAll.includes(ev.baseModifier)
+      !_aiAll.includes(ev.name) && _aiAll.includes(ev.baseModifier)
     );
     // Build picks with same rarity weighting
     const _EVOLUTION_CHANCE = getEvolutionDraftChance();
@@ -22951,6 +22960,9 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
   }
 
   // ── Build cinematic DOM ──────────────────────────────────────────────
+  // Freeze the chess clock for the duration of this draft.
+  // startTimer() is called again once all drafting in this event is complete.
+  stopTimer();
   _draftInProgress = true; // cleared when the pick handler closes the overlay
   draft.style.display = 'block';
 
@@ -23394,10 +23406,10 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
           if(_promoDraftCallback) {
             const _cb = _promoDraftCallback;
             _promoDraftCallback = null;
-            _cb();
+            _cb(); // completeTurn will call startTimer() via normal flow
           }
         } else if(_p2PersonalDraftPending) {
-          // P1 just finished — P2 still needs to pick.
+          // P1 just finished — P2 still needs to pick (timer stays frozen).
           _p2PersonalDraftPending = false;
           const _p2Color = drafter === 'white' ? 'black' : 'white';
           // Show "Waiting for opponent..." while P1 reads the board
@@ -23408,8 +23420,8 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
           }, 1800);
 
         } else if(_isP2PersonalPick) {
-          // P2 just finished — show P1 a reveal card of what P2 drafted.
-          // Small delay so the board has a chance to settle first.
+          // P2 just finished — show P1 a reveal, then restart the clock.
+          startTimer();
           setTimeout(() => showOpponentDraftReveal(mod), 300);
         }
 
@@ -23420,7 +23432,20 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
           const _revToShow = _pendingAiReveal || _pendingOnlineReveal;
           _pendingAiReveal    = null;
           _pendingOnlineReveal = null;
-          if (_revToShow) setTimeout(() => showOpponentDraftReveal(_revToShow), 350);
+          if (_revToShow) {
+            // Opponent already picked (or AI reveal ready) — show immediately.
+            // Timer restarts now; no waiting screen needed.
+            if (!_isP2PersonalPick) startTimer(); // _isP2 already restarted above
+            setTimeout(() => showOpponentDraftReveal(_revToShow), 350);
+          } else if (gameMode === 'online' && personalModifiers && !isPromoDraft) {
+            // Online personal mode: opponent is still drafting simultaneously.
+            // Show the waiting screen; timer restarts when their pick arrives.
+            _waitingForOnlineDraft = true;
+            showPersonalDraftWaiting();
+          } else {
+            // No reveal pending and no online wait — drafting fully done, restart clock.
+            if (!_isP2PersonalPick) startTimer();
+          }
         }
       }, 400);
     });
@@ -23665,9 +23690,10 @@ function ensureGlobalOverlayHosts() {
 
 function resetDraftUIState(opts = {}) {
   const instant = !!opts.instant;
-  _draftInProgress     = false;
-  _pendingAiReveal     = null;
-  _pendingOnlineReveal = null;
+  _draftInProgress      = false;
+  _pendingAiReveal      = null;
+  _pendingOnlineReveal  = null;
+  _waitingForOnlineDraft = false;
   if (typeof stopDraftTimer === 'function') stopDraftTimer();
   if (typeof stopDraftGlitch === 'function') stopDraftGlitch();
   const draft = document.getElementById('draft');
@@ -24181,7 +24207,13 @@ function handleRemoteData(data){
           // We're still picking — store and show after we finish.
           _pendingOnlineReveal = modData;
         } else {
-          // We've already picked (or this isn't a personal-mode draft event).
+          // We've already picked. If the waiting screen is up, close it and
+          // restart the chess clock before showing the opponent reveal.
+          if (_waitingForOnlineDraft) {
+            _waitingForOnlineDraft = false;
+            hidePersonalDraftWaiting();
+            startTimer();
+          }
           showOpponentDraftReveal(modData);
         }
       }
