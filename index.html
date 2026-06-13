@@ -23733,6 +23733,8 @@ draw();
 function startLocal(){
   clearPuzzleState();
   gameMode = 'local';
+  timeControl = 0; // Pass & Play has no timer
+  increment = 0;
   myColor = null;
   let menu = document.getElementById('menu');
   menu.classList.add('hidden');
@@ -29935,6 +29937,8 @@ function startVsAI() {
   // Start as a local game
   aiActive = true;
   gameMode = 'local';
+  timeControl = 0; // vs AI has no timer
+  increment = 0;
   myColor  = playerColor; // used only for board flip
 
   const menu = document.getElementById('menu');
