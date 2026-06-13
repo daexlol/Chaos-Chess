@@ -24180,6 +24180,11 @@ function handleRemoteData(data){
   moveCount = data.moveCount;
   
   modifiers = data.modifiers;
+  // Spawn environmental effects that arrived in the shared modifiers array from the opponent
+  if (data.modifiers && oldModifiers) {
+    const _newSharedEnv = data.modifiers.filter(m => !oldModifiers.includes(m));
+    if (_newSharedEnv.includes("It's Raining")) spawnRain();
+  }
   // Capture old personal arrays BEFORE overwriting — needed for opponent draft detection below
   const _oldWhiteModifiers = whiteModifiers ? [...whiteModifiers] : [];
   const _oldBlackModifiers = blackModifiers ? [...blackModifiers] : [];
@@ -28223,6 +28228,7 @@ function aiApplyDraftPick(mod, drafterColor) {
   if (mod.name === 'Portal Pair') spawnPortalPair();
   if (mod.name === 'The Impawnster') ensureSleeperPawns();
   if (mod.name === 'Cleaning Sponge') applyCleaningSponge('opponent', drafterColor);
+  if (mod.name === "It's Raining") spawnRain();
   if (mod.name === 'Tornado de Caballos') {
     // Place tornado on a random empty square
     tornadoPlacementMode = false;
