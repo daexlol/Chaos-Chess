@@ -22841,9 +22841,16 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
       }
       return true;
     });
-    const _evolutionPool = evolvedMods.filter(ev =>
-      !_aiAll.includes(ev.name) && _aiAll.includes(ev.baseModifier)
-    );
+    const _evolutionPool = evolvedMods.filter(ev => {
+      if (_aiAll.includes(ev.name)) return false; // already evolved
+      // In personal mode, the base must be in the AI's own personal stack (or shared env mods).
+      // Using _aiAll here was the bug: it includes modifiers[] which in personal mode
+      // only has environmental mods, so we check the correct ownership array explicitly.
+      const _baseOwned = ENVIRONMENTAL_MODS.has(ev.baseModifier)
+        ? modifiers.includes(ev.baseModifier)
+        : _aiPersonal.includes(ev.baseModifier);
+      return _baseOwned;
+    });
     // Build picks with same rarity weighting
     const _EVOLUTION_CHANCE = getEvolutionDraftChance();
     const _picks = [];
@@ -22930,7 +22937,7 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
         const _rvEvo = _rv.isEvolution === true;
         const _rvRk  = _rvEvo ? 'evolved' : (_rv.rarity || 'common');
         const _rvRl  = _rvEvo ? 'Evolved' : (_rv.rarity ? _rv.rarity[0].toUpperCase() + _rv.rarity.slice(1) : 'Common');
-        const _rvNm  = (_rvEvo ? _rv.name.replace(' (Evolved)', '') + ' (Evolved)' : _rv.name);
+        const _rvNm  = _rv.name; // already contains '(Evolved)' if applicable; don't double-append
         logChaos('opponent', 'draft', `AI drafted ${_rvNm} (${_rvRl})!`, `chaos-rarity-${_rvRk}`);
         // Defer the reveal card until after the human picks — showing it now
         // would attach a stopPropagation capture listener that blocks draft clicks.
@@ -23338,7 +23345,7 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
       // Log to Chaos Log
       const _rarityKey = isEvo ? 'evolved' : (mod.rarity || 'common');
       const _rarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
-      const _displayName = isEvo ? mod.name.replace(' (Evolved)', '') + ' (Evolved)' : mod.name;
+      const _displayName = mod.name; // already contains '(Evolved)' if applicable
       // Determine log perspective from drafter rather than always saying 'you':
       //   - Online / vs-AI: the draft UI only ever shows to the local player → always 'you'
       //   - P&P personal, P2 pick (_isP2PersonalPick): skip here entirely — showOpponentDraftReveal
@@ -30505,7 +30512,7 @@ function showOpponentDraftReveal(mod) {
   // Log opponent draft to Chaos Log
   const _oppRarityKey = isEvo ? 'evolved' : (mod.rarity || 'common');
   const _oppRarityLabel = isEvo ? 'Evolved' : (mod.rarity ? mod.rarity.charAt(0).toUpperCase() + mod.rarity.slice(1) : 'Common');
-  const _oppDisplayName = isEvo ? displayName + ' (Evolved)' : displayName;
+  const _oppDisplayName = mod.name; // already contains '(Evolved)' if applicable
   logChaos('opponent', 'draft', `Opponent drafted ${_oppDisplayName} (${_oppRarityLabel})!`, `chaos-rarity-${_oppRarityKey}`);
 
   const rarityColors = {
