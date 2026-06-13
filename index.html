@@ -13552,7 +13552,7 @@ function getCurrentDraftFrequency(){
 function chaosChance(baseChance){
   if(puzzleModeActive) return baseChance;
   let chance = totalChaosActive ? Math.min(0.95, baseChance * 2.2 + 0.12) : baseChance;
-  if(_rainOverlay) chance = Math.min(1, chance * 1.5); // It's Raining: +50% to all modifier procs
+  if(_rainOverlay) chance = Math.min(1, chance * 1.5); // It’s Raining: +50% to all modifier procs
   return chance;
 }
 
@@ -24183,7 +24183,7 @@ function handleRemoteData(data){
   // Spawn environmental effects that arrived in the shared modifiers array from the opponent
   if (data.modifiers && oldModifiers) {
     const _newSharedEnv = data.modifiers.filter(m => !oldModifiers.includes(m));
-    if (_newSharedEnv.includes("It's Raining")) spawnRain();
+    if (_newSharedEnv.includes("It’s Raining")) spawnRain();
   }
   // Capture old personal arrays BEFORE overwriting — needed for opponent draft detection below
   const _oldWhiteModifiers = whiteModifiers ? [...whiteModifiers] : [];
@@ -27880,7 +27880,7 @@ function removeClownParade() {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-//  IT'S RAINING — Environmental Modifier
+//  IT’S RAINING — Environmental Modifier
 // ══════════════════════════════════════════════════════════════════════
 (function injectRainCSS() {
   const style = document.createElement('style');
@@ -27982,7 +27982,7 @@ let _rainLightningTimer = null;
 function spawnRain() {
   if (_rainOverlay) return; // already raining
 
-  logChaos('sys', 'ability', "🌧️ It's Raining… the board grows dark.");
+  logChaos('sys', 'ability', "🌧️ It’s Raining… the board grows dark.");
 
   // Mist + vignette layers
   const mist = document.createElement('div');
@@ -28228,7 +28228,7 @@ function aiApplyDraftPick(mod, drafterColor) {
   if (mod.name === 'Portal Pair') spawnPortalPair();
   if (mod.name === 'The Impawnster') ensureSleeperPawns();
   if (mod.name === 'Cleaning Sponge') applyCleaningSponge('opponent', drafterColor);
-  if (mod.name === "It's Raining") spawnRain();
+  if (mod.name === "It’s Raining") spawnRain();
   if (mod.name === 'Tornado de Caballos') {
     // Place tornado on a random empty square
     tornadoPlacementMode = false;
