@@ -10546,6 +10546,14 @@ body.total-chaos-entering #total-chaos-bleed {
   opacity: 1;
   transform: translateX(-50%) translateY(0) scale(1);
 }
+/* Pushed down by a newer message — stays visible but faded and shifted down */
+.qcw-chat-bubble.pushed-down {
+  opacity: 0.38;
+  transform: translateX(-50%) translateY(var(--cf-push-offset, 0px)) scale(0.93);
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+  filter: blur(0.4px);
+  z-index: 199;
+}
 
 /* Container for player cards to enable bubble positioning */
 .game-player-card {
@@ -18748,6 +18756,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
     if(gameMode === 'online') sendGameState();
     draw();
     playCheckmateSound();
+    if(aiActive && gameMode === 'local') recordCfGameResult(cfVariant, aiColor === 'black' ? 'win' : 'loss');
       endGame('White king was killed! Black wins! 👑💀', 5000);
     return;
   }
@@ -18755,6 +18764,7 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
     if(gameMode === 'online') sendGameState();
     draw();
     playCheckmateSound();
+    if(aiActive && gameMode === 'local') recordCfGameResult(cfVariant, aiColor === 'white' ? 'win' : 'loss');
       endGame('Black king was killed! White wins! 👑💀', 5000);
     return;
   }
@@ -19455,6 +19465,7 @@ function processTimeBombs(){
             let winner = isWhite(piece) ? 'Black' : 'White';
             draw();
             playCheckmateSound();
+            if(aiActive && gameMode === 'local') recordCfGameResult(cfVariant, isWhite(piece) === (aiColor === 'white') ? 'loss' : 'win');
       endGame(`${winner} wins! The king didn't move in time! 💣`, 3500);
             return;
           }
@@ -19500,6 +19511,7 @@ function processBottomlessPit(){
         clearPieceData(pitSquare.x, pitSquare.y);
         draw();
         playCheckmateSound();
+        if(aiActive && gameMode === 'local') recordCfGameResult(cfVariant, isWhite(piece) === (aiColor === 'white') ? 'loss' : 'win');
         endGame(`${winner} wins! The king fell into the pit! 🕳️`, 3500);
         return;
       }
@@ -30025,13 +30037,17 @@ const YOUNG_CHAOSFISH_LINES = {
     "I've never been expelled from anything. I intend to keep it that way. Probably.",
     "I'm the most promising student at Coral Academy. I've checked. Multiple times.",
     "This position has layers. I see all of them.",
+    "I'm feeling quite FIN-telligent today.",
+    "This game is going swimmingly.",
   ],
 
   aiCaptures: [
     "CHOMP! Got it!",
+    "Caught one!",
+    "Heh, the tide is turning in MY favour.",
     "Reef-claimed. Next.",
     "Material secured. Moving on.",
-    "That piece has joined my collection.",
+    "That piece has joined the ocean floor.",
     "Nom. Clean. Precise. Beautiful.",
     "I've been practising that exact capture for weeks.",
     "My uncle taught me that technique. Thanks, uncle.",
@@ -30047,10 +30063,13 @@ const YOUNG_CHAOSFISH_LINES = {
     "I'll put this capture in my notes. Under 'obvious brilliancies'.",
     "I could get used to this.",
     "NOM. With precision.",
+    "Hook, line and sinker.",
+    "A reel tragedy for that piece... heh.",
   ],
 
   playerCaptures: [
     "Hm. I didn't calculate that. I'm calculating it now.",
+    "That's... fishy.",
     "A temporary inaccuracy. My plan is still intact.",
     "That piece was not critical. I've decided it was not critical.",
     "That's fine. Regrouping is also a strategy.",
@@ -30067,6 +30086,7 @@ const YOUNG_CHAOSFISH_LINES = {
     "Oh. Hm. Okay. Recalculating.",
     "I've seen my uncle recover from worse. I can recover from this.",
     "This is a test of my resilience. I'm very resilient.",
+    "I may have taken the bait on that one.",
   ],
 
   aiChecks: [
@@ -30078,13 +30098,17 @@ const YOUNG_CHAOSFISH_LINES = {
     "Your king is now on my priority list.",
     "CHECK. The net is forming.",
     "CHECK! My uncle would be proud of this check.",
+    "CHECK! That's quite the catch.",
     "Your king is having a bad tide.",
     "CHECK. I calculated this three moves ago.",
     "King spotted. Initiative maintained.",
+    "CHECK! I smell blood in the water.",
+    "I'm casting a very large net right now.",
     "CHECK! Professor Tide said my attacking play was reckless. Incorrect.",
     "The king-hunting phase has commenced. I'm very good at this phase.",
     "CHECK! This is why I study chess at 3 AM.",
     "Your king looks stressed. That's my doing.",
+    "CHECK! Reel that one in!",
   ],
 
   aiInCheck: [
@@ -30094,8 +30118,10 @@ const YOUNG_CHAOSFISH_LINES = {
     "Hm. I didn't see that. I see it now.",
     "My king is in a slightly suboptimal position.",
     "This is fine. I've practised defending from difficult positions.",
-    "CHECK? But my calculation said— okay. Recalculating.",
+    "CHECK? But my calculation said— okay fine. Recalculating.",
     "My king is fine. I'm choosing to believe my king is fine.",
+    "My king appearts to be out of the water.",
+    "Not ideal. Not ideal at shore.",
     "I can get out of this. I've read every endgame manual.",
     "ALERT. King safety: slightly compromised. Working on it.",
     "My uncle said to always have a king safety plan. I had one. Adjusting it.",
@@ -30156,6 +30182,8 @@ const YOUNG_CHAOSFISH_LINES = {
     "Promotion achieved. This was always the plan.",
     "That pawn worked hard. It deserves this.",
     "My future is as bright as that queen. I've decided.",
+    "Now THAT'S an upgrade from the kiddie pool!",
+    "This pawn is swimming with the big fish now.",
   ],
 
   playerPromotes: [
@@ -30192,6 +30220,8 @@ const YOUNG_CHAOSFISH_LINES = {
     "I've never seen this before. This is going in my match notes.",
     "Professor Tide definitely didn't prepare me for this.",
     "The board is getting more interesting. I like interesting.",
+    "I'm going to write a paper about this game one day. Chapter one: chaos modifiers.",
+    "I'm in over my head. Fortunately, I live underwater.",
   ],
 };
 
@@ -30202,33 +30232,69 @@ function cfPickLine(scenario) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// Stack of active Chaosfish bubbles: [{ el, timeoutId }, ...]
+// Index 0 = oldest/bottom, last = newest/top
+let _cfBubbleStack = [];
+
 function cfShowBubble(msg, durationMs) {
   if (!cfCommentaryActive || !msg) return;
   const card = document.getElementById('gpc-opponent');
   if (!card) return;
 
-  // If a bubble is already visible, void the incoming message entirely
-  const existing = card.querySelector('.qcw-chat-bubble');
-  if (existing) return;
+  // Prune any entries that have already left the DOM
+  _cfBubbleStack = _cfBubbleStack.filter(e => !!e.el.parentNode);
 
+  const dur = durationMs || 3200;
+  const adjustedDur = dur < 5000 ? dur * 1.5 : dur;
+
+  // Build the new bubble (top of stack)
   const bubble = document.createElement('div');
   bubble.className = 'qcw-chat-bubble';
   bubble.textContent = msg;
   bubble.style.bottom = '100%';
   bubble.style.marginBottom = '6px';
-  // Slightly different teal tint so Chaosfish bubbles feel distinct
   bubble.style.borderColor = 'rgba(56,200,210,0.75)';
   bubble.style.boxShadow = '0 0 0 3px rgba(56,200,210,0.15), 0 6px 28px rgba(56,200,210,0.4), 0 0 40px rgba(56,200,210,0.15)';
   card.appendChild(bubble);
 
+  // Animate in
   requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('show')));
 
-  const dur = durationMs || 3200;
-  const adjustedDur = dur < 5000 ? dur * 1.5 : dur;
-  cfBubbleTimeout = setTimeout(() => {
+  // Push existing bubbles down once we know the new bubble's height
+  requestAnimationFrame(() => {
+    const newH = bubble.offsetHeight + 8; // 8px gap
+    // Only push bubbles that are still actually in the DOM
+    const stillActive = _cfBubbleStack.filter(e => e.el !== bubble && e.el.parentNode);
+    stillActive.forEach(entry => {
+      const cur = parseFloat(entry.el.style.getPropertyValue('--cf-push-offset') || '0');
+      entry.el.style.setProperty('--cf-push-offset', (cur + newH) + 'px');
+      entry.el.classList.remove('show');
+      entry.el.classList.add('pushed-down');
+    });
+  });
+
+  // Schedule this bubble's own expiry
+  const timeoutId = setTimeout(() => {
     bubble.classList.remove('show');
-    setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 300);
+    bubble.classList.remove('pushed-down');
+    bubble.style.opacity = '0';
+    bubble.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 320);
+    // Remove from stack
+    _cfBubbleStack = _cfBubbleStack.filter(e => e.el !== bubble);
   }, adjustedDur);
+
+  _cfBubbleStack.push({ el: bubble, timeoutId });
+
+  // Keep stack max 2 deep — if there's already 2 old ones, expire the oldest immediately
+  if (_cfBubbleStack.length > 2) {
+    const oldest = _cfBubbleStack.shift();
+    clearTimeout(oldest.timeoutId);
+    oldest.el.classList.remove('show', 'pushed-down');
+    oldest.el.style.transition = 'opacity 0.2s ease';
+    oldest.el.style.opacity = '0';
+    setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 220);
+  }
 }
 
 function cfSay(scenario, durationMs) {
@@ -30294,12 +30360,12 @@ function cfStopCommentary() {
   cfStopDecay();
   clearTimeout(cfBubbleTimeout);
   clearTimeout(cfIdleTimeout);
-  // Remove any lingering bubble
-  const card = document.getElementById('gpc-opponent');
-  if (card) {
-    const b = card.querySelector('.qcw-chat-bubble');
-    if (b) b.remove();
-  }
+  // Clear all stacked bubbles
+  _cfBubbleStack.forEach(entry => {
+    clearTimeout(entry.timeoutId);
+    if (entry.el.parentNode) entry.el.remove();
+  });
+  _cfBubbleStack = [];
 }
 
 function startVsAI() {
