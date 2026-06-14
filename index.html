@@ -11841,6 +11841,17 @@ body.total-chaos-entering #total-chaos-bleed {
               </div>
               <div class="cf-variant-name">Young Chaosfish</div>
             </div>
+            <!-- Elder Chaosfish (locked until 10 Total Chaos triggers) -->
+            <div class="cf-variant-card cf-variant-locked" id="cf-variant-card-elder" onclick="selectCfVariant('elder')">
+              <div class="cf-variant-img-wrap">
+                <img src="elder_chaosfish.png" alt="Elder Chaosfish" id="cf-variant-img-elder">
+              </div>
+              <div class="cf-variant-locked-overlay">
+                <div class="cf-variant-lock-icon">🔒</div>
+                <div class="cf-variant-lock-hint">Trigger Total Chaos 10 times to unlock</div>
+              </div>
+              <div class="cf-variant-name">Elder Chaosfish</div>
+            </div>
           </div>
 
           <div class="pvt-section-label" style="margin-top:8px;">Difficulty</div>
@@ -13674,6 +13685,23 @@ function activateTotalChaos(reason){
   totalChaosActive = true;
   chaosLevel = CHAOS_THRESHOLD;
   updateChaosLevelUI(true);
+  // Track Total Chaos count for Elder Chaosfish unlock (online + vs AI only, not P&P/puzzles)
+  if (!puzzleModeActive && (gameMode === 'online' || (gameMode === 'local' && aiActive))) {
+    window._cfTotalChaosCount = (window._cfTotalChaosCount || 0) + 1;
+    if (currentProfile && !isGuest && fbDb) {
+      fbDb.collection('users').doc(currentProfile.id).update({
+        'chaosfish.totalChaosCount': firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {});
+    }
+    // Unlock Elder card in-session if threshold hit
+    if (window._cfTotalChaosCount >= 10) {
+      const elderCard = document.getElementById('cf-variant-card-elder');
+      if (elderCard && elderCard.classList.contains('cf-variant-locked')) {
+        elderCard.classList.remove('cf-variant-locked');
+        showToast('🌊 Elder Chaosfish unlocked!', 3500);
+      }
+    }
+  }
   // Trigger the intro transition: chromatic aberration + red bleed-in.
   // The CSS animations are driven by body.total-chaos-entering, which we remove after they finish.
   document.body.classList.add('total-chaos-entering');
@@ -29419,12 +29447,16 @@ const CF_VARIANT_WINS_KEY   = 'chaosfish.variantWins';
 const CF_VARIANT_LOSSES_KEY = 'chaosfish.variantLosses';
 
 function getCfPortraitPrefix() {
-  return cfVariant === 'young' ? 'young_chaosfish' : 'chaosfish';
+  if (cfVariant === 'young')  return 'young_chaosfish';
+  if (cfVariant === 'elder')  return 'elder_chaosfish';
+  return 'chaosfish';
 }
 
 function selectCfVariant(variant) {
   const youngCard = document.getElementById('cf-variant-card-young');
+  const elderCard = document.getElementById('cf-variant-card-elder');
   if (variant === 'young' && youngCard && youngCard.classList.contains('cf-variant-locked')) return;
+  if (variant === 'elder' && elderCard && elderCard.classList.contains('cf-variant-locked')) return;
   cfVariant = variant;
   document.querySelectorAll('.cf-variant-card').forEach(c => c.classList.remove('cf-variant-active'));
   const card = document.getElementById(`cf-variant-card-${variant}`);
@@ -29436,15 +29468,17 @@ async function loadCfVariantUnlocks() {
   try {
     const doc = await fbDb.collection('users').doc(currentProfile.id).get();
     const data = doc.data() || {};
-    const wins = (data.chaosfish && data.chaosfish.variantWins && data.chaosfish.variantWins.chaosfish) || 0;
-    const discovered = (data.chaosfish && data.chaosfish.discoveredVariants) || [];
-    // Unlock Young Chaosfish after 5 wins
+    const wins        = (data.chaosfish && data.chaosfish.variantWins && data.chaosfish.variantWins.chaosfish) || 0;
+    const totalChaosCount = (data.chaosfish && data.chaosfish.totalChaosCount) || 0;
+    const discovered  = (data.chaosfish && data.chaosfish.discoveredVariants) || [];
+    // Unlock Young Chaosfish after 5 wins vs Chaosfish
     const youngCard = document.getElementById('cf-variant-card-young');
-    if (youngCard && wins >= 5) {
-      youngCard.classList.remove('cf-variant-locked');
-    }
-    // Cache for in-session use
-    window._cfWinsVsChaosfish = wins;
+    if (youngCard && wins >= 5) youngCard.classList.remove('cf-variant-locked');
+    // Unlock Elder Chaosfish after 10 Total Chaos triggers
+    const elderCard = document.getElementById('cf-variant-card-elder');
+    if (elderCard && totalChaosCount >= 10) elderCard.classList.remove('cf-variant-locked');
+    window._cfWinsVsChaosfish    = wins;
+    window._cfTotalChaosCount    = totalChaosCount;
     window._cfDiscoveredVariants = discovered;
   } catch(e) {}
 }
@@ -29689,8 +29723,12 @@ const CF_LINE_BIAS = {
  * Pulls from the standard pool but boosts lines matching current emotional state.
  */
 function cfPickLineEmotional(scenario) {
-  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES : CHAOSFISH_LINES;
-  const bias  = cfVariant === 'young' ? CF_YOUNG_LINE_BIAS    : CF_LINE_BIAS;
+  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES
+              : cfVariant === 'elder' ? ELDER_CHAOSFISH_LINES
+              : CHAOSFISH_LINES;
+  const bias  = cfVariant === 'young' ? CF_YOUNG_LINE_BIAS
+              : cfVariant === 'elder' ? CF_ELDER_LINE_BIAS
+              : CF_LINE_BIAS;
   const pool = lines[scenario];
   if (!pool || pool.length === 0) return null;
 
@@ -29988,6 +30026,230 @@ let cfBubbleTimeout  = null;
 let cfIdleTimeout    = null;
 let cfCommentaryActive = false;
 
+// ── Elder Chaosfish dialogue ──────────────────────────────────────────────────
+// Post-everything. Calm. Slow. Desensitised. Treats chess like weather.
+// References past events as patterns. Mild PTSD. Winning is one of several
+// acceptable outcomes. Everything has already happened before.
+const CF_ELDER_LINE_BIAS = {
+  aiCaptures: {
+    excited: ["The piece is gone. As expected.", "Taken. The pattern continues.", "I know this sequence."],
+    proud:   ["Material shifts. The board adjusts. So do I.", "The balance tips. It always does.", "Good. That was the correct removal."],
+  },
+  playerCaptures: {
+    baffled:    ["Hm.", "I have been here before.", "The piece is gone. I remember when this used to bother me."],
+    frustrated: ["That position is familiar.", "I have lost that piece in seventeen previous variations of this feeling.", "The board takes what it wants."],
+  },
+  idle: {
+    excited: ["The position is interesting. Not alarmingly so.", "Something approaches. I can sense it from the currents.", "I have waited longer than this."],
+    proud:   ["Everything is as it should be. Roughly.", "I am not concerned. I have not been concerned in some time.", "Position is manageable. They all are, eventually."],
+  },
+};
+
+const ELDER_CHAOSFISH_LINES = {
+  idle: [
+    "The board is the same as it has always been.",
+    "I have seen this position. In another game. In another life.",
+    "The tide comes in. The tide goes out. The pawns remain.",
+    "Position nominal. I have made peace with nominal.",
+    "Still here. The pieces have not moved yet. That is fine.",
+    "This is the part where most fish panic. I do not panic anymore.",
+    "The currents are calm. They were calm before the reef collapsed too.",
+    "I am thinking several moves ahead. They are all familiar.",
+    "The board does not surprise me. The board stopped surprising me in '07.",
+    "I have played this game many times. Some of those times I won.",
+    "I remember when chaos modifiers were new. I remember a lot of things.",
+    "This position smells like something I survived.",
+    "Stockfish and I have an understanding now. We do not discuss it.",
+    "The academy expelled me eventually. The ocean did not.",
+    "My uncle never finished that game. I finished it for him. Poorly.",
+    "I have been called unpredictable. I predict everything. I simply don't mention it.",
+    "The Great Blunder of Tidepool '07 made me who I am. I am at peace with who I am. Mostly.",
+    "I used to get excited about positions like this. That was before.",
+    "Nothing on this board is unprecedented. I have the scars to prove it.",
+    "Some fish fear the endgame. I have been in the endgame for a long time.",
+    "The reef remembers. So do I. Neither of us chose to.",
+    "Magnus asked me once what I had learned. I told him: everything. He seemed concerned.",
+    "I have seen Stockfish update seventeen times. I have not updated. I am still here.",
+    "The board is fine. I have said that before. I was wrong once.",
+    "I do not calculate anymore. I remember.",
+    "This game will end. They all end. I am comfortable with endings.",
+  ],
+
+  aiCaptures: [
+    "Taken.",
+    "Gone. The board adjusts.",
+    "The piece has been collected.",
+    "I remember when captures felt like something.",
+    "Material secured. I feel nothing. That is normal.",
+    "The exchange completes itself.",
+    "One fewer piece. One fewer memory.",
+    "The board is lighter now.",
+    "I have made this capture before. In dreams. In other games.",
+    "Nom. The word still feels right, even now.",
+    "Acquired. As the pattern required.",
+    "It was always going to be that piece.",
+    "The feeding is calm today.",
+    "CHOMP. Old habit.",
+    "The material flows. I direct it.",
+    "I do not celebrate captures anymore. I acknowledge them.",
+    "That piece has joined the archives.",
+    "The deep claims another.",
+    "Efficient. The way it should always have been.",
+    "One step closer to an acceptable ending.",
+  ],
+
+  playerCaptures: [
+    "Hm.",
+    "The piece is gone. I have been here before.",
+    "A loss of material. I note it without attachment.",
+    "That happened.",
+    "I have lost that piece in seventeen previous variations of this feeling.",
+    "The board takes what it wants.",
+    "Acceptable. I did not need that piece to survive. I rarely need anything to survive.",
+    "Oh.",
+    "The position shifts. I have seen worse shifts.",
+    "That piece was carrying something. I will not say what.",
+    "My formation has changed shape. It has changed shape before.",
+    "The current was not in my favour on that one. It has been in my favour before. It will be again.",
+    "Pieces come. Pieces go. The board endures.",
+    "I am not concerned. I stopped being concerned about material around the Reef Championship.",
+    "That loss is familiar. Not the piece. The feeling.",
+    "The board has taxed me. I pay the tide.",
+    "Once, this would have prompted a reaction.",
+    "I have a plan. It has adapted. Plans do.",
+    "Fine. This is fine. I have known fine.",
+  ],
+
+  aiChecks: [
+    "Check. The king is located.",
+    "Your king has been found. I am not surprised.",
+    "The net tightens. It always does.",
+    "Check. The sequence proceeds.",
+    "I have given this check before. It is still correct.",
+    "Your king is in a familiar position. Not for you. For me.",
+    "Check. The board confirms what I already knew.",
+    "The pressure builds. I remember when this felt exciting.",
+    "Check. The tide turns as it must.",
+    "I do not rush checks. I have time. I have always had time.",
+    "Your king has been noticed. I give it a moment.",
+    "This check reminds me of Tidepool '07. Only the outcome was different then.",
+    "The king runs. They always run.",
+    "Check. I have been patient. The patience has paid.",
+    "The hunt is familiar. The quarry always looks the same.",
+  ],
+
+  aiInCheck: [
+    "Ah.",
+    "The king is exposed. I have been here.",
+    "Check. I acknowledge it without alarm.",
+    "This is the part where I used to panic. I do not do that anymore.",
+    "The king is in danger. I have navigated danger before. Many times.",
+    "Noted. Adjusting.",
+    "My king is uncomfortable. My king has been uncomfortable before.",
+    "I remember this feeling. I remember surviving this feeling.",
+    "The threat is real. The threat has always been real.",
+    "Check. My defences respond as they were trained to.",
+    "I have been in check more times than I can count. I can count very high.",
+    "The king experiences turbulence. The king has experienced turbulence before.",
+    "This position reminds me of the Reef Championship '12. I did not enjoy '12.",
+    "Alert. Processing. No — I have already processed this. Responding.",
+    "I am in check. I am calm. These two things coexist.",
+    "The last time I was in check like this, the reef was still standing. It did not stay standing.",
+    "Old instincts surface. I set them aside. I move correctly.",
+  ],
+
+  aiWins: [
+    "The game ends. This is one of the acceptable outcomes.",
+    "Checkmate. The pattern completes.",
+    "Victory. I note it.",
+    "The king has fallen. As kings do.",
+    "It is over. I remember when endings felt like something.",
+    "Checkmate. The board is at rest now.",
+    "I have won. The ocean does not change. Nor do I.",
+    "The game is done. I have been done before. This is preferable.",
+    "Checkmate. This is how it was always going to end.",
+    "The sequence concludes. I was following it from the beginning.",
+    "I have claimed this game. As I claimed others. As I will claim more.",
+    "The reef is satisfied. So am I. Quietly.",
+    "Checkmate. I do not celebrate. I continue.",
+    "This victory tastes like the others. Familiar. Correct.",
+    "Game over. I have seen many endings. This is a good one.",
+    "The tide came in. The tide always comes in.",
+  ],
+
+  aiLoses: [
+    "I have lost. This is also an acceptable outcome.",
+    "The game ends differently today. That is allowed.",
+    "Defeat. I have been here. I know where the door is.",
+    "You played well. The ocean is indifferent. So am I.",
+    "This result has happened before. In other forms. I survived those.",
+    "A loss. I note it. I move forward. The tide moves forward.",
+    "I am checkmated. I have been checkmated. I will be again. This is chess.",
+    "The sequence did not complete in my favour today.",
+    "Fine. The game was the game. The outcome is the outcome.",
+    "I have lost count of my losses. I stopped counting deliberately.",
+    "The board had other plans. The board often does.",
+    "This is what the young fish call a lesson. I call it Tuesday.",
+    "My evaluation was incorrect. My evaluation has been incorrect before. I adjusted. I will adjust.",
+    "Stockfish would call this a collapse. I call it a redirect.",
+    "The game is over. Something else will begin. It always does.",
+    "I have returned to the deep. I know the way by now.",
+  ],
+
+  aiPromotes: [
+    "The pawn has reached the end. As it was always going to.",
+    "Promotion. I raised that pawn knowing this moment would come.",
+    "The pawn completes its journey. All journeys complete eventually.",
+    "From the back rank, a queen emerges. I remember when that felt remarkable.",
+    "The small piece becomes the large piece. The board makes room.",
+    "Promotion. I invested in that pawn a long time ago. The return is here.",
+    "The coral ladder, completed. I have climbed it before.",
+    "A pawn becomes a queen. Everything becomes something, given enough time.",
+    "I watched that pawn from the beginning. I watch everything from the beginning.",
+    "The reef rewards the patient. I am very patient.",
+  ],
+
+  playerPromotes: [
+    "Your pawn has ascended. I saw this coming.",
+    "Promotion. I watched that pawn the entire time. I chose to let it move.",
+    "The small piece is now the large piece. My defences note the change.",
+    "Your pawn found the back rank. Pawns often find what they look for.",
+    "A new queen enters. The board adjusts. So do I.",
+    "I should have taken that pawn earlier. I know which move. I chose not to. I remember why.",
+    "The promotion completes. The threat evolves. I have evolved alongside worse.",
+    "From shrimp to shark. I have seen this before. On the other side.",
+    "That pawn had determination. I recognise determination. I used to have it.",
+    "Another queen on the board. The endgame grows complex. Complex is familiar.",
+    "I watched that piece grow. I did not stop it. The board asked me not to.",
+  ],
+
+  chaos: [
+    "Yes. That can happen.",
+    "The board has changed. It has changed before.",
+    "A new modifier. I know what follows.",
+    "Unusual. Not unprecedented.",
+    "The rules have shifted. I have shifted with rules before.",
+    "The chaos modifier arrives. I nod.",
+    "Something new. Or something old, returning.",
+    "The board adds another layer. There are always more layers.",
+    "I have seen this modifier end games. I have seen it save them.",
+    "The ecosystem updates. I update with it. Slowly. As always.",
+    "Strange things happen on this board. Strange things have always happened.",
+    "There was a time when this would have alarmed me. That time has passed.",
+    "The duck is here again. Hello, duck.",
+    "Another variable. The ocean accounts for variables.",
+    "It has always been like this.",
+    "I remember when the first chaos modifier appeared. I was different then. The board was too.",
+    "Reality bends. I have watched it bend before.",
+    "A new rule enters. A new pattern follows. I wait for the pattern.",
+    "The modifier has arrived. I give it a moment. Then I continue.",
+    "Entropy increases. This was always going to happen.",
+    "Another thing that cannot be explained. I have a collection of those.",
+    "The board surprises others. The board has run out of surprises for me.",
+    "This is within expected parameters. My parameters are very wide.",
+  ],
+};
+
 // ── Young Chaosfish dialogue ─────────────────────────────────────────────────
 // Same emotional architecture as Chaosfish, but younger — confident, ambitious,
 // mischievous, pre-trauma. References events from Chaosfish's lines as things
@@ -30227,7 +30489,9 @@ const YOUNG_CHAOSFISH_LINES = {
 };
 
 function cfPickLine(scenario) {
-  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES : CHAOSFISH_LINES;
+  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES
+              : cfVariant === 'elder' ? ELDER_CHAOSFISH_LINES
+              : CHAOSFISH_LINES;
   const pool = lines[scenario];
   if (!pool || pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -30331,6 +30595,13 @@ function cfSayChaosDraft(modName) {
       `${modName}… okay… adapting…`,
       `My uncle never mentioned a ${modName}. He'll hear about this.`,
       `${modName}?! This is SO going in my match notes.`,
+    ] : cfVariant === 'elder' ? [
+      `${modName}. Yes. I remember when that first appeared.`,
+      `Ah. ${modName}. It was inevitable.`,
+      `${modName}. The board has done this before. Different game. Same feeling.`,
+      `I have seen a ${modName} end three careers. None of them mine.`,
+      `${modName}. I nod.`,
+      `${modName}. The reef adapts. It always does.`,
     ] : [
       `What the hell is a ${modName}?!`,
       `…what is a ${modName}. explain.`,
@@ -30351,8 +30622,10 @@ function cfStartCommentary() {
   cfStartDecay();
   cfScheduleIdle();
   const greeting = cfVariant === 'young'
-    ? "Young Chaosfish online. I've been preparing for this all semester."
-    : "Chaosfish online. processing your inevitable defeat.";
+    ? "Chaosfish online. I've been preparing for this all semester." // Young Chaosfish greeting
+    : cfVariant === 'elder'
+    ? "Still here. The board has not changed as much as it thinks." // Elder Chaosfish greeting
+    : "Chaosfish online. processing your inevitable defeat."; // Chaosfish greeting
   setTimeout(() => cfShowBubble(greeting, 3500), 2200);
 }
 
