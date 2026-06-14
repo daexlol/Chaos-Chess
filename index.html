@@ -4654,6 +4654,63 @@ button:active {
   line-height: 1.5;
 }
 .local-ai-difficulty-wrap { margin-bottom: 4px; }
+/* ── Chaosfish Variant Selector ── */
+.cf-variant-row {
+  display: flex; gap: 8px; margin-bottom: 16px;
+  overflow-x: auto; overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  /* hide scrollbar but keep scroll */
+  scrollbar-width: none;
+}
+.cf-variant-row::-webkit-scrollbar { display: none; }
+.cf-variant-card {
+  flex: 0 0 90px; width: 90px; position: relative; cursor: pointer;
+  border: 2px solid rgba(96,165,250,0.2);
+  border-radius: 10px; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: rgba(255,255,255,0.04);
+  scroll-snap-align: start;
+}
+.cf-variant-card:hover:not(.cf-variant-locked) {
+  border-color: rgba(96,165,250,0.55);
+  box-shadow: 0 0 10px rgba(96,165,250,0.2);
+}
+.cf-variant-card.cf-variant-active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96,165,250,0.3);
+}
+.cf-variant-card.cf-variant-locked { cursor: default; }
+.cf-variant-img-wrap {
+  width: 100%; aspect-ratio: 1; display: flex;
+  align-items: center; justify-content: center;
+  padding: 6px; box-sizing: border-box;
+}
+.cf-variant-img-wrap img {
+  width: 100%; height: 100%; object-fit: contain;
+  display: block;
+}
+.cf-variant-locked .cf-variant-img-wrap img {
+  filter: brightness(0);
+  opacity: 0.7;
+}
+.cf-variant-locked-overlay {
+  display: none; position: absolute;
+  inset: 0; align-items: center; justify-content: center;
+  flex-direction: column; gap: 3px;
+  background: rgba(0,0,0,0.75); border-radius: 8px;
+  padding: 6px; text-align: center; cursor: pointer;
+}
+.cf-variant-locked .cf-variant-locked-overlay { display: flex; }
+.cf-variant-lock-icon { font-size: 16px; line-height: 1; }
+.cf-variant-lock-hint { font-size: 8px; color: rgba(255,255,255,0.55); line-height: 1.3; }
+.cf-variant-name {
+  font-size: 9px; font-weight: 700; text-align: center;
+  color: rgba(255,255,255,0.65); padding: 0 3px 6px;
+  letter-spacing: 0.03em; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
 .local-ai-diff-labels {
   display: flex; justify-content: space-between;
   font-size: 11px; color: rgba(255,255,255,0.35);
@@ -11756,6 +11813,27 @@ body.total-chaos-entering #total-chaos-bleed {
           <div class="pvt-card-badge" style="color:#60a5fa;background:rgba(96,165,250,0.12);border-color:rgba(96,165,250,0.3);">VS AI</div>
           <div class="pvt-card-title">Play vs AI</div>
           
+          <div class="pvt-section-label" style="margin-top:8px;">Variant</div>
+          <div class="cf-variant-row" id="cf-variant-row">
+            <!-- Chaosfish (always unlocked) -->
+            <div class="cf-variant-card cf-variant-active" id="cf-variant-card-chaosfish" onclick="selectCfVariant('chaosfish')">
+              <div class="cf-variant-img-wrap">
+                <img src="chaosfish.png" alt="Chaosfish" id="cf-variant-img-chaosfish">
+              </div>
+              <div class="cf-variant-name">Chaosfish</div>
+            </div>
+            <!-- Young Chaosfish (locked until 5 wins) -->
+            <div class="cf-variant-card cf-variant-locked" id="cf-variant-card-young" onclick="selectCfVariant('young')">
+              <div class="cf-variant-img-wrap">
+                <img src="young_chaosfish.png" alt="Young Chaosfish" id="cf-variant-img-young">
+              </div>
+              <div class="cf-variant-locked-overlay">
+                <div class="cf-variant-lock-icon">🔒</div>
+                <div class="cf-variant-lock-hint">Beat Chaosfish 5 times to unlock</div>
+              </div>
+              <div class="cf-variant-name">Young Chaosfish</div>
+            </div>
+          </div>
 
           <div class="pvt-section-label" style="margin-top:8px;">Difficulty</div>
           <div class="local-ai-difficulty-wrap">
@@ -18717,9 +18795,11 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
         if (_winner === aiColor) {
           cfPushEmotion('aiWins');
           setTimeout(() => cfShowBubble(cfPickLine('aiWins'), 6000), 300);
+          recordCfGameResult(cfVariant, 'loss');
         } else {
           cfPushEmotion('aiLoses');
           setTimeout(() => cfShowBubble(cfPickLine('aiLoses'), 6000), 300);
+          recordCfGameResult(cfVariant, 'win');
         }
       }
       endGame(`Checkmate! ${turn==='white'?'Black':'White'} wins! 👑`, 4000);
@@ -24773,6 +24853,8 @@ async function loadProfile(){
     updateLobbyUI();
     // Sync discovered modifiers from server → merge with local cache
     await loadDiscoveredModifiersFromFirestore();
+    // Load Chaosfish variant unlock state
+    loadCfVariantUnlocks();
   }
 }
 
@@ -29317,6 +29399,68 @@ async function requestAiMove() {
 //  Chaosfish sometimes barely reacts and sometimes tilts hard.
 // ------------------------------------------------------------
 
+// Current Chaosfish variant: 'chaosfish' | 'young'
+let cfVariant = 'chaosfish';
+
+// Firestore keys for per-variant tracking
+const CF_VARIANT_WINS_KEY   = 'chaosfish.variantWins';
+const CF_VARIANT_LOSSES_KEY = 'chaosfish.variantLosses';
+
+function getCfPortraitPrefix() {
+  return cfVariant === 'young' ? 'young_chaosfish' : 'chaosfish';
+}
+
+function selectCfVariant(variant) {
+  const youngCard = document.getElementById('cf-variant-card-young');
+  if (variant === 'young' && youngCard && youngCard.classList.contains('cf-variant-locked')) return;
+  cfVariant = variant;
+  document.querySelectorAll('.cf-variant-card').forEach(c => c.classList.remove('cf-variant-active'));
+  const card = document.getElementById(`cf-variant-card-${variant}`);
+  if (card) card.classList.add('cf-variant-active');
+}
+
+async function loadCfVariantUnlocks() {
+  if (!currentProfile || isGuest || !fbDb) return;
+  try {
+    const doc = await fbDb.collection('users').doc(currentProfile.id).get();
+    const data = doc.data() || {};
+    const wins = (data.chaosfish && data.chaosfish.variantWins && data.chaosfish.variantWins.chaosfish) || 0;
+    const discovered = (data.chaosfish && data.chaosfish.discoveredVariants) || [];
+    // Unlock Young Chaosfish after 5 wins
+    const youngCard = document.getElementById('cf-variant-card-young');
+    if (youngCard && wins >= 5) {
+      youngCard.classList.remove('cf-variant-locked');
+    }
+    // Cache for in-session use
+    window._cfWinsVsChaosfish = wins;
+    window._cfDiscoveredVariants = discovered;
+  } catch(e) {}
+}
+
+async function recordCfGameResult(variant, outcome) {
+  // outcome: 'win' | 'loss' | 'draw'
+  if (!currentProfile || isGuest || !fbDb) return;
+  const ref = fbDb.collection('users').doc(currentProfile.id);
+  const inc = firebase.firestore.FieldValue.increment;
+  const update = {};
+  update[`chaosfish.variantWins.${variant}`]   = outcome === 'win'  ? inc(1) : inc(0);
+  update[`chaosfish.variantLosses.${variant}`] = outcome === 'loss' ? inc(1) : inc(0);
+  update[`chaosfish.variantDraws.${variant}`]  = outcome === 'draw' ? inc(1) : inc(0);
+  // Track discovered variants
+  if (!window._cfDiscoveredVariants || !window._cfDiscoveredVariants.includes(variant)) {
+    update['chaosfish.discoveredVariants'] = firebase.firestore.FieldValue.arrayUnion(variant);
+  }
+  try { await ref.update(update); } catch(e) { try { await ref.set(update, {merge:true}); } catch(e2) {} }
+  // Update local unlock state after win
+  if (outcome === 'win' && variant === 'chaosfish') {
+    window._cfWinsVsChaosfish = (window._cfWinsVsChaosfish || 0) + 1;
+    if (window._cfWinsVsChaosfish >= 5) {
+      const youngCard = document.getElementById('cf-variant-card-young');
+      if (youngCard) youngCard.classList.remove('cf-variant-locked');
+    }
+  }
+}
+
 const CF_EMOTION = {
   EXCITED:    0,
   PROUD:      1,
@@ -29356,10 +29500,19 @@ function cfClampEmotion() {
 
 /** Return which portrait src corresponds to the current cfEmotion */
 function cfEmotionToPortraitSrc(val) {
-  for (const tier of CF_PORTRAIT_MAP) {
-    if (val <= tier.maxVal) return tier.src;
+  const prefix = getCfPortraitPrefix();
+  const suffixes = [
+    { maxVal: 0.6,  suffix: '_excited'    },
+    { maxVal: 1.5,  suffix: '_proud'      },
+    { maxVal: 2.5,  suffix: ''            },
+    { maxVal: 3.5,  suffix: '_baffled'    },
+    { maxVal: 4.5,  suffix: '_frustrated' },
+    { maxVal: 5.0,  suffix: '_furious'    },
+  ];
+  for (const tier of suffixes) {
+    if (val <= tier.maxVal) return `${prefix}${tier.suffix}.png`;
   }
-  return 'chaosfish_furious.png';
+  return `${prefix}_furious.png`;
 }
 
 /**
@@ -29474,11 +29627,12 @@ function cfPushEmotion(eventName) {
 /** Reset emotion to normal and refresh portrait (called on game start/restart) */
 function cfResetEmotion() {
   cfEmotion = CF_EMOTION.NORMAL;
-  cfCurrentPortraitSrc = 'chaosfish.png';
+  const base = `${getCfPortraitPrefix()}.png`;
+  cfCurrentPortraitSrc = base;
   cfLastPortraitSwitch = 0;
   // Update portrait to normal immediately
   const imgEls = document.querySelectorAll('.gpc-avatar-chaosfish img');
-  imgEls.forEach(img => { img.src = 'chaosfish.png'; img.style.opacity = '1'; });
+  imgEls.forEach(img => { img.src = base; img.style.opacity = '1'; });
 }
 
 // ── Emotion-aware line picking ────────────────────────────────
@@ -29523,10 +29677,12 @@ const CF_LINE_BIAS = {
  * Pulls from the standard pool but boosts lines matching current emotional state.
  */
 function cfPickLineEmotional(scenario) {
-  const pool = CHAOSFISH_LINES[scenario];
+  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES : CHAOSFISH_LINES;
+  const bias  = cfVariant === 'young' ? CF_YOUNG_LINE_BIAS    : CF_LINE_BIAS;
+  const pool = lines[scenario];
   if (!pool || pool.length === 0) return null;
 
-  const biasMeta = CF_LINE_BIAS[scenario];
+  const biasMeta = bias[scenario];
   if (!biasMeta) return pool[Math.floor(Math.random() * pool.length)];
 
   // Figure out which bias bucket we're in (if any)
@@ -29820,8 +29976,228 @@ let cfBubbleTimeout  = null;
 let cfIdleTimeout    = null;
 let cfCommentaryActive = false;
 
+// ── Young Chaosfish dialogue ─────────────────────────────────────────────────
+// Same emotional architecture as Chaosfish, but younger — confident, ambitious,
+// mischievous, pre-trauma. References events from Chaosfish's lines as things
+// that haven't happened yet (he's at Coral Academy, uncle still active, etc.)
+const CF_YOUNG_LINE_BIAS = {
+  aiCaptures: {
+    excited:   ["CHOMP! Got it! Did you see that?!", "NOM. I've been practising that one.", "Textbook. My uncle taught me that sequence.", "Heh. Reef-claimed. I'm writing this one down."],
+    proud:     ["Material advantage established. As expected.", "That's going in my match notes.", "My opening preparation is already paying off.", "I've been studying this exact line all semester."],
+    furious:   ["CHOMP. Nothing personal. Actually, it's a little personal.", "I take what the board gives. The board gave me that.", "Professor Tide said I was too aggressive. Professor Tide was wrong."],
+  },
+  playerCaptures: {
+    baffled:    ["Hm. I didn't calculate that. I'll calculate it now.", "That's… fine. My plan is still intact. Mostly.", "A slight material inaccuracy on my part. Noted. Won't happen again."],
+    frustrated: ["That piece was essential to my initiative!", "I miscounted the tempo. It happens. It won't happen again.", "My evaluation is still positive. I'm choosing to believe that."],
+    furious:    ["NO. That was part of my winning plan!", "My aquarium formation is leaking a little. It's fine. It's fine.", "Okay. Recalculating. I'm still going to win."],
+  },
+  idle: {
+    excited:    ["My neural coral is firing at PEAK frequency today.", "I've been looking forward to this game since breakfast.", "My opening prep alone should win this."],
+    proud:      ["Position is fine. I'm in control. This is how top players feel.", "I'm tracking 12 candidate moves. Most of them are excellent.", "The board is speaking to me. It's saying I'm winning."],
+    furious:    ["This position is trickier than I thought. I've seen trickier.", "Something about this doesn't smell right. I'll figure it out.", "I can handle a haunted board."],
+  },
+};
+
+const YOUNG_CHAOSFISH_LINES = {
+  idle: [
+    "Excellent. A position worthy of analysis.",
+    "Stockfish may calculate faster. I calculate better.",
+    "This position tastes like opportunity.",
+    "My uncle says patience wins games like these.",
+    "I've been studying this opening for three tides. It's paying off.",
+    "Coral Academy teaches patience. I'm choosing to ignore that lesson.",
+    "Professor Tide says I take too many risks. Professor Tide hasn't won a tournament.",
+    "I can handle a haunted board.",
+    "Position is fine. I'm in complete control.",
+    "I've already calculated seventeen moves ahead. Twelve of them are brilliant.",
+    "My neural coral is firing at peak frequency today.",
+    "The currents are favourable. I made them favourable.",
+    "This reminds me of a position from my first tournament. I won that one.",
+    "I'm going to be better than Stockfish someday. I've decided.",
+    "My uncle says the best chess is played with conviction. Noted.",
+    "I've annotated thirty games this week. I'm ready for anything.",
+    "The reef elders say to play within yourself. I play beyond myself. Better results.",
+    "I'm already drafting my post-game analysis. Chapter one: domination.",
+    "Chaos modifiers don't make chess less strategic. They make ME stronger.",
+    "Everyone compares about chaos. Skill issue.",
+    "Some fish say I should slow down. Those fish are slower than me.",
+    "Stockfish calculates depth. I calculate destiny.",
+    "I've never been expelled from anything. I intend to keep it that way. Probably.",
+    "I'm the most promising student at Coral Academy. I've checked. Multiple times.",
+    "This position has layers. I see all of them.",
+  ],
+
+  aiCaptures: [
+    "CHOMP! Got it!",
+    "Reef-claimed. Next.",
+    "Material secured. Moving on.",
+    "That piece has joined my collection.",
+    "Nom. Clean. Precise. Beautiful.",
+    "I've been practising that exact capture for weeks.",
+    "My uncle taught me that technique. Thanks, uncle.",
+    "Textbook reef acquisition.",
+    "ACQUIRED. The plan proceeds as calculated.",
+    "Professor Tide says I'm too aggressive. Professor Tide never captures like that.",
+    "That piece never stood a chance. I knew before the game started.",
+    "One piece closer to the endgame masterclass I have planned.",
+    "Excellent. My material count is looking very academically impressive.",
+    "The feeding phase has commenced. I prepared for this.",
+    "My opening prep said this would happen. My opening prep was right.",
+    "Yes. Yes, this is going exactly as I envisioned.",
+    "I'll put this capture in my notes. Under 'obvious brilliancies'.",
+    "I could get used to this.",
+    "NOM. With precision.",
+  ],
+
+  playerCaptures: [
+    "Hm. I didn't calculate that. I'm calculating it now.",
+    "A temporary inaccuracy. My plan is still intact.",
+    "That piece was not critical. I've decided it was not critical.",
+    "That's fine. Regrouping is also a strategy.",
+    "Interesting. I'll add this to my list of learning experiences.",
+    "I miscounted the tempo. Won't happen again.",
+    "My evaluation is still positive. I believe this.",
+    "Professor Tide would use this moment to say something annoying. I won't let him.",
+    "My uncle loses material all the time. He still wins. Usually.",
+    "The plan adapts. I'm very good at adapting.",
+    "That was a calculated positional concession. I'm choosing that explanation.",
+    "Fine. Different plan. Better plan.",
+    "Slight material setback. Not a crisis. Definitely not a crisis.",
+    "I let you have that one. Strategically.",
+    "Oh. Hm. Okay. Recalculating.",
+    "I've seen my uncle recover from worse. I can recover from this.",
+    "This is a test of my resilience. I'm very resilient.",
+  ],
+
+  aiChecks: [
+    "CHECK! Did you feel the current shift?",
+    "Your king has been located. Hello, king.",
+    "CHECK! My attack is proceeding perfectly.",
+    "CHECK. Pressure applied. As planned.",
+    "CHECK! This is the part I practised most.",
+    "Your king is now on my priority list.",
+    "CHECK. The net is forming.",
+    "CHECK! My uncle would be proud of this check.",
+    "Your king is having a bad tide.",
+    "CHECK. I calculated this three moves ago.",
+    "King spotted. Initiative maintained.",
+    "CHECK! Professor Tide said my attacking play was reckless. Incorrect.",
+    "The king-hunting phase has commenced. I'm very good at this phase.",
+    "CHECK! This is why I study chess at 3 AM.",
+    "Your king looks stressed. That's my doing.",
+  ],
+
+  aiInCheck: [
+    "Oh. That's a check. Okay.",
+    "DEFENSIVE PROTOCOLS ACTIVATING.",
+    "My king is exposed. Temporarily. I have a plan.",
+    "Hm. I didn't see that. I see it now.",
+    "My king is in a slightly suboptimal position.",
+    "This is fine. I've practised defending from difficult positions.",
+    "CHECK? But my calculation said— okay. Recalculating.",
+    "My king is fine. I'm choosing to believe my king is fine.",
+    "I can get out of this. I've read every endgame manual.",
+    "ALERT. King safety: slightly compromised. Working on it.",
+    "My uncle said to always have a king safety plan. I had one. Adjusting it.",
+    "Okay this is fine I've definitely seen Professor Tide survive worse.",
+    "Defensive mode engaged. Temporarily. I'll be attacking again soon.",
+    "I was not expecting that specific move at that specific time. But I adapt.",
+    "I may have slightly underestimated your attack. Slightly.",
+    "This is a learning experience. I'm learning right now. Quickly.",
+  ],
+
+  aiWins: [
+    "CHECKMATE! As calculated!",
+    "Victory achieved. I'll be adding this to my match record.",
+    "CHECKMATE! My preparation was impeccable.",
+    "The ocean claims this game. I helped.",
+    "CHECKMATE! Professor Tide can't say ANYTHING about this result.",
+    "My uncle would've finished this ten moves earlier. But I still finished it.",
+    "CHECKMATE! I'm going to analyse this game all evening.",
+    "Victory! And my king was never in danger. Almost.",
+    "CHECKMATE. The plan held. The plan always holds.",
+    "I knew I'd win before we started. I was right.",
+    "CHECKMATE! I'm writing a paper about this game.",
+    "My first tournament win tasted like this. I like this taste.",
+    "DOMINATION ACHIEVED. With excellent opening preparation.",
+    "Game over. The young fish wins.",
+    "CHECKMATE! Stockfish couldn't have done it with more style.",
+    "I'm going to become the greatest fish strategist of all time. This is step one.",
+  ],
+
+  aiLoses: [
+    "I… lost? Let me check the position again.",
+    "Defeat. I'm adding this to my list of learning experiences. It's a long list now.",
+    "I'll review this game tonight. And tomorrow. And the next day.",
+    "That was a learning experience. A very educational one.",
+    "I didn't see that coming. I'll see it coming next time.",
+    "My uncle said defeats build character. I have a lot of character now.",
+    "I made a mistake somewhere. I'll find it. I'll fix it. I'll be back.",
+    "Professor Tide is not going to hear about this.",
+    "Okay. Fine. You're better than me right now. Right NOW.",
+    "I've been defeated. This is temporary. Very temporary.",
+    "I should've trusted my instincts. My instincts were right. I second-guessed them.",
+    "Coral Academy hasn't taught me how to lose gracefully yet. Working on it.",
+    "I'll annotate this. Every blunder. Every missed move. I'll fix them all.",
+    "This result doesn't reflect my potential. My potential is enormous.",
+    "I'll be back. I have seventeen improvements already in mind.",
+  ],
+
+  aiPromotes: [
+    "PROMOTION! I raised that pawn with so much care!",
+    "A pawn has ascended! The reef CELEBRATES!",
+    "From shrimp to shark! I planned this from move one!",
+    "PROMOTION! This is peak chess. Peak fish chess.",
+    "My pawn grew up so fast… proud moment.",
+    "PROMOTION! Professor Tide never believed in my pawn structure. HA.",
+    "That little pawn had dreams. Now it has POWER.",
+    "I told my uncle about my pawn-advancement strategy. He was sceptical. Not sceptical NOW.",
+    "The coral ladder goes up! And up! And UP!",
+    "Promotion achieved. This was always the plan.",
+    "That pawn worked hard. It deserves this.",
+    "My future is as bright as that queen. I've decided.",
+  ],
+
+  playerPromotes: [
+    "Your pawn reached the back rank. I object.",
+    "ALERT. Enemy lifeform upgraded. Not in my plans.",
+    "I should've stopped that pawn. Making a note: stop that pawn.",
+    "From shrimp to shark. Yours, not mine. Unfortunate.",
+    "That promotion was not in my calculation. Adding it now.",
+    "Professor Tide always said pawn structure matters. I see that now.",
+    "I watched that pawn the whole game. I watched it promote. Tragic.",
+    "My uncle would have taken that pawn six moves ago. My uncle was right.",
+    "A new queen emerges. This changes my plan. My plan will adapt.",
+    "I'd like to formally protest this promotion.",
+    "Okay. You have a queen now. I still have a strategy.",
+    "That pawn just had a glow-up and I'm not happy about it.",
+    "I should've dealt with that earlier. Noted. Noted deeply.",
+  ],
+
+  chaos: [
+    "Wait, what is THAT?",
+    "The board just changed and I haven't read the rulebook on that yet.",
+    "Is this… allowed?? I'll check. After I finish calculating.",
+    "A new modifier! I can work with this. Probably.",
+    "The chaos modifier has arrived. My theory accounts for it.",
+    "Something has changed that wasn't in my preparation notes.",
+    "I didn't know the board could do that. Adding it to my notes.",
+    "My academy training did NOT cover this specific scenario.",
+    "Interesting. I bet I can exploit that.",
+    "Why is there a duck? You know what, I'll adapt.",
+    "The ecosystem has shifted. Fortunately, I'm very adaptable.",
+    "THIS IS NOT IN THE TEXTBOOK. But I'll figure it out.",
+    "Chaos modifier?! My uncle mentioned these. He said to stay calm.",
+    "Reality update: not in the curriculum. Proceeding anyway.",
+    "I've never seen this before. This is going in my match notes.",
+    "Professor Tide definitely didn't prepare me for this.",
+    "The board is getting more interesting. I like interesting.",
+  ],
+};
+
 function cfPickLine(scenario) {
-  const pool = CHAOSFISH_LINES[scenario];
+  const lines = cfVariant === 'young' ? YOUNG_CHAOSFISH_LINES : CHAOSFISH_LINES;
+  const pool = lines[scenario];
   if (!pool || pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)];
 }
@@ -29876,13 +30252,19 @@ function cfScheduleIdle() {
 // Tracks the name of the most recently drafted modifier (AI or player)
 let cfLastDraftedModifier = null;
 
-// Special chaos-draft quip: 50% chance of "what the hell is a X", 50% generic chaos line
+// Special chaos-draft quip: 50% chance of a mod-name reaction, 50% generic chaos line
 function cfSayChaosDraft(modName) {
   if (!cfCommentaryActive) return;
-  // Chaos modifier always nudges emotion toward baffled/furious
   cfPushEmotion('chaosDraft');
   if (modName && Math.random() < 0.5) {
-    const wtfLines = [
+    const wtfLines = cfVariant === 'young' ? [
+      `Wait — what even IS a ${modName}??`,
+      `${modName}?! That's not in the textbook.`,
+      `A ${modName}?! I need to write this down.`,
+      `${modName}… okay… adapting…`,
+      `My uncle never mentioned a ${modName}. He'll hear about this.`,
+      `${modName}?! This is SO going in my match notes.`,
+    ] : [
       `What the hell is a ${modName}?!`,
       `…what is a ${modName}. explain.`,
       `${modName}??? I did not consent to this.`,
@@ -29890,8 +30272,7 @@ function cfSayChaosDraft(modName) {
       `${modName}. processing. still processing. cannot process.`,
       `Wait. ${modName}?? The ocean did not prepare me for this.`,
     ];
-    const line = wtfLines[Math.floor(Math.random() * wtfLines.length)];
-    cfShowBubble(line, 3200);
+    cfShowBubble(wtfLines[Math.floor(Math.random() * wtfLines.length)], 3200);
   } else {
     cfSay('chaos', 3000);
   }
@@ -29902,8 +30283,10 @@ function cfStartCommentary() {
   cfResetEmotion();
   cfStartDecay();
   cfScheduleIdle();
-  // Opening greeting after a short delay
-  setTimeout(() => cfShowBubble("Chaosfish online. processing your inevitable defeat.", 3500), 2200);
+  const greeting = cfVariant === 'young'
+    ? "Young Chaosfish online. I've been preparing for this all semester."
+    : "Chaosfish online. processing your inevitable defeat.";
+  setTimeout(() => cfShowBubble(greeting, 3500), 2200);
 }
 
 function cfStopCommentary() {
@@ -29962,7 +30345,7 @@ function startVsAI() {
   document.getElementById('local-controls').style.display = 'flex';
   restart();
   setupLocalGameCards();
-  showToast(`Playing vs Chaosfish — you are ${playerColor}`, 3000);
+  showToast(`Playing vs ${cfVariant === 'young' ? 'Young Chaosfish' : 'Chaosfish'} — you are ${playerColor}`, 3000);
 
   // Flip board if player is black
   const boardEl = document.getElementById('board');
