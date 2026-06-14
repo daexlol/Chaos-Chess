@@ -11826,14 +11826,14 @@ body.total-chaos-entering #total-chaos-bleed {
             <!-- Chaosfish (always unlocked) -->
             <div class="cf-variant-card cf-variant-active" id="cf-variant-card-chaosfish" onclick="selectCfVariant('chaosfish')">
               <div class="cf-variant-img-wrap">
-                <img src="chaosfish.png" alt="Chaosfish" id="cf-variant-img-chaosfish">
+                <img src="assets/chaosfish/normal/chaosfish.png" alt="Chaosfish" id="cf-variant-img-chaosfish">
               </div>
               <div class="cf-variant-name">Chaosfish</div>
             </div>
             <!-- Young Chaosfish (locked until 5 wins) -->
             <div class="cf-variant-card cf-variant-locked" id="cf-variant-card-young" onclick="selectCfVariant('young')">
               <div class="cf-variant-img-wrap">
-                <img src="young_chaosfish.png" alt="Young Chaosfish" id="cf-variant-img-young">
+                <img src="assets/chaosfish/young/young_chaosfish.png" alt="Young Chaosfish" id="cf-variant-img-young">
               </div>
               <div class="cf-variant-locked-overlay">
                 <div class="cf-variant-lock-icon">🔒</div>
@@ -11844,7 +11844,7 @@ body.total-chaos-entering #total-chaos-bleed {
             <!-- Elder Chaosfish (locked until 10 Total Chaos triggers) -->
             <div class="cf-variant-card cf-variant-locked" id="cf-variant-card-elder" onclick="selectCfVariant('elder')">
               <div class="cf-variant-img-wrap">
-                <img src="elder_chaosfish.png" alt="Elder Chaosfish" id="cf-variant-img-elder">
+                <img src="assets/chaosfish/elder/elder_chaosfish.png" alt="Elder Chaosfish" id="cf-variant-img-elder">
               </div>
               <div class="cf-variant-locked-overlay">
                 <div class="cf-variant-lock-icon">🔒</div>
@@ -14204,18 +14204,18 @@ function applyAllSettings(){
     // Custom Chaos piece set — local files named chaos_(colour)_(piece).png
     console.log('[Piece Theme] Switching to Chaos custom sprites');
     const bust = '?v=' + Date.now();
-    pieceImages.P = 'chaos_white_pawn.png'   + bust;
-    pieceImages.R = 'chaos_white_rook.png'   + bust;
-    pieceImages.N = 'chaos_white_knight.png' + bust;
-    pieceImages.B = 'chaos_white_bishop.png' + bust;
-    pieceImages.Q = 'chaos_white_queen.png'  + bust;
-    pieceImages.K = 'chaos_white_king.png'   + bust;
-    pieceImages.p = 'chaos_black_pawn.png'   + bust;
-    pieceImages.r = 'chaos_black_rook.png'   + bust;
-    pieceImages.n = 'chaos_black_knight.png' + bust;
-    pieceImages.b = 'chaos_black_bishop.png' + bust;
-    pieceImages.q = 'chaos_black_queen.png'  + bust;
-    pieceImages.k = 'chaos_black_king.png'   + bust;
+    pieceImages.P = 'assets/pieces/chaos/chaos_white_pawn.png'   + bust;
+    pieceImages.R = 'assets/pieces/chaos/chaos_white_rook.png'   + bust;
+    pieceImages.N = 'assets/pieces/chaos/chaos_white_knight.png' + bust;
+    pieceImages.B = 'assets/pieces/chaos/chaos_white_bishop.png' + bust;
+    pieceImages.Q = 'assets/pieces/chaos/chaos_white_queen.png'  + bust;
+    pieceImages.K = 'assets/pieces/chaos/chaos_white_king.png'   + bust;
+    pieceImages.p = 'assets/pieces/chaos/chaos_black_pawn.png'   + bust;
+    pieceImages.r = 'assets/pieces/chaos/chaos_black_rook.png'   + bust;
+    pieceImages.n = 'assets/pieces/chaos/chaos_black_knight.png' + bust;
+    pieceImages.b = 'assets/pieces/chaos/chaos_black_bishop.png' + bust;
+    pieceImages.q = 'assets/pieces/chaos/chaos_black_queen.png'  + bust;
+    pieceImages.k = 'assets/pieces/chaos/chaos_black_king.png'   + bust;
   } else {
     let base = `https://images.chesscomfiles.com/chess-themes/pieces/${pt}/150/`;
     console.log(`[Piece Theme] Switching to ${pt} → base URL: ${base}`);
@@ -14328,7 +14328,7 @@ function buildPieceThemeOpts(){
     if (t.custom) {
       // Chaos custom theme: preview from local file, fallback to emoji
       const CHAOS_FALLBACK_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='78' font-size='80' text-anchor='middle' x='50'%3E%E2%99%9F%3C/text%3E%3C/svg%3E`;
-      el.innerHTML = `<img src="chaos_white_king.png" onerror="this.src='${CHAOS_FALLBACK_SVG}'"><span>${t.label}</span>`;
+      el.innerHTML = `<img src="assets/pieces/chaos/chaos_white_king.png" onerror="this.src='${CHAOS_FALLBACK_SVG}'"><span>${t.label}</span>`;
     } else {
       let base = `https://images.chesscomfiles.com/chess-themes/pieces/${t.path}/150/`;
       el.innerHTML = `<img src="${base}wk.png"><span>${t.label}</span>`;
@@ -29447,9 +29447,9 @@ const CF_VARIANT_WINS_KEY   = 'chaosfish.variantWins';
 const CF_VARIANT_LOSSES_KEY = 'chaosfish.variantLosses';
 
 function getCfPortraitPrefix() {
-  if (cfVariant === 'young')  return 'young_chaosfish';
-  if (cfVariant === 'elder')  return 'elder_chaosfish';
-  return 'chaosfish';
+  if (cfVariant === 'young')  return 'assets/chaosfish/young/young_chaosfish';
+  if (cfVariant === 'elder')  return 'assets/chaosfish/elder/elder_chaosfish';
+  return 'assets/chaosfish/normal/chaosfish';
 }
 
 function selectCfVariant(variant) {
@@ -29516,14 +29516,14 @@ const CF_EMOTION = {
   FURIOUS:    5,
 };
 
-// Map portrait thresholds: which image file to show per tier
+// Map portrait thresholds: kept for reference (active portraits use getCfPortraitPrefix())
 const CF_PORTRAIT_MAP = [
-  { maxVal: 0.6,  src: 'chaosfish_excited.png'   }, // 0.0 – 0.6  → excited
-  { maxVal: 1.5,  src: 'chaosfish_proud.png'      }, // 0.6 – 1.5  → proud
-  { maxVal: 2.5,  src: 'chaosfish.png'            }, // 1.5 – 2.5  → normal
-  { maxVal: 3.5,  src: 'chaosfish_baffled.png'    }, // 2.5 – 3.5  → baffled
-  { maxVal: 4.5,  src: 'chaosfish_frustrated.png' }, // 3.5 – 4.5  → frustrated
-  { maxVal: 5.0,  src: 'chaosfish_furious.png'    }, // 4.5 – 5.0  → furious
+  { maxVal: 0.6,  src: 'assets/chaosfish/normal/chaosfish_excited.png'   },
+  { maxVal: 1.5,  src: 'assets/chaosfish/normal/chaosfish_proud.png'      },
+  { maxVal: 2.5,  src: 'assets/chaosfish/normal/chaosfish.png'            },
+  { maxVal: 3.5,  src: 'assets/chaosfish/normal/chaosfish_baffled.png'    },
+  { maxVal: 4.5,  src: 'assets/chaosfish/normal/chaosfish_frustrated.png' },
+  { maxVal: 5.0,  src: 'assets/chaosfish/normal/chaosfish_furious.png'    },
 ];
 
 // Current emotional state (float)
@@ -29535,7 +29535,7 @@ let   cfLastPortraitSwitch = 0;
 let   cfPortraitDecayTimer = null;
 
 // Which portrait src is currently displayed
-let cfCurrentPortraitSrc = 'chaosfish.png';
+let cfCurrentPortraitSrc = 'assets/chaosfish/normal/chaosfish.png';
 
 // ── Core helpers ─────────────────────────────────────────────
 
@@ -30830,7 +30830,7 @@ function setupLocalGameCards() {
     if (oppAvatar) {
       oppAvatar.textContent = '';
       oppAvatar.className = 'gpc-avatar gpc-avatar-chaosfish ' + topAvatarClass;
-      oppAvatar.innerHTML = '<img src="chaosfish.png" alt="Chaosfish" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      oppAvatar.innerHTML = '<img src="assets/chaosfish/normal/chaosfish.png" alt="Chaosfish" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     }
     if (oppNameEl) oppNameEl.textContent = opponentName;
     if (oppRatingEl) oppRatingEl.textContent = opponentRating;
