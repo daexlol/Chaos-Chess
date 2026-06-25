@@ -9165,6 +9165,89 @@ body.total-chaos-entering #total-chaos-bleed {
 
 /* ---- FAVOURITE MODIFIERS (full width bottom) ---- */
 .prof-mods-section { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Match History ─────────────────────────────────────────── */
+.prof-match-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.prof-match-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.prof-match-row::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+.prof-match-row.win::before   { background: #34d399; }
+.prof-match-row.loss::before  { background: #f87171; }
+.prof-match-row.draw::before  { background: #fbbf24; }
+.prof-match-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+.prof-match-badge {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.prof-match-badge.win  { background: rgba(52,211,153,0.15); color: #34d399; }
+.prof-match-badge.loss { background: rgba(248,113,113,0.15); color: #f87171; }
+.prof-match-badge.draw { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+.prof-match-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prof-match-opponent {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.prof-match-meta {
+  font-size: 10px; color: rgba(255,255,255,0.38);
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; overflow: hidden;
+}
+.prof-match-meta-sep { opacity: 0.4; }
+.prof-match-mods {
+  display: flex; gap: 3px; flex-wrap: nowrap; overflow: hidden;
+  max-width: 100%; margin-top: 3px;
+}
+.prof-match-mod-pill {
+  font-size: 9px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 80px;
+}
+.prof-match-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.prof-match-delta {
+  font-size: 13px; font-weight: 700;
+}
+.prof-match-delta.pos { color: #34d399; }
+.prof-match-delta.neg { color: #f87171; }
+.prof-match-delta.zero { color: rgba(255,255,255,0.35); }
+.prof-match-time { font-size: 10px; color: rgba(255,255,255,0.3); text-align: right; }
+.prof-match-moves { font-size: 10px; color: rgba(255,255,255,0.3); }
+.prof-match-load-more {
+  text-align: center; padding: 10px;
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  cursor: pointer; letter-spacing: 0.5px;
+  transition: color 0.15s;
+}
+.prof-match-load-more:hover { color: rgba(255,255,255,0.6); }
+.prof-match-empty {
+  text-align: center; padding: 28px 0;
+  font-size: 13px; color: rgba(255,255,255,0.25);
+  font-style: italic;
+}
+.prof-match-chaos-badge {
+  font-size: 9px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(168,85,247,0.15); color: rgba(168,85,247,0.8);
+  font-weight: 700; letter-spacing: 0.5px;
+}
 .prof-featured-mod {
   border-radius: 15px; padding: 20px 22px;
   display: flex; align-items: center; gap: 18px;
@@ -12493,6 +12576,17 @@ body.total-chaos-entering #total-chaos-bleed {
             <div id="prof-featured-mod-wrap"></div>
             <!-- Top 2–5 minor cards -->
             <div class="prof-mods-minor-list" id="prof-mods-minor-list" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <!-- ── MATCH HISTORY (full width) ── -->
+        <div class="prof-card prof-mods-section" id="prof-match-history-card">
+          <div class="prof-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>⚔️ Match History</span>
+            <span id="prof-match-history-count" style="font-size:11px;color:rgba(255,255,255,0.3);font-weight:400;letter-spacing:0.5px;"></span>
+          </div>
+          <div class="prof-match-list" id="prof-match-list">
+            <div class="prof-match-empty">Loading matches…</div>
           </div>
         </div>
 
@@ -23490,16 +23584,14 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
       if(mod.name === "It’s Raining") spawnRain();
       if(mod.name === 'Clown Parade') {
         const _isPassAndPlay = gameMode === 'local' && !(typeof aiActive !== 'undefined' && aiActive);
-        // Pass & play: both players share the screen, so always spawn clowns
-        // Online / vs AI: only the opponent of the drafter sees them
         if (_isPassAndPlay) {
+          // Pass & Play: both players share screen, always spawn
           spawnClownParade(drafter);
-        } else if (gameMode === 'online') {
-          if (drafter !== myColor) spawnClownParade(drafter);
-        } else {
-          // vs AI: player is opposite of aiColor; show if drafter is the AI
+        } else if (gameMode === 'local' && typeof aiActive !== 'undefined' && aiActive) {
+          // vs AI: only spawn if the AI drafted it (human gets clowned)
           if (drafter === aiColor) spawnClownParade(drafter);
         }
+        // Online: handled by the sync handler on the opponent's client — don't spawn here
       }
 
       if(mod.name === 'Tornado de Caballos') {
@@ -24310,6 +24402,22 @@ function handleRemoteData(data){
   const _oldBlackModifiers = blackModifiers ? [...blackModifiers] : [];
   if (data.whiteModifiers !== undefined) whiteModifiers = data.whiteModifiers;
   if (data.blackModifiers !== undefined) blackModifiers = data.blackModifiers;
+
+  // Clown Parade: spawn on this client when the opponent drafts it (non-environmental, lives in personal arrays)
+  if (myColor) {
+    const _oppColor = myColor === 'white' ? 'black' : 'white';
+    const _oldOppArr = _oppColor === 'white' ? _oldWhiteModifiers : _oldBlackModifiers;
+    const _newOppArr = _oppColor === 'white' ? (data.whiteModifiers || []) : (data.blackModifiers || []);
+    if (!_oldOppArr.includes('Clown Parade') && _newOppArr.includes('Clown Parade')) {
+      spawnClownParade(_oppColor);
+    }
+    // Shared mode fallback
+    if (!personalModifiers && oldModifiers && data.modifiers) {
+      if (!oldModifiers.includes('Clown Parade') && data.modifiers.includes('Clown Parade')) {
+        spawnClownParade(_oppColor);
+      }
+    }
+  }
   if(data.chaosLevel !== undefined) chaosLevel = data.chaosLevel;
   if(data.totalChaosActive !== undefined) totalChaosActive = data.totalChaosActive;
   updateChaosLevelUI();
@@ -25672,6 +25780,8 @@ async function updateRatingAfterGame(outcome){
   if(outcome === 'draw') currentProfile.draws  = (currentProfile.draws  || 0) + 1;
 
   showRatingResult(outcome, oldRating, newRating, delta, newStreak, streakBonus);
+  // Save to match history subcollection
+  saveMatchToHistory(outcome, window._lastWinType || 'checkmate', delta, newRating);
 }
 
 // ── Post-game screen state ────────────────────────────────────────────────
@@ -25927,6 +26037,7 @@ endGame = function(message, delay = 3000){
           // Unrated private match — show postgame screen but never touch rating
           showPostgameUnrated(outcome, window._lastWinType);
           updateStatsAfterGame(outcome, window._lastWinType);
+          saveMatchToHistory(outcome, window._lastWinType, 0, currentProfile.rating);
         }
       } else {
         // Online but outcome unclear — show unrated screen
@@ -26730,6 +26841,159 @@ async function updateStatsAfterGame(outcome, winType){
   }
 }
 
+// ── Match History ────────────────────────────────────────────────────────────
+
+async function saveMatchToHistory(outcome, winType, ratingDelta, newRating) {
+  if (!currentProfile || isGuest || !fbDb || gameMode !== 'online') return;
+  try {
+    const opponentName = window._mmOpponent ? window._mmOpponent.username : (window._gameOpponentName || 'Unknown');
+    const opponentRating = window._gameOpponentRating || null;
+    const matchData = {
+      opponent:       opponentName,
+      opponentRating: opponentRating,
+      outcome:        outcome,                        // 'win' | 'loss' | 'draw'
+      winType:        winType,
+      myRating:       newRating || currentProfile.rating || 1000,
+      ratingDelta:    ratingDelta || 0,
+      moveCount:      (myMovesThisGame || 0) * 2,   // approx total moves
+      myMoves:        myMovesThisGame || 0,
+      effects:        gameEffectsTriggered || 0,
+      chaosReached:   totalChaosActive,
+      modifiers:      [...modifiers].slice(0, 8),   // cap to avoid huge docs
+      rated:          privateMatchRated,
+      timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
+    };
+    await fbDb.collection('users').doc(currentProfile.id)
+               .collection('matches').add(matchData);
+  } catch(e) {
+    console.warn('saveMatchToHistory failed:', e);
+  }
+}
+
+// ── Match History Rendering ──────────────────────────────────────────────────
+
+let _matchHistoryPage = 0;
+const MATCHES_PER_PAGE = 10;
+let _matchHistoryAll = [];
+
+function _timeAgo(ts) {
+  if (!ts) return '';
+  const sec = Math.floor((Date.now() - ts.toMillis()) / 1000);
+  if (sec < 60)   return 'just now';
+  if (sec < 3600) return `${Math.floor(sec/60)}m ago`;
+  if (sec < 86400) return `${Math.floor(sec/3600)}h ago`;
+  const d = Math.floor(sec/86400);
+  return d === 1 ? 'yesterday' : `${d}d ago`;
+}
+
+function _winTypeLabel(wt) {
+  const map = {
+    checkmate:   '♟ Checkmate', captureKing: '👑 Capture King',
+    time:        '⏱ Time',     resignation:  '🏳 Resigned',
+    stalemate:   '½ Stalemate', agreement:   '½ Agreement',
+    repetition:  '½ Repetition',
+  };
+  return map[wt] || wt || '';
+}
+
+function _renderMatchRow(m) {
+  const outcome = m.outcome || 'draw';
+  const delta   = m.ratingDelta || 0;
+  const deltaStr = !m.rated ? '' : delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : '±0';
+  const deltaCls = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
+
+  const modPills = (m.modifiers || []).slice(0, 3).map(mod => {
+    const def = findModByName(mod);
+    const icon = def ? def.icon : '✦';
+    return `<span class="prof-match-mod-pill" title="${mod}">${icon} ${mod}</span>`;
+  }).join('');
+
+  const chaosBadge = m.chaosReached
+    ? `<span class="prof-match-chaos-badge">TOTAL CHAOS</span>`
+    : '';
+
+  const ratedTag = m.rated === false ? '<span class="prof-match-meta-sep">·</span><span style="color:rgba(255,255,255,0.25);">unrated</span>' : '';
+
+  return `
+  <div class="prof-match-row ${outcome}">
+    <div class="prof-match-badge ${outcome}">${outcome === 'win' ? 'W' : outcome === 'loss' ? 'L' : 'D'}</div>
+    <div class="prof-match-main">
+      <div class="prof-match-opponent">vs ${m.opponent || 'Unknown'}</div>
+      <div class="prof-match-meta">
+        <span>${_winTypeLabel(m.winType)}</span>
+        <span class="prof-match-meta-sep">·</span>
+        <span>${m.myMoves || 0} moves</span>
+        ${m.effects > 0 ? `<span class="prof-match-meta-sep">·</span><span>${m.effects} effects</span>` : ''}
+        ${chaosBadge}
+        ${ratedTag}
+      </div>
+      <div class="prof-match-mods">${modPills}</div>
+    </div>
+    <div class="prof-match-right">
+      ${m.rated !== false && deltaStr ? `<div class="prof-match-delta ${deltaCls}">${deltaStr}</div>` : '<div></div>'}
+      <div class="prof-match-time">${_timeAgo(m.timestamp)}</div>
+    </div>
+  </div>`;
+}
+
+async function loadMatchHistory(profileId, isOwnProfile) {
+  const listEl  = document.getElementById('prof-match-list');
+  const countEl = document.getElementById('prof-match-history-count');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="prof-match-empty">Loading…</div>';
+
+  try {
+    const limit = isOwnProfile ? 20 : 5;
+    // No orderBy — avoids requiring a Firestore composite index on the subcollection.
+    // We sort client-side by timestamp after fetching.
+    const snap = await fbDb.collection('users').doc(profileId)
+      .collection('matches')
+      .limit(limit)
+      .get();
+
+    if (snap.empty) {
+      listEl.innerHTML = '<div class="prof-match-empty">No matches yet. Play some games!</div>';
+      if (countEl) countEl.textContent = '';
+      return;
+    }
+
+    // Sort by timestamp descending client-side
+    _matchHistoryAll = snap.docs
+      .map(d => d.data())
+      .sort((a, b) => {
+        const at = a.timestamp ? a.timestamp.toMillis() : 0;
+        const bt = b.timestamp ? b.timestamp.toMillis() : 0;
+        return bt - at;
+      });
+    if (countEl) countEl.textContent = `${_matchHistoryAll.length} recent`;
+
+    const toShow = _matchHistoryAll.slice(0, MATCHES_PER_PAGE);
+    listEl.innerHTML = toShow.map(_renderMatchRow).join('');
+
+    if (_matchHistoryAll.length > MATCHES_PER_PAGE) {
+      listEl.innerHTML += `<div class="prof-match-load-more" onclick="loadMoreMatches()">Show more ↓</div>`;
+    }
+  } catch(e) {
+    listEl.innerHTML = '<div class="prof-match-empty">Couldn\'t load match history.</div>';
+    console.warn('loadMatchHistory error:', e);
+  }
+}
+
+function loadMoreMatches() {
+  const listEl = document.getElementById('prof-match-list');
+  if (!listEl) return;
+  _matchHistoryPage++;
+  const start = _matchHistoryPage * MATCHES_PER_PAGE;
+  const slice = _matchHistoryAll.slice(start, start + MATCHES_PER_PAGE);
+  // Remove the "show more" button
+  const moreBtn = listEl.querySelector('.prof-match-load-more');
+  if (moreBtn) moreBtn.remove();
+  listEl.innerHTML += slice.map(_renderMatchRow).join('');
+  if (start + MATCHES_PER_PAGE < _matchHistoryAll.length) {
+    listEl.innerHTML += `<div class="prof-match-load-more" onclick="loadMoreMatches()">Show more ↓</div>`;
+  }
+}
+
 // Derive win type from end-game message
 function winTypeFromMessage(msg){
   const m = msg.toLowerCase();
@@ -26998,6 +27262,17 @@ function renderProfile(){
       <div class="prof-mod-minor-count">×${count}</div>
     </div>`;
   }).join('');
+
+  // Load match history for this profile
+  _matchHistoryPage = 0;
+  _matchHistoryAll  = [];
+  const _isOwnProfile = (viewedProfile === currentProfile);
+  if (fbDb && viewedProfile && viewedProfile.id) {
+    loadMatchHistory(viewedProfile.id, _isOwnProfile);
+  } else {
+    const listEl = document.getElementById('prof-match-list');
+    if (listEl) listEl.innerHTML = '<div class="prof-match-empty">Sign in to view match history.</div>';
+  }
 }
 
 function switchBreakdownTab(btn, panel){
