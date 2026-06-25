@@ -23729,31 +23729,65 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
   const revealDelay = 650;
   const preGlowDuration = 600;
 
+  const _revealTimeouts = [];
+
+  function _skipRevealAnimation() {
+    // Cancel all pending reveal timeouts
+    _revealTimeouts.forEach(id => clearTimeout(id));
+    _revealTimeouts.length = 0;
+    // Instantly flip all unrevealed cards
+    wrapEls.forEach(wrap => {
+      if (!wrap.dataset.revealed) {
+        wrap.classList.remove('pre-reveal');
+        const flipper = wrap.querySelector('.draft-card-flipper');
+        if (flipper) flipper.style.transform = 'rotateY(180deg)';
+        wrap.dataset.revealed = '1';
+        wrap.style.cursor = 'pointer';
+        const floatWrap = wrap.querySelector('.draft-card-float');
+        if (floatWrap) floatWrap.style.animationPlayState = 'running';
+      }
+    });
+    // Show timer and buttons immediately
+    timerDiv.classList.add('visible');
+    viewBoardBtn.classList.add('visible');
+    surpriseBtn.classList.add('visible');
+    if (!draftTimeRemaining || draftTimeRemaining <= 0) {
+      draftTimeRemaining = 15;
+      startDraftTimer();
+    }
+    // Remove the skip listener so it doesn't fire again
+    draft.removeEventListener('click', _skipRevealAnimation);
+  }
+
+  // Any click on the draft screen during the animation skips it
+  draft.addEventListener('click', _skipRevealAnimation);
+
   wrapEls.forEach((wrap, i) => {
     const totalDelay = 500 + i * (preGlowDuration + revealDelay);
 
     // Pre-reveal edge leak glow
-    setTimeout(() => {
+    _revealTimeouts.push(setTimeout(() => {
       wrap.classList.add('pre-reveal');
-    }, totalDelay);
+    }, totalDelay));
 
     // JS-driven flip
-    setTimeout(() => {
+    _revealTimeouts.push(setTimeout(() => {
       wrap.classList.remove('pre-reveal');
       flipCard(wrap);
-    }, totalDelay + preGlowDuration + 100);
+    }, totalDelay + preGlowDuration + 100));
   });
 
   // 3. Show timer + view board after all cards revealed
   const allRevealed = 500 + wrapEls.length * (preGlowDuration + revealDelay) + 400;
-  setTimeout(() => {
+  _revealTimeouts.push(setTimeout(() => {
     timerDiv.classList.add('visible');
     viewBoardBtn.classList.add('visible');
     surpriseBtn.classList.add('visible');
     // Start timer only after cards are revealed
     draftTimeRemaining = 15;
     startDraftTimer();
-  }, allRevealed);
+    draft.removeEventListener('click', _skipRevealAnimation);
+  }, allRevealed));
 
   // ── Ambient particle system ──────────────────────────────────────────
   setTimeout(() => {
