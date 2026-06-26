@@ -4183,135 +4183,165 @@ button:active {
   position: fixed;
   inset: 0;
   z-index: 3600;
-  background: rgba(2,6,23,0.78);
-  backdrop-filter: blur(12px);
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,213,128,0.18), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(125,76,38,0.22), transparent 30%),
+    linear-gradient(180deg, #26180f 0%, #160f0b 100%);
   align-items: center;
   justify-content: center;
 }
 #modifier-codex-modal.active { display: flex; }
 .codex-panel {
-  width: min(1120px, 96vw);
-  height: min(840px, 88vh);
-  max-height: 88vh;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  background: linear-gradient(155deg, rgba(12,18,38,0.98), rgba(18,25,53,0.98));
-  border: 1px solid rgba(148,163,184,0.18);
-  border-radius: 22px;
+  grid-template-columns: minmax(520px, 1fr) minmax(380px, 42vw);
+  background:
+    linear-gradient(90deg, rgba(40,23,12,0.62), rgba(93,55,27,0.36) 22%, rgba(37,22,13,0.74)),
+    repeating-linear-gradient(90deg, rgba(255,240,206,0.025) 0 2px, transparent 2px 9px),
+    #22140d;
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 36px 96px rgba(0,0,0,0.68);
+  box-shadow: inset 0 0 140px rgba(0,0,0,0.72);
 }
 .codex-main {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255,255,255,0.08);
+  border-right: 10px solid rgba(64,35,17,0.9);
+  box-shadow: inset -18px 0 26px rgba(0,0,0,0.34);
 }
 .codex-header {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 24px 30px 14px;
+  border-bottom: 4px solid rgba(97,54,25,0.92);
+  background:
+    linear-gradient(180deg, rgba(66,37,19,0.84), rgba(38,22,13,0.92)),
+    repeating-linear-gradient(90deg, rgba(255,231,185,0.04) 0 1px, transparent 1px 8px);
 }
 .codex-kicker {
-  color: #c4b5fd;
-  font-size: 11px;
+  color: #e5c07b;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .codex-header h2 {
   margin: 4px 0 0;
-  font-size: 24px;
-  color: #f8fafc;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+  color: #f6dfb3;
+  text-shadow: 0 2px 0 rgba(55,31,14,0.9), 0 0 18px rgba(237,181,91,0.16);
 }
 .codex-progress {
   margin-top: 6px;
-  color: rgba(226,232,240,0.62);
+  color: rgba(247,224,185,0.68);
   font-size: 13px;
 }
 .codex-close {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.72);
+  width: 38px;
+  height: 38px;
+  border-radius: 4px;
+  border: 1px solid rgba(225,186,118,0.42);
+  background:
+    linear-gradient(180deg, rgba(128,75,35,0.95), rgba(69,38,18,0.98));
+  color: #f7dfb0;
   cursor: pointer;
   font-size: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,241,210,0.16);
 }
 .codex-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 14px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 30px 10px;
+  border-bottom: 1px solid rgba(119,70,35,0.7);
+  background: rgba(23,14,9,0.34);
 }
 .codex-tab {
-  border: 1px solid rgba(148,163,184,0.18);
-  background: rgba(15,23,42,0.74);
-  color: rgba(226,232,240,0.7);
-  border-radius: 999px;
-  padding: 8px 12px;
+  border: 1px solid rgba(121,76,38,0.7);
+  background:
+    linear-gradient(180deg, rgba(232,198,136,0.92), rgba(180,130,72,0.9));
+  color: #3b2110;
+  border-radius: 4px 4px 8px 8px;
+  padding: 8px 11px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 5px 0 rgba(62,33,13,0.85), inset 0 1px 0 rgba(255,246,219,0.4);
 }
 .codex-tab.active {
-  color: #ecfeff;
-  background: rgba(196,181,253,0.22);
-  border-color: rgba(124,92,255,0.5);
+  color: #fff0c9;
+  background:
+    linear-gradient(180deg, rgba(112,67,31,0.98), rgba(64,34,15,0.98));
+  border-color: rgba(230,188,113,0.72);
+  box-shadow: 0 3px 0 rgba(28,15,8,0.95), 0 0 18px rgba(213,150,66,0.15);
 }
 .codex-grid {
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 20px 24px 24px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  padding: 24px 30px 42px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-end;
+  gap: 22px 10px;
+  perspective: 900px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.0) 0 286px, rgba(72,39,17,0.95) 286px 300px, rgba(17,10,6,0.82) 300px 307px, transparent 307px 334px),
+    repeating-linear-gradient(180deg, transparent 0 284px, rgba(119,70,32,0.36) 284px 308px, transparent 308px 334px),
+    radial-gradient(circle at 50% 0%, rgba(255,213,128,0.11), transparent 42%);
+  background-size: 100% 334px, 100% 334px, 100% 100%;
   align-content: start;
-  gap: 12px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-color: rgba(195,139,67,0.48) transparent;
 }
 /* Search bar */
 .codex-search-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 30px;
+  border-bottom: 1px solid rgba(119,70,35,0.64);
+  background: rgba(29,17,10,0.58);
 }
 .codex-search-icon {
   font-size: 14px;
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.72;
 }
 .codex-search-input {
   flex: 1;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  padding: 7px 10px;
+  background:
+    linear-gradient(180deg, rgba(247,225,183,0.96), rgba(221,188,126,0.96));
+  border: 1px solid rgba(112,65,28,0.86);
+  border-radius: 4px;
+  padding: 8px 10px;
   font-size: 13px;
-  color: #f8fafc;
+  color: #3a2110;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
-  font-family: inherit;
+  font-family: Georgia, 'Times New Roman', serif;
+  box-shadow: inset 0 1px 5px rgba(69,38,14,0.22);
 }
-.codex-search-input::placeholder { color: rgba(226,232,240,0.38); }
+.codex-search-input::placeholder { color: rgba(72,44,21,0.58); }
 .codex-search-input:focus {
-  border-color: rgba(196,181,253,0.45);
-  background: rgba(255,255,255,0.09);
+  border-color: rgba(232,188,109,0.95);
+  background: #f7dfb0;
 }
 .codex-search-clear {
   width: 26px; height: 26px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
-  color: rgba(226,232,240,0.6);
+  border-radius: 4px;
+  border: 1px solid rgba(221,185,116,0.5);
+  background: rgba(78,43,20,0.88);
+  color: #f5d9a3;
   font-size: 16px;
   cursor: pointer;
   display: none;
@@ -4321,114 +4351,490 @@ button:active {
   line-height: 1;
   transition: background 0.2s, color 0.2s;
 }
-.codex-search-clear:hover { background: rgba(239,68,68,0.18); color: #f87171; }
+.codex-search-clear:hover { background: rgba(116,51,28,0.95); color: #fff0c9; }
 .codex-search-clear.visible { display: flex; }
 /* All-tab section headers inside the grid */
 .codex-section-header {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 0 2px;
-  color: #c4b5fd;
-  font-size: 11px;
+  min-height: 34px;
+  margin: 12px 0 -4px;
+  padding: 5px 14px 7px;
+  color: #f4d79b;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  background:
+    linear-gradient(90deg, rgba(80,44,20,0.98), rgba(122,73,35,0.82), rgba(49,27,14,0.82));
+  border-top: 1px solid rgba(232,189,113,0.22);
+  border-bottom: 5px solid rgba(35,19,9,0.9);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.35);
 }
 .codex-section-header:not(:first-child) {
-  margin-top: 10px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 26px;
 }
 /* No-results message */
 .codex-no-results {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
   text-align: center;
-  color: rgba(226,232,240,0.38);
-  font-size: 13px;
+  color: rgba(246,219,177,0.64);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
   font-style: italic;
-  padding: 40px 0;
+  padding: 46px 0;
 }
 .codex-card {
-  min-height: 156px;
+  --book-h: 276px;
+  --book-w: 188px;
+  --book-tilt: 0deg;
+  --book-offset: 0px;
+  --book-hover-tilt: 0deg;
+  position: relative;
+  width: var(--book-w);
+  height: var(--book-h);
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 7px;
   text-align: left;
-  border: 1px solid rgba(148,163,184,0.16);
-  border-radius: 16px;
-  padding: 14px;
-  background: rgba(15,23,42,0.68);
-  color: #f8fafc;
+  border: 2px solid rgba(52,31,16,0.72);
+  border-radius: 5px;
+  padding: 18px 16px 16px 24px;
+  background:
+    linear-gradient(90deg, rgba(37,23,13,0.38) 0 10px, transparent 10px),
+    linear-gradient(135deg, #74644d, #4f493d);
+  color: #fff1cf;
   cursor: pointer;
-  transition: transform 0.18s, border-color 0.18s, background 0.18s;
+  transform: translateY(var(--book-offset)) rotate(calc(var(--book-tilt) + var(--book-hover-tilt)));
+  transform-origin: 50% 100%;
+  transition: transform 0.28s cubic-bezier(.2,.8,.2,1), box-shadow 0.28s, filter 0.28s;
+  box-shadow:
+    0 18px 20px rgba(0,0,0,0.32),
+    inset 10px 0 12px rgba(0,0,0,0.18),
+    inset -2px 0 0 rgba(255,241,210,0.08);
+  overflow: hidden;
+  isolation: isolate;
+}
+.codex-card::before,
+.codex-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+.codex-card::before {
+  inset: 8px;
+  border: 1px solid rgba(255,232,179,0.26);
+  border-radius: 3px;
+}
+.codex-card::after {
+  left: 16px;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  background: rgba(255,239,198,0.22);
 }
 .codex-card:hover,
 .codex-card.selected {
-  transform: translateY(-2px);
-  border-color: rgba(196,181,253,0.45);
-  background: rgba(15,35,58,0.86);
+  filter: brightness(1.08);
+  box-shadow:
+    0 28px 34px rgba(0,0,0,0.52),
+    0 0 28px rgba(225,170,88,0.16),
+    inset 10px 0 12px rgba(0,0,0,0.18),
+    inset -2px 0 0 rgba(255,241,210,0.1);
+}
+.codex-card:hover {
+  transform: translateY(calc(var(--book-offset) - 14px)) rotate(calc(var(--book-tilt) + var(--book-hover-tilt))) scale(1.045);
+}
+.codex-card.selected {
+  z-index: 5;
+  transform: translateY(calc(var(--book-offset) - 28px)) translateX(8px) rotate(calc(var(--book-tilt) * .25)) scale(1.09);
+  border-color: rgba(239,204,130,0.82);
 }
 .codex-card.locked {
-  color: rgba(148,163,184,0.7);
-  background: repeating-linear-gradient(135deg, rgba(15,23,42,0.92) 0 10px, rgba(2,6,23,0.92) 10px 20px);
-  filter: grayscale(0.85);
+  color: rgba(225,207,175,0.76);
+  background:
+    linear-gradient(90deg, rgba(37,23,13,0.45) 0 10px, transparent 10px),
+    linear-gradient(135deg, #625446, #3d352d);
+  filter: grayscale(0.45) saturate(0.55);
 }
-.codex-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.codex-card-icon { font-size: 30px; line-height: 1; }
-.codex-card-name { font-size: 15px; font-weight: 800; line-height: 1.2; }
-.codex-card-desc { font-size: 12px; line-height: 1.45; color: rgba(226,232,240,0.68); }
+.codex-card.locked .codex-card-lockline {
+  position: absolute;
+  left: -18px;
+  right: -18px;
+  top: 47%;
+  height: 18px;
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(57,34,18,0.92) 8% 92%, transparent 92%),
+    repeating-linear-gradient(90deg, rgba(231,196,122,0.5) 0 6px, rgba(89,52,25,0.7) 6px 12px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.34);
+  transform: rotate(-8deg);
+}
+.codex-card.rarity-common {
+  background:
+    linear-gradient(90deg, rgba(37,23,13,0.36) 0 10px, transparent 10px),
+    linear-gradient(135deg, #7b6d55, #56503e);
+}
+.codex-card.rarity-rare {
+  background:
+    radial-gradient(circle at 50% 120%, rgba(210,180,140,0.10), transparent 60%),
+    radial-gradient(circle at 82% 18%, rgba(160,130,190,0.16), transparent 30%),
+    linear-gradient(90deg, rgba(40,35,70,0.28) 0 10px, transparent 10px),
+    linear-gradient(135deg, #322f52 0%, #221f3a 55%, #171529 100%);
+}
+.codex-card.rarity-rare::before {
+  border-width: 2px;
+  border-color: rgba(232,188,118,0.34);
+  clip-path: polygon(0 12%, 12% 12%, 12% 0, 88% 0, 88% 12%, 100% 12%, 100% 88%, 88% 88%, 88% 100%, 12% 100%, 12% 88%, 0 88%);
+}
+.codex-card.rarity-legendary {
+  background:
+    linear-gradient(90deg, rgba(47,27,12,0.5) 0 10px, transparent 10px),
+    linear-gradient(135deg, #6f431d, #4a2611);
+  border-color: rgba(234,188,92,0.72);
+}
+.codex-card.rarity-legendary::before {
+  border: 2px double rgba(255,219,128,0.72);
+  box-shadow: inset 0 0 0 3px rgba(120,72,25,0.34);
+}
+.codex-card.rarity-mythic {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(236,205,116,0.22), transparent 20%),
+    linear-gradient(90deg, rgba(20,34,29,0.5) 0 10px, transparent 10px),
+    linear-gradient(135deg, #253d35, #211b17 62%, #4a2a1c);
+  border-color: rgba(218,182,96,0.6);
+}
+.codex-card.rarity-mythic::before {
+  border: 2px solid rgba(224,189,103,0.54);
+  box-shadow: 0 0 16px rgba(181,132,61,0.18), inset 0 0 12px rgba(22,10,5,0.44);
+}
+.codex-card.rarity-evolved {
+  border-color: rgba(212,188,112,0.8);
+  box-shadow:
+    0 18px 20px rgba(0,0,0,0.34),
+    0 0 18px rgba(112,198,141,0.13),
+    inset 10px 0 12px rgba(0,0,0,0.18);
+}
+.codex-card.rarity-evolved.base-common { background: linear-gradient(90deg, rgba(37,23,13,0.38) 0 10px, transparent 10px), linear-gradient(135deg, #6f7656, #434b35); }
+.codex-card.rarity-evolved.base-rare { background: linear-gradient(90deg, rgba(45,24,14,0.44) 0 10px, transparent 10px), linear-gradient(135deg, #71452f, #3d2d1b 58%, #314832); }
+.codex-card.rarity-evolved.base-legendary { background: linear-gradient(90deg, rgba(47,27,12,0.5) 0 10px, transparent 10px), linear-gradient(135deg, #765022, #493016 52%, #324833); }
+.codex-card.rarity-evolved.base-mythic { background: linear-gradient(90deg, rgba(20,34,29,0.52) 0 10px, transparent 10px), linear-gradient(135deg, #273f38, #241c17 52%, #4a3c22); }
+.codex-evolved-mark {
+  position: absolute;
+  inset: 9px;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 24% 24%, rgba(181,255,193,0.18), transparent 8%),
+    radial-gradient(circle at 74% 70%, rgba(171,220,255,0.15), transparent 9%),
+    linear-gradient(35deg, transparent 0 44%, rgba(139,218,144,0.22) 45% 47%, transparent 48% 100%);
+  pointer-events: none;
+}
+.codex-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+.codex-card-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(43,25,12,0.32);
+  font-size: 32px;
+  line-height: 1;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.42);
+}
+.codex-card-name {
+  position: relative;
+  z-index: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.14;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+}
+.codex-card-desc {
+  position: relative;
+  z-index: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  line-height: 1.32;
+  color: rgba(255,239,207,0.76);
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
 .codex-pill {
   align-self: flex-start;
-  border-radius: 999px;
-  padding: 3px 8px;
+  border-radius: 3px;
+  padding: 4px 7px;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
+  background: rgba(35,20,10,0.42);
+  border: 1px solid rgba(255,233,183,0.18);
+  color: #f8dfaa;
 }
-.codex-pill.common { background: rgba(148,163,184,0.16); color: #cbd5e1; }
-.codex-pill.rare { background: rgba(96,165,250,0.16); color: #93c5fd; }
-.codex-pill.legendary { background: rgba(251,191,36,0.17); color: #fde68a; }
-.codex-pill.mythic { background: rgba(244,63,94,0.17); color: #fda4af; }
-.codex-pill.evolved { background: rgba(217,70,239,0.16); color: #f0abfc; }
+.codex-pill.common { color: #efe2c5; }
+.codex-pill.rare { color: #f0c58c; }
+.codex-pill.legendary { color: #ffe197; border-color: rgba(255,219,128,0.5); }
+.codex-pill.mythic { color: #f4d889; border-color: rgba(244,216,137,0.48); }
+.codex-pill.evolved { color: #cbf2bd; border-color: rgba(172,231,151,0.48); }
+.codex-curio {
+  --curio-tilt: 0deg;
+  width: 40px;
+  height: 42px;
+  flex: 0 0 40px;
+  align-self: flex-end;
+  margin: 0 4px 4px;
+  position: relative;
+  transform: rotate(var(--curio-tilt));
+  opacity: 0.86;
+  filter: drop-shadow(0 8px 6px rgba(0,0,0,0.36));
+}
+.codex-curio::before,
+.codex-curio::after {
+  content: "";
+  position: absolute;
+}
+.codex-curio.pawn::before {
+  content: "\265F";
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dcc18a;
+  font-size: 28px;
+  text-shadow: 0 2px 2px rgba(0,0,0,0.5);
+}
+.codex-curio.scroll::before {
+  left: 5px; right: 5px; top: 12px; height: 18px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #d3aa69, #f1d499 48%, #ba8748);
+  border: 1px solid rgba(74,43,19,0.65);
+}
+.codex-curio.feather::before {
+  left: 17px; top: 3px; width: 9px; height: 34px;
+  background: linear-gradient(180deg, #e7d7ad, #9a7953);
+  border-radius: 80% 10% 80% 10%;
+  transform: skew(-18deg);
+}
+.codex-curio.shell::before {
+  left: 7px; bottom: 6px; width: 28px; height: 22px;
+  border-radius: 26px 26px 8px 8px;
+  background: repeating-radial-gradient(circle at 50% 100%, #edd6b0 0 4px, #c99668 5px 7px);
+}
+.codex-curio.candle::before {
+  left: 15px; bottom: 4px; width: 12px; height: 26px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #b88252, #ffe0a0 45%, #9c623b);
+}
+.codex-curio.candle::after {
+  left: 17px; top: 1px; width: 8px; height: 12px;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(circle at 50% 70%, #fff7b8 0 20%, #f2a64a 45%, transparent 72%);
+}
+.codex-curio.ink::before {
+  left: 11px; bottom: 5px; width: 20px; height: 22px;
+  border-radius: 5px 5px 9px 9px;
+  background: linear-gradient(180deg, #9c754b 0 22%, #19151b 22% 100%);
+  border: 1px solid rgba(227,188,113,0.45);
+}
 .codex-detail {
   min-height: 0;
-  padding: 24px;
-  background: radial-gradient(circle at 50% 0%, rgba(196,181,253,0.1), transparent 42%), rgba(2,6,23,0.38);
+  padding: 28px;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(255,217,139,0.14), transparent 34%),
+    linear-gradient(180deg, rgba(35,20,12,0.96), rgba(18,11,7,0.98));
   overflow-y: auto;
 }
 .codex-detail-empty {
-  color: rgba(226,232,240,0.62);
-  font-size: 14px;
-  line-height: 1.6;
+  min-height: 72vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  color: rgba(246,220,176,0.72);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  line-height: 1.55;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(222,169,82,0.1), transparent 34%),
+    linear-gradient(135deg, rgba(81,49,24,0.62), rgba(31,19,12,0.68));
+  border: 1px solid rgba(185,129,62,0.36);
+  border-radius: 7px;
+  box-shadow: inset 0 0 70px rgba(0,0,0,0.28);
 }
-.codex-detail-icon { font-size: 42px; line-height: 1; margin-bottom: 12px; }
-.codex-detail h3 { margin: 0 0 8px; color: #f8fafc; font-size: 22px; }
-.codex-detail p { color: rgba(226,232,240,0.74); font-size: 13px; line-height: 1.6; }
-.codex-detail-section { margin-top: 18px; }
+.codex-open-book {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100vh - 56px);
+  transform-origin: 20% 50%;
+  animation: codex-book-open 0.46s cubic-bezier(.2,.8,.2,1);
+  filter: drop-shadow(0 28px 36px rgba(0,0,0,0.5));
+}
+.codex-open-book::before {
+  content: "";
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: calc(50% - 8px);
+  width: 16px;
+  background: linear-gradient(90deg, rgba(86,51,25,0.35), rgba(255,239,201,0.3), rgba(76,45,24,0.35));
+  z-index: 2;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.codex-page {
+  position: relative;
+  min-width: 0;
+  padding: 30px 28px;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255,255,232,0.35), transparent 24%),
+    repeating-linear-gradient(0deg, rgba(88,54,23,0.035) 0 1px, transparent 1px 24px),
+    linear-gradient(135deg, #f1d9a7, #d7b978 68%, #c39a5e);
+  color: #3a2514;
+  border: 1px solid rgba(93,56,25,0.52);
+  box-shadow: inset 0 0 38px rgba(72,43,20,0.18);
+}
+.codex-page.left {
+  border-radius: 8px 1px 1px 8px;
+  transform: rotateY(1.5deg);
+}
+.codex-page.right {
+  border-radius: 1px 8px 8px 1px;
+  transform: rotateY(-1.5deg);
+}
+.codex-page::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(95,57,24,0.18);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.codex-detail-icon {
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: rgba(68,40,18,0.12);
+  border: 1px solid rgba(95,57,24,0.22);
+  font-size: 42px;
+  line-height: 1;
+}
+.codex-detail h3 {
+  margin: 10px 0 10px;
+  color: #2f1d10;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  line-height: 1.08;
+}
+.codex-detail p {
+  color: #4c321c;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.codex-detail-section { margin-top: 20px; }
 .codex-detail-label {
-  color: #c4b5fd;
+  color: #694019;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 .codex-detail-chiprow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .codex-mini-chip {
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 999px;
-  padding: 5px 9px;
-  color: rgba(226,232,240,0.74);
+  border: 1px solid rgba(105,64,27,0.34);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: #4c321c;
+  background: rgba(255,245,210,0.28);
   font-size: 11px;
   font-weight: 700;
+}
+
+.codex-locked-book {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.codex-locked-cover {
+  position: relative;
+  width: min(280px, 80%);
+  min-height: 360px;
+  padding: 44px 26px;
+  border-radius: 6px;
+  border: 2px solid rgba(54,33,18,0.72);
+  background:
+    linear-gradient(90deg, rgba(34,21,12,0.46) 0 18px, transparent 18px),
+    linear-gradient(135deg, #5e5246, #38312a);
+  color: rgba(239,221,188,0.82);
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  box-shadow: 0 30px 42px rgba(0,0,0,0.48), inset 12px 0 16px rgba(0,0,0,0.2);
+  animation: codex-book-open 0.38s cubic-bezier(.2,.8,.2,1);
+}
+.codex-locked-cover::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  right: -18px;
+  top: 48%;
+  height: 24px;
+  background: repeating-linear-gradient(90deg, rgba(222,187,115,0.48) 0 8px, rgba(72,42,22,0.86) 8px 16px);
+  transform: rotate(-7deg);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.42);
+}
+.codex-locked-question {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 18px;
+}
+.codex-locked-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #efe0bd;
+}
+.codex-locked-note {
+  margin-top: 18px;
+  color: rgba(239,221,188,0.68);
+  line-height: 1.5;
+}
+
+@keyframes codex-book-open {
+  0% { opacity: 0; transform: translateX(-28px) scale(0.86) rotate(-5deg); }
+  65% { opacity: 1; transform: translateX(4px) scale(1.02) rotate(1deg); }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotate(0); }
 }
 
 /* ── Modifier Replay Preview ── */
 .codex-replay-section {
   margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(105,64,27,0.22);
 }
 .codex-replay-header {
   display: flex;
@@ -4445,35 +4851,37 @@ button:active {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 4px;
   transition: all 0.4s ease;
 }
 .codex-replay-badge.good {
-  background: rgba(16,185,129,0.18);
-  border: 1px solid rgba(16,185,129,0.4);
-  color: #34d399;
+  background: rgba(78,109,51,0.16);
+  border: 1px solid rgba(72,100,45,0.38);
+  color: #3f5f2f;
 }
 .codex-replay-badge.bad {
-  background: rgba(239,68,68,0.18);
-  border: 1px solid rgba(239,68,68,0.4);
-  color: #f87171;
+  background: rgba(127,57,38,0.16);
+  border: 1px solid rgba(127,57,38,0.36);
+  color: #733521;
 }
 .codex-replay-caption {
   font-size: 12px;
-  color: rgba(226,232,240,0.68);
+  color: #5a3a1d;
   line-height: 1.5;
   min-height: 34px;
   transition: opacity 0.3s ease;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 .codex-replay-board-wrap {
   position: relative;
   width: 100%;
+  max-width: 330px;
   aspect-ratio: 1 / 1;
-  border-radius: 10px;
+  border-radius: 5px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08);
+  box-shadow: 0 8px 18px rgba(76,45,20,0.22), 0 0 0 2px rgba(105,64,27,0.26);
   margin-top: 10px;
-  background: #1a1d2e;
+  background: #9a7241;
 }
 .codex-replay-board {
   display: grid;
@@ -4488,8 +4896,8 @@ button:active {
   justify-content: center;
   position: relative;
 }
-.codex-replay-sq.light { background: #fdfbfb; }
-.codex-replay-sq.dark  { background: #4b6cb7; }
+.codex-replay-sq.light { background: #efd9a9; }
+.codex-replay-sq.dark  { background: #8b6033; }
 .codex-replay-sq.last-from { background: rgba(255,210,50,0.45) !important; }
 .codex-replay-sq.last-to   { background: rgba(255,210,50,0.6) !important; }
 .codex-replay-sq img {
@@ -4566,16 +4974,16 @@ button:active {
 .codex-replay-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+  background: rgba(94,58,26,0.24);
   transition: background 0.3s ease;
 }
 .codex-replay-dot.active {
-  background: #c4b5fd;
+  background: #7a4a18;
 }
 .codex-replay-no-data {
   margin-top: 16px;
   font-size: 12px;
-  color: rgba(226,232,240,0.38);
+  color: rgba(77,49,24,0.58);
   text-align: center;
   font-style: italic;
 }
@@ -4598,8 +5006,26 @@ button:active {
   .menu-friends-panel { width: 100%; }
   .menu-title-area h1 { font-size: 42px; }
   .menu-topbar-user { display: none; }
-  .codex-panel { grid-template-columns: 1fr; height: 92vh; max-height: 92vh; }
-  .codex-grid { grid-template-columns: 1fr; }
+  .codex-panel { grid-template-columns: 1fr; height: 100vh; max-height: 100vh; overflow-y: auto; }
+  .codex-main { min-height: 62vh; border-right: 0; border-bottom: 8px solid rgba(64,35,17,0.9); }
+  .codex-header { padding: 18px 18px 12px; }
+  .codex-tabs,
+  .codex-search-wrap { padding-left: 18px; padding-right: 18px; }
+  .codex-grid { padding: 20px 18px 34px; gap: 18px 8px; }
+  .codex-card {
+    width: min(var(--book-w), calc(50vw - 28px));
+    min-width: 154px;
+    height: auto;
+    min-height: 250px;
+  }
+  .codex-card-name { font-size: 16px; }
+  .codex-card-desc { font-size: 11px; line-height: 1.28; }
+  .codex-detail { padding: 18px; overflow: visible; }
+  .codex-open-book { grid-template-columns: 1fr; min-height: auto; }
+  .codex-open-book::before { display: none; }
+  .codex-page.left,
+  .codex-page.right { border-radius: 8px; transform: none; }
+  .codex-replay-board-wrap { max-width: 100%; }
 }
 
 /* ===== PRIVATE GAME HUB — REDESIGNED ===== */
@@ -11358,6 +11784,484 @@ body.total-chaos-entering #total-chaos-bleed {
 .profile-rank-num.rank-silver { color: #c4b5fd; }
 .profile-rank-num.rank-bronze { color: #fb923c; }
 .profile-rank-num.rank-other  { color: #a78bfa; }
+
+/* ══════════════════════════════════════════════════════════════════
+   RELICS & SCRAPBOOK SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Relics Screen ── */
+#relics-screen {
+  display: none; flex-direction: column; align-items: center;
+  width: 100%; padding: 0 0 40px 0;
+}
+#relics-screen.active { display: flex; }
+
+/* ── Scrapbook Container ── */
+.scrapbook-wrap {
+  width: 100%; max-width: 1080px;
+  padding: 0 12px;
+  animation: prof-fadein 0.45s ease both;
+}
+
+.scrapbook-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.scrapbook-title {
+  font-size: 28px; font-weight: 900; color: #fff;
+  letter-spacing: -0.8px; line-height: 1;
+}
+.scrapbook-subtitle {
+  font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(196,181,253,0.4); margin-top: 5px;
+  font-family: 'Courier New', monospace;
+}
+.scrapbook-count {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  font-family: 'Courier New', monospace; text-align: right; line-height: 1.5;
+}
+
+/* ── Scrapbook Book — the physical notebook ── */
+.scrapbook-book {
+  position: relative;
+  /* Aged parchment-dark colour with subtle warm tint */
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(45,25,70,0.6) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(30,15,50,0.5) 0%, transparent 50%),
+    linear-gradient(162deg, #1d1629 0%, #20182e 35%, #1b1427 70%, #1e1830 100%);
+  border: 1px solid rgba(196,181,253,0.07);
+  border-radius: 3px 18px 18px 3px;
+  /* Multi-layer shadow: hard left edge (spine), soft drop, inner darkening */
+  box-shadow:
+    -6px 0 0 0 rgba(196,181,253,0.14),
+    -2px 0 12px 0 rgba(0,0,0,0.4),
+    0 16px 60px rgba(0,0,0,0.6),
+    0 4px 16px rgba(0,0,0,0.3),
+    inset 0 0 120px rgba(0,0,0,0.25),
+    inset 40px 0 80px rgba(0,0,0,0.15);
+  padding: 52px 52px 72px 68px;
+  overflow: visible;  /* cards may poke out slightly */
+}
+
+/* Spine of the notebook */
+.scrapbook-book::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 42px;
+  background: linear-gradient(180deg,
+    #3a2560 0%, #2a1c48 15%, #1e1438 50%, #261a44 85%, #3a2560 100%);
+  border-right: 2px solid rgba(196,181,253,0.18);
+  border-radius: 3px 0 0 3px;
+  box-shadow: inset -4px 0 12px rgba(0,0,0,0.3);
+}
+
+/* Spiral binding — larger, more visible rings */
+.scrapbook-book::after {
+  content: '';
+  position: absolute;
+  left: 14px; top: 32px; bottom: 32px;
+  width: 14px;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 20px,
+    rgba(196,181,253,0.35) 20px,
+    rgba(196,181,253,0.35) 30px
+  );
+  border-radius: 2px;
+}
+
+/* Faint ruled lines — slightly more visible than before */
+.scrapbook-page-lines {
+  position: absolute;
+  left: 42px; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 43px,
+    rgba(196,181,253,0.03) 43px,
+    rgba(196,181,253,0.03) 44px
+  );
+  border-radius: 0 18px 18px 0;
+}
+
+/* Section header label */
+.scrapbook-section-label {
+  font-family: 'Courier New', monospace;
+  font-size: 8px; letter-spacing: 3.5px; text-transform: uppercase;
+  color: rgba(196,181,253,0.25);
+  margin-bottom: 0;
+  display: flex; align-items: center; gap: 10px;
+  position: relative; z-index: 2;
+}
+.scrapbook-section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(196,181,253,0.12), transparent);
+}
+
+/* ── Decoration layer — hand-drawn doodles ── */
+.scrapbook-deco-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 3px 18px 18px 3px;
+}
+.scrapbook-deco {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  /* Images are drawn light on transparent; dim them to look like old pencil */
+  opacity: var(--deco-opacity, 0.22);
+  transform: rotate(var(--deco-rot, 0deg));
+  transform-origin: center center;
+  width: var(--deco-w, 160px);
+  /* Blend with the dark page */
+  mix-blend-mode: screen;
+}
+
+/* ── Relic Grid — absolute positioning, cards placed by JS ── */
+.relic-grid {
+  position: relative;
+  /* height set dynamically by JS */
+  min-height: 300px;
+  z-index: 2;
+  /* small top margin to clear the section label */
+  margin-top: 20px;
+}
+
+/* ── Individual Relic Card ── */
+.relic-card {
+  position: absolute;       /* JS sets left + top */
+  width: 225px;
+  cursor: pointer;
+  transform-origin: center 20px;   /* rotate around near top (tape point) */
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease;
+  z-index: 3;
+  will-change: transform;
+}
+
+.relic-card:hover {
+  z-index: 30;
+  transform: rotate(0deg) translateY(-10px) scale(1.06) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7),
+              0 0 0 1px rgba(196,181,253,0.25),
+              0 0 30px rgba(139,92,246,0.1) !important;
+}
+
+/* Tape strip — placed near top, slightly off-centre each card */
+.relic-card::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: var(--tape-x, 50%);
+  transform: translateX(-50%) rotate(var(--tape-angle, -2deg));
+  width: 52px; height: 20px;
+  background: rgba(251,191,36,0.38);
+  border-radius: 2px;
+  z-index: 4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  backdrop-filter: blur(1px);
+}
+
+/* ── Relic image display ── */
+.relic-object {
+  border-radius: 5px;
+  box-shadow: 3px 5px 18px rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.4);
+  overflow: hidden;
+  position: relative;
+  background: rgba(0,0,0,0.25);
+  line-height: 0;
+}
+.relic-object img {
+  width: 100%;
+  display: block;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+/* ── Relic Label ── */
+.relic-label {
+  text-align: center;
+  margin-top: 8px;
+  padding: 0 4px;
+}
+.relic-name {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.82);
+  line-height: 1.35; letter-spacing: 0.2px;
+}
+.relic-rarity-badge {
+  display: inline-block;
+  font-size: 7px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 10px; margin-top: 3px;
+  font-family: 'Courier New', monospace;
+}
+.relic-rarity-badge.common    { background: rgba(148,163,184,0.18); color: #94a3b8; border: 1px solid rgba(148,163,184,0.22); }
+.relic-rarity-badge.rare      { background: rgba(139,92,246,0.18);  color: #a78bfa; border: 1px solid rgba(139,92,246,0.28); }
+.relic-rarity-badge.legendary { background: rgba(251,191,36,0.14);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.28); }
+.relic-rarity-badge.mythic    { background: rgba(239,68,68,0.14);   color: #f87171; border: 1px solid rgba(239,68,68,0.28); }
+
+/* ── Locked Relic ── */
+.relic-card.relic-locked .relic-object {
+  background: linear-gradient(160deg, #221838 0%, #1a1230 100%);
+  min-height: 155px;
+  border: 1px dashed rgba(196,181,253,0.12);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+}
+.relic-locked-icon   { font-size: 28px; opacity: 0.18; }
+.relic-locked-text   { font-size: 15px; font-weight: 700; color: rgba(196,181,253,0.18); letter-spacing: 4px; }
+.relic-locked-hint   { font-size: 7px; color: rgba(196,181,253,0.12); letter-spacing: 1px; font-family: 'Courier New', monospace; }
+.relic-card.relic-locked .relic-name { color: rgba(255,255,255,0.2); }
+.relic-card.relic-locked .relic-rarity-badge { opacity: 0.25; }
+.relic-card.relic-locked::before { opacity: 0.15; }
+.relic-card.relic-locked { cursor: default; }
+.relic-card.relic-locked:hover {
+  /* freeze at its current rotation — read from CSS var set inline */
+  transform: rotate(var(--base-rot, 0deg)) !important;
+  box-shadow: none !important;
+}
+
+/* ── Empty state ── */
+.scrapbook-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 64px 24px; gap: 14px;
+  text-align: center; width: 100%;
+}
+.scrapbook-empty-icon  { font-size: 40px; opacity: 0.25; }
+.scrapbook-empty-title { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.28); }
+.scrapbook-empty-sub   { font-size: 12px; color: rgba(255,255,255,0.18); font-family: 'Courier New', monospace; max-width: 300px; line-height: 1.7; }
+
+/* ── Chaosfish note at the bottom ── */
+.scrapbook-cf-note {
+  margin-top: 32px;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 18px;
+  background: rgba(196,181,253,0.03);
+  border: 1px solid rgba(196,181,253,0.07);
+  border-radius: 10px;
+  position: relative;
+  z-index: 2;
+}
+.scrapbook-cf-note::before {
+  content: '"';
+  position: absolute; top: -8px; left: 14px;
+  font-size: 40px; color: rgba(196,181,253,0.12);
+  font-family: Georgia, serif; line-height: 1;
+}
+.scrapbook-cf-fish {
+  font-size: 22px; flex-shrink: 0; margin-top: 2px; opacity: 0.75;
+}
+.scrapbook-cf-text {
+  font-size: 11px; color: rgba(196,181,253,0.45); font-style: italic;
+  line-height: 1.65; font-family: 'Courier New', monospace;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RELIC DETAIL MODAL
+   ══════════════════════════════════════════════════════════════ */
+
+#relic-detail-modal {
+  display: none; position: fixed; inset: 0;
+  z-index: 9100;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+  animation: rdm-fade-in 0.22s ease both;
+}
+#relic-detail-modal.active { display: flex; }
+
+@keyframes rdm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.rdm-panel {
+  background: linear-gradient(160deg, #1e1a30 0%, #18152a 100%);
+  border: 1px solid rgba(196,181,253,0.15);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(196,181,253,0.06);
+  width: 480px; max-width: calc(100vw - 32px);
+  max-height: 90vh; overflow-y: auto;
+  padding: 28px;
+  animation: rdm-slide-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  position: relative;
+}
+
+@keyframes rdm-slide-in {
+  from { transform: translateY(30px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.rdm-close {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%; width: 32px; height: 32px;
+  color: rgba(255,255,255,0.5); font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s ease;
+}
+.rdm-close:hover { background: rgba(255,255,255,0.12); color: #fff; transform: rotate(90deg); }
+
+.rdm-object-preview {
+  display: flex; justify-content: center;
+  margin-bottom: 20px;
+}
+.rdm-object-preview .relic-object {
+  transform: rotate(var(--preview-rot, -1deg));
+  box-shadow: 4px 8px 24px rgba(0,0,0,0.5);
+  max-width: 200px;
+}
+
+.rdm-rarity {
+  display: inline-block; font-size: 8px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 10px; margin-bottom: 8px;
+  font-family: 'Courier New', monospace;
+}
+.rdm-rarity.common    { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+.rdm-rarity.rare      { background: rgba(139,92,246,0.15);  color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+.rdm-rarity.legendary { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.rdm-rarity.mythic    { background: rgba(239,68,68,0.12);   color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+.rdm-name {
+  font-size: 22px; font-weight: 900; color: #fff;
+  letter-spacing: -0.5px; margin-bottom: 4px;
+}
+.rdm-description {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  line-height: 1.6; margin-bottom: 16px;
+}
+
+.rdm-meta {
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.rdm-meta-row {
+  display: flex; gap: 10px; align-items: baseline;
+  font-size: 11px;
+}
+.rdm-meta-key   { color: rgba(196,181,253,0.4); font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; min-width: 80px; }
+.rdm-meta-val   { color: rgba(255,255,255,0.7); flex: 1; }
+.rdm-meta-date  { color: rgba(255,255,255,0.45); font-family: 'Courier New', monospace; font-size: 10px; }
+
+/* Chaosfish annotation note in modal */
+.rdm-cf-note {
+  background: rgba(196,181,253,0.04);
+  border: 1px solid rgba(196,181,253,0.1);
+  border-left: 3px solid rgba(196,181,253,0.35);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 14px;
+  position: relative;
+  margin-top: 4px;
+}
+.rdm-cf-label {
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(196,181,253,0.4); font-family: 'Courier New', monospace;
+  margin-bottom: 6px;
+}
+.rdm-cf-text {
+  font-size: 12px; color: rgba(196,181,253,0.65);
+  font-style: italic; line-height: 1.6;
+}
+.rdm-cf-text::before { content: '"'; }
+.rdm-cf-text::after  { content: '"'; }
+
+/* ══════════════════════════════════════════════════════════════
+   RELIC UNLOCK POPUP
+   ══════════════════════════════════════════════════════════════ */
+
+#relic-unlock-popup {
+  display: none; position: fixed;
+  bottom: 32px; right: 32px;
+  z-index: 9500;
+  animation: rup-slide-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+#relic-unlock-popup.active { display: block; }
+#relic-unlock-popup.hide-anim {
+  animation: rup-slide-out 0.4s ease both;
+}
+
+@keyframes rup-slide-in {
+  from { transform: translateX(120%) scale(0.9); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+@keyframes rup-slide-out {
+  from { transform: translateX(0) scale(1); opacity: 1; }
+  to   { transform: translateX(120%) scale(0.9); opacity: 0; }
+}
+
+.rup-inner {
+  background: linear-gradient(135deg, #1e1a30 0%, #2a2045 100%);
+  border: 1px solid rgba(196,181,253,0.25);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(196,181,253,0.08);
+  padding: 16px 20px 16px 16px;
+  display: flex; gap: 14px; align-items: flex-start;
+  max-width: 320px;
+  position: relative; overflow: hidden;
+}
+
+/* Shimmer sweep */
+.rup-inner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 0%, rgba(196,181,253,0.06) 50%, transparent 100%);
+  animation: rup-shimmer 2s ease-in-out infinite;
+}
+@keyframes rup-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.rup-icon { font-size: 32px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+
+.rup-text { flex: 1; }
+.rup-eyebrow {
+  font-size: 8px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(196,181,253,0.6); font-family: 'Courier New', monospace;
+  margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+}
+.rup-eyebrow::before { content: '📓'; font-size: 10px; }
+.rup-name   { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 3px; }
+.rup-desc   { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.4; }
+.rup-rarity { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; display: inline-block; }
+.rup-rarity.common    { color: #94a3b8; }
+.rup-rarity.rare      { color: #a78bfa; }
+.rup-rarity.legendary { color: #fbbf24; }
+.rup-rarity.mythic    { color: #f87171; }
+
+.rup-close {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; color: rgba(255,255,255,0.3);
+  cursor: pointer; font-size: 14px; padding: 0; line-height: 1;
+  transition: color 0.15s;
+}
+.rup-close:hover { color: rgba(255,255,255,0.7); }
+
+/* ── Progress bar at bottom of popup ── */
+.rup-progress {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+}
+.rup-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7c5cff, #c4b5fd);
+  border-radius: 0 0 16px 16px;
+  animation: rup-drain var(--rup-dur, 6s) linear forwards;
+}
+@keyframes rup-drain {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
 </style>
 </head>
 <body>
@@ -11538,6 +12442,13 @@ body.total-chaos-entering #total-chaos-bleed {
           <span class="cmd-nav-icon">📚</span>
           <span class="cmd-nav-label">Modifier Library</span>
           <span class="cmd-nav-chip">LIB</span>
+        </button>
+        <button class="cmd-nav-item" id="cmd-item-relics"
+          onclick="cmdGo('relics')"
+          data-tooltip="Relic Scrapbook">
+          <span class="cmd-nav-icon">📔</span>
+          <span class="cmd-nav-label">Relic Scrapbook</span>
+          <span class="cmd-nav-chip">RLC</span>
         </button>
       </div>
 
@@ -12639,6 +13550,72 @@ body.total-chaos-entering #total-chaos-bleed {
       <button class="menu-btn secondary" onclick="backToLobby()" style="margin-top:16px;">← Back</button>
     </div>
 
+    <!-- RELIC DETAIL MODAL -->
+    <div id="relic-detail-modal">
+      <div class="rdm-panel">
+        <button class="rdm-close" onclick="closeRelicDetail()">✕</button>
+        <div class="rdm-object-preview" id="rdm-object-preview"></div>
+        <div id="rdm-rarity" class="rdm-rarity common"></div>
+        <div id="rdm-name"   class="rdm-name"></div>
+        <div id="rdm-desc"   class="rdm-description"></div>
+        <div class="rdm-meta" id="rdm-meta">
+          <div class="rdm-meta-row">
+            <span class="rdm-meta-key">Condition</span>
+            <span class="rdm-meta-val" id="rdm-condition">—</span>
+          </div>
+          <div class="rdm-meta-row" id="rdm-date-row">
+            <span class="rdm-meta-key">Obtained</span>
+            <span class="rdm-meta-date" id="rdm-date">—</span>
+          </div>
+        </div>
+        <div class="rdm-cf-note">
+          <div class="rdm-cf-label">🐟 Chaosfish Note</div>
+          <div class="rdm-cf-text" id="rdm-cf-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELICS SCREEN -->
+    <div id="relics-screen">
+      <div class="scrapbook-wrap">
+
+        <div class="scrapbook-header">
+          <div>
+            <div class="scrapbook-title">📔 Relic Scrapbook</div>
+            <div class="scrapbook-subtitle">Documented by Chaosfish &nbsp;·&nbsp; Field Evidence Division</div>
+          </div>
+          <div class="scrapbook-count">
+            <div id="relics-count-text">— / — collected</div>
+          </div>
+        </div>
+
+        <div class="scrapbook-book">
+          <div class="scrapbook-page-lines"></div>
+          <div class="scrapbook-deco-layer" id="scrapbook-deco-layer"></div>
+
+          <div class="scrapbook-section-label">Collected Evidence</div>
+
+          <div class="relic-grid" id="relic-grid">
+            <!-- Populated by JS -->
+            <div class="scrapbook-empty">
+              <div class="scrapbook-empty-icon">📔</div>
+              <div class="scrapbook-empty-title">No relics yet</div>
+              <div class="scrapbook-empty-sub">Play games to discover strange artifacts. Chaosfish is watching.</div>
+            </div>
+          </div>
+
+          <div class="scrapbook-cf-note">
+            <div class="scrapbook-cf-fish">🐟</div>
+            <div class="scrapbook-cf-text" id="scrapbook-cf-note-text">
+              These are real. I collected them myself. Please do not ask where I found them.
+            </div>
+          </div>
+        </div>
+
+        <button class="menu-btn secondary" onclick="backToLobby()" style="margin-top:16px;">← Back</button>
+      </div>
+    </div>
+
     <div id="connection-status" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;"></div>
   </div><!-- end menu-sub-content -->
 
@@ -12700,7 +13677,7 @@ body.total-chaos-entering #total-chaos-bleed {
     <div class="codex-main">
       <div class="codex-header">
         <div>
-          <div class="codex-kicker">System Archive</div>
+          <div class="codex-kicker">Chaosfish's Study</div>
           <h2>Modifier Library</h2>
           <div class="codex-progress" id="codex-progress">0 / 0 discovered</div>
         </div>
@@ -12836,6 +13813,12 @@ body.total-chaos-entering #total-chaos-bleed {
         <span class="cmd-nav-icon">📚</span>
         <span class="cmd-nav-label">Modifier Library</span>
         <span class="cmd-nav-chip">LIB</span>
+      </button>
+      <button class="cmd-nav-item" id="igs-item-relics"
+        onclick="igsGo('relics')" data-tooltip="Relic Scrapbook">
+        <span class="cmd-nav-icon">📔</span>
+        <span class="cmd-nav-label">Relic Scrapbook</span>
+        <span class="cmd-nav-chip">RLC</span>
       </button>
     </div>
 
@@ -20577,6 +21560,43 @@ function getCodexCombo(mod){
   return CODEX_COMBOS[mod.name] || CODEX_COMBOS[mod.baseModifier] || CODEX_COMBOS[mod.codexCategory] || CODEX_COMBOS.environmental;
 }
 
+function codexBookHash(value){
+  let hash = 0;
+  String(value || '').split('').forEach(ch => {
+    hash = ((hash << 5) - hash) + ch.charCodeAt(0);
+    hash |= 0;
+  });
+  return Math.abs(hash);
+}
+
+function getCodexBookRarityMeta(mod){
+  const base = mod.isEvolution ? findModByName(mod.baseModifier) : null;
+  const rarity = mod.isEvolution ? 'evolved' : (mod.rarity || 'common');
+  const baseRarity = (base && base.rarity) || mod.rarity || 'common';
+  return { rarity, baseRarity };
+}
+
+function getCodexBookStyle(mod){
+  const seed = codexBookHash(mod.name);
+  const height = 252 + (seed % 48);
+  const width = 174 + ((seed >> 3) % 34);
+  const tiltBase = ((seed >> 5) % 7) - 3;
+  const tilt = tiltBase === 0 ? (((seed >> 9) % 2) ? 1 : -1) : tiltBase;
+  const offset = ((seed >> 7) % 13) - 5;
+  return `--book-h:${height}px;--book-w:${width}px;--book-tilt:${tilt}deg;--book-offset:${offset}px;`;
+}
+
+function renderCodexCurio(grid, seedText){
+  const curios = ['pawn', 'scroll', 'feather', 'shell', 'ink'];
+  const seed = codexBookHash(seedText);
+  const type = curios[seed % curios.length];
+  const curio = document.createElement('span');
+  curio.className = `codex-curio ${type}`;
+  curio.setAttribute('aria-hidden', 'true');
+  curio.style.setProperty('--curio-tilt', `${((seed >> 4) % 17) - 8}deg`);
+  grid.appendChild(curio);
+}
+
 function openModifierCodex(category){
   if (!requireLogin({ icon:'📚', title:'Sign In to Browse the Library', sub:'Create a free account to explore all modifiers, abilities, and evolutions.' })) return;
   purgeStaleDiscoveredModifiers();
@@ -20706,7 +21726,10 @@ function renderCodexGrid(){
       header.className = 'codex-section-header';
       header.textContent = `${cat.icon} ${cat.label}`;
       grid.appendChild(header);
-      catMods.forEach(mod => renderCodexCard(mod, discovered, grid));
+      catMods.forEach((mod, idx) => {
+        if(idx > 0 && idx % 6 === 0) renderCodexCurio(grid, `${cat.id}-${idx}`);
+        renderCodexCard(mod, discovered, grid);
+      });
     });
     if(!anyRendered) {
       const empty = document.createElement('div');
@@ -20730,28 +21753,47 @@ function renderCodexGrid(){
       empty.textContent = q ? `No modifiers match "${codexSearchQuery}"` : 'No modifiers in this category.';
       grid.appendChild(empty);
     } else {
-      pageMods.forEach(mod => renderCodexCard(mod, discovered, grid));
+      pageMods.forEach((mod, idx) => {
+        if(idx > 0 && idx % 7 === 0) renderCodexCurio(grid, `${codexActiveCategory}-${idx}`);
+        renderCodexCard(mod, discovered, grid);
+      });
     }
   }
 }
 
 function renderCodexCard(mod, discovered, grid) {
   const unlocked = discovered.includes(mod.name);
-  const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
+  const { rarity, baseRarity } = getCodexBookRarityMeta(mod);
   const card = document.createElement('button');
-  card.className = 'codex-card' + (unlocked ? '' : ' locked') + (codexSelectedModifier === mod.name ? ' selected' : '');
+  card.className = [
+    'codex-card',
+    `rarity-${codexEscape(rarity)}`,
+    `base-${codexEscape(baseRarity)}`,
+    unlocked ? '' : 'locked',
+    codexSelectedModifier === mod.name ? 'selected' : ''
+  ].filter(Boolean).join(' ');
+  card.style.cssText = getCodexBookStyle(mod);
   card.innerHTML = `
+    ${mod.isEvolution && unlocked ? '<span class="codex-evolved-mark"></span>' : ''}
+    ${unlocked ? '' : '<span class="codex-card-lockline"></span>'}
     <div class="codex-card-top">
       <span class="codex-card-icon">${unlocked ? codexEscape(mod.icon) : '?'}</span>
       <span class="codex-pill ${codexEscape(rarity)}">${unlocked ? codexEscape(rarity) : 'locked'}</span>
     </div>
     <div class="codex-card-name">${unlocked ? codexEscape(mod.name) : 'Undiscovered Modifier'}</div>
-    <div class="codex-card-desc">${unlocked ? codexEscape(mod.desc) : 'Draft or activate this modifier to reveal its archive entry.'}</div>
+    <div class="codex-card-desc">${unlocked ? codexEscape(mod.desc) : 'Bound shut until discovered.'}</div>
   `;
+  card.onmousemove = evt => {
+    const rect = card.getBoundingClientRect();
+    const pct = ((evt.clientX - rect.left) / rect.width) - 0.5;
+    card.style.setProperty('--book-hover-tilt', `${(pct * 4).toFixed(2)}deg`);
+  };
+  card.onmouseleave = () => card.style.setProperty('--book-hover-tilt', '0deg');
   card.onclick = () => {
     codexSelectedModifier = mod.name;
+    card.classList.add('selected');
     renderCodexDetail(mod, unlocked);
-    renderCodexGrid();
+    setTimeout(renderCodexGrid, 120);
   };
   grid.appendChild(card);
 }
@@ -20759,7 +21801,7 @@ function renderCodexCard(mod, discovered, grid) {
 function renderCodexEmptyDetail(){
   const detail = document.getElementById('codex-detail');
   if(!detail) return;
-  detail.innerHTML = '<div class="codex-detail-empty">Select a discovered modifier to inspect examples, combo notes, and evolution details. Locked entries stay hidden until you draft or activate them.</div>';
+  detail.innerHTML = "<div class=\"codex-detail-empty\">Choose a book from Chaosfish's shelves to open its notes. Bound books keep their secrets until discovered.</div>";
 }
 
 function renderCodexDetail(mod, unlocked){
@@ -20768,40 +21810,50 @@ function renderCodexDetail(mod, unlocked){
   if(!detail) return;
   if(!unlocked){
     detail.innerHTML = `
-      <div class="codex-detail-icon">?</div>
-      <h3>Undiscovered Modifier</h3>
-      <p>This entry is still blacked out. Draft or activate the modifier to reveal its archive notes.</p>
+      <div class="codex-locked-book">
+        <div class="codex-locked-cover">
+          <div class="codex-locked-question">?</div>
+          <div class="codex-locked-title">Undiscovered Modifier</div>
+          <div class="codex-locked-note">The label is faded, the clasp is tied, and Chaosfish has not added this one to your readable shelf yet.</div>
+        </div>
+      </div>
     `;
     return;
   }
-  const rarity = mod.isEvolution ? 'evolved' : mod.rarity;
+  const { rarity } = getCodexBookRarityMeta(mod);
   const base = mod.isEvolution ? findModByName(mod.baseModifier) : null;
   const evolvesTo = !mod.isEvolution && mod.evolvesTo ? findModByName(mod.evolvesTo) : null;
   detail.innerHTML = `
-    <div class="codex-detail-icon">${codexEscape(mod.icon)}</div>
-    <span class="codex-pill ${codexEscape(rarity)}">${codexEscape(rarity)}</span>
-    <h3>${codexEscape(mod.name)}</h3>
-    <p>${codexEscape(mod.desc)}</p>
-    <div class="codex-detail-section">
-      <div class="codex-detail-label">Example</div>
-      <p>${codexEscape(CODEX_EXAMPLES[mod.name] || 'Use this modifier when the board shape lets its piece type create an unusual threat.')}</p>
-    </div>
-    <div class="codex-detail-section">
-      <div class="codex-detail-label">Combo Notes</div>
-      <p>${codexEscape(getCodexCombo(mod))}</p>
-    </div>
-    <div class="codex-detail-section">
-      <div class="codex-detail-label">Archive Tags</div>
-      <div class="codex-detail-chiprow">
-        <span class="codex-mini-chip">${codexEscape(CODEX_CATEGORIES.find(c => c.id === mod.codexCategory)?.label || 'Environmental')}</span>
-        ${base ? `<span class="codex-mini-chip">Evolves from ${codexEscape(base.name)}</span>` : ''}
-        ${evolvesTo ? `<span class="codex-mini-chip">Can evolve into ${codexEscape(evolvesTo.name)}</span>` : ''}
-        ${mod.stackable ? `<span class="codex-mini-chip" style="color:rgba(251,191,36,0.9);">🥞 Stackable</span>` : ''}
+    <div class="codex-open-book">
+      <div class="codex-page left">
+        <div class="codex-detail-icon">${codexEscape(mod.icon)}</div>
+        <span class="codex-pill ${codexEscape(rarity)}">${codexEscape(rarity)}</span>
+        <h3>${codexEscape(mod.name)}</h3>
+        <p>${codexEscape(mod.desc)}</p>
+        <div class="codex-detail-section">
+          <div class="codex-detail-label">Combo Notes</div>
+          <p>${codexEscape(getCodexCombo(mod))}</p>
+        </div>
+        <div class="codex-detail-section">
+          <div class="codex-detail-label">Library Tags</div>
+          <div class="codex-detail-chiprow">
+            <span class="codex-mini-chip">${codexEscape(CODEX_CATEGORIES.find(c => c.id === mod.codexCategory)?.label || 'Environmental')}</span>
+            ${base ? `<span class="codex-mini-chip">Evolves from ${codexEscape(base.name)}</span>` : ''}
+            ${evolvesTo ? `<span class="codex-mini-chip">Can evolve into ${codexEscape(evolvesTo.name)}</span>` : ''}
+            ${mod.stackable ? `<span class="codex-mini-chip" style="color:#7a4a18;">Stackable</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="codex-page right" id="codex-detail-right">
+        <div class="codex-detail-section" style="margin-top:0;">
+          <div class="codex-detail-label">Modifier Example</div>
+          <p>${codexEscape(CODEX_EXAMPLES[mod.name] || 'Use this modifier when the board shape lets its piece type create an unusual threat.')}</p>
+        </div>
       </div>
     </div>
   `;
-  // Inject live replay preview below Archive Tags
-  injectReplayPanel(mod, detail);
+  const replayPage = detail.querySelector('#codex-detail-right') || detail;
+  injectReplayPanel(mod, replayPage);
 }
 
 
@@ -21905,37 +22957,37 @@ const CODEX_REPLAYS = {
   'Kamikaze Pawn': [
     {
       type: 'good',
-      caption: '😀 Enemy captures our Kamikaze Pawn — bomb arms on the square. Enemy piece is doomed.',
+      caption: '😀 Enemy captures our Kamikaze Pawn -> bomb arms on the square. Enemy piece is doomed.',
       modifiers: ['Kamikaze Pawn'],
       turn: 'black',
       board: [
         ['','','','','k','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','','','','','',''],
         ['','','n','','','','',''],
+        ['','','','','','','',''],
         ['','','','P','','','',''],
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+      moves: [{fromX:2,fromY:3,toX:3,toY:5}]
     },
     {
       type: 'bad',
-      caption: '😭 Pawn captured but no enemy piece stays on the armed square — bomb ticks harmlessly.',
+      caption: '😭 Pawn captured but a modified knight escapes the scene of the crime! The bomb ticks helplessly.',
       modifiers: ['Kamikaze Pawn'],
       turn: 'black',
       board: [
         ['','','','','k','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','','','','','',''],
         ['','','n','','','','',''],
+        ['','','','','','','',''],
         ['','','','P','','','',''],
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+      moves: [{fromX:2,fromY:3,toX:3,toY:5},{fromX:3,fromY:5,toX:4,toY:5}]
     }
   ],
 
@@ -21986,17 +23038,17 @@ const CODEX_REPLAYS = {
         ['','','','','k','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','','','','','','',''],
         ['','','n','','','','',''],
+        ['','','','','','','',''],
         ['','','','P','','','',''],
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:4,toX:3,toY:5}]
+      moves: [{fromX:2,fromY:3,toX:3,toY:5}]
     },
     {
       type: 'bad',
-      caption: '😭 Reinforced Pawn pushed forward alone. Shield wasted when it gets captured next move.',
+      caption: '😭 Reinforced Pawn pushed forward alone once its shield is wasted and does literally nothing.',
       modifiers: ['Reinforced Pawn'],
       turn: 'white',
       board: [
@@ -22004,12 +23056,12 @@ const CODEX_REPLAYS = {
         ['','','','','','','',''],
         ['','','','','','','',''],
         ['','','','','','','',''],
-        ['','b','n','','','','',''],
+        ['','b','','n','','','',''],
         ['','','P','','','','',''],
         ['','','','','','','',''],
         ['K','','','','','','','']
       ],
-      moves: [{fromX:2,fromY:5,toX:2,toY:4}]
+      moves: [{fromX:1,fromY:4,toX:2,toY:5},{fromX:2,fromY:5,toX:2,toY:4}]
     }
   ],
 
@@ -22344,7 +23396,44 @@ const CODEX_REPLAYS = {
       ],
       moves: [{fromX:2,fromY:6,toX:1,toY:5}]
     }
-  ]
+  ],
+
+    'Crab Pawn': [
+    {
+      type: 'good',
+      caption: '😀 Crab Pawn steps to the side towards support.',
+      modifiers: ['Crab Pawn'],
+      turn: 'white',
+      board: [
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','k','P','','','K'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','','']
+      ],
+      moves: [{fromX:4,fromY:2,toX:5,toY:2}]
+    },
+    {
+      type: 'bad',
+      caption: '😭 Crab Pawn moved straight instead of stepping to the side; captured and promotion dream shattered...',
+      modifiers: ['Crab Pawn'],
+      turn: 'white',
+      board: [
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','k','P','','','K'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','','']
+      ],
+      moves: [{fromX:4,fromY:2,toX:4,toY:1},{fromX:3,fromY:2,toX:4,toY:1}]
+    }
+  ],
 
 };
 
@@ -25281,6 +26370,10 @@ async function _populateLobbyInlineFriends(p){
         _setActive('leaderboard');
         if (typeof showLeaderboard === 'function') showLeaderboard();
         break;
+      case 'relics':
+        _setActive('relics');
+        if (typeof showRelics === 'function') showRelics();
+        break;
       case 'settings':
         _setActive('settings');
         if (typeof openSettings === 'function') openSettings();
@@ -25541,6 +26634,15 @@ async function _populateLobbyInlineFriends(p){
           }, 80);
         });
         break;
+      case 'relics':
+        _confirmLeave(function() {
+          if (typeof backToMenu === 'function') backToMenu();
+          else if (typeof backToMenuFromSandbox === 'function') backToMenuFromSandbox();
+          setTimeout(function() {
+            if (typeof showRelics === 'function') showRelics();
+          }, 80);
+        });
+        break;
       case 'settings':
         if (typeof openSettings === 'function') openSettings();
         break;
@@ -25677,6 +26779,7 @@ function hideAll(){
   document.getElementById('friends-screen').classList.remove('active');
   document.getElementById('profile-screen').classList.remove('active');
   document.getElementById('leaderboard-screen').classList.remove('active');
+  document.getElementById('relics-screen').classList.remove('active');
   document.getElementById('connection-status').classList.remove('active');
 }
 
@@ -34039,7 +35142,539 @@ async function loadLobbyLeaderboardPreview() {
     el.innerHTML = '<div class="lb-preview-empty">—</div>';
   }
 }
+
+// ============================================================
+//  RELICS & SCRAPBOOK SYSTEM
+// ============================================================
+
+// ── Relic definitions ──────────────────────────────────────
+// Each relic: { id, name, rarity, image, description, unlockCondition,
+//               dropChance, chaosfishNote, tapeAngle }
+// image → path under assets/misc/relics/
+// tapeAngle → CSS rotation for the tape strip (optional, default '-1deg')
+const RELICS = [
+  {
+    id:               'duck_feather',
+    name:             'Duck Feather',
+    rarity:           'rare',
+    image:            'assets/misc/relics/duck_feather.png',
+    description:      'Surprisingly clean feather recovered after a documented duck incident.',
+    unlockCondition:  'Witness Duck of Eternal Blocking in a completed game.',
+    dropChance:       0.20,
+    chaosfishNote:    'The duck declined to comment.',
+    tapeAngle:        '2deg',
+  },
+  {
+    id:               'receipt_for_one_chaos',
+    name:             'Receipt For One Chaos',
+    rarity:           'common',
+    image:            'assets/misc/relics/receipt_for_one_chaos.png',
+    description:      'Proof of purchase. Non-refundable.',
+    unlockCondition:  'Reach TOTAL CHAOS.',
+    dropChance:       0.25,
+    chaosfishNote:    "I don't remember buying this.",
+    tapeAngle:        '-1deg',
+  },
+  {
+    id:               'chaosfish_report_card',
+    name:             "Chaosfish's Report Card",
+    rarity:           'legendary',
+    image:            'assets/misc/relics/chaosfish_report_card.png',
+    description:      'Academic evaluation of a promising fish.',
+    unlockCondition:  'Defeat Young Chaosfish.',
+    dropChance:       0.05,
+    chaosfishNote:    'I appealed this result.',
+    tapeAngle:        '-3deg',
+  },
+];
+
+// ── Layout constants ───────────────────────────────────────
+const SB = {
+  COLS:     3,
+  CARD_W:   225,
+  CARD_H:   310,   // rough card height incl label
+  COL_GAP:  60,    // base horizontal gap between columns
+  ROW_H:    360,   // row-to-row distance (leaves breathing room + overlap potential)
+  X_JITTER: 32,    // ±px horizontal variance per card
+  Y_JITTER: 44,    // ±px vertical variance per card
+  ROT_MAX:  14,    // max rotation in degrees
+  TOP_PAD:  24,    // extra top padding inside grid before first row
+  // Decoration images — user draws these in assets/misc/relics/
+  DECOS: [
+    { src: 'assets/misc/relics/deco_fish_sketch.png',  w: 210, opacity: 0.22 },
+    { src: 'assets/misc/relics/deco_scribble_a.png',   w: 180, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_scribble_b.png',   w: 150, opacity: 0.18 },
+    { src: 'assets/misc/relics/deco_arrow.png',        w: 120, opacity: 0.21 },
+    { src: 'assets/misc/relics/deco_star.png',         w:  90, opacity: 0.24 },
+    { src: 'assets/misc/relics/deco_writing.png',      w: 230, opacity: 0.17 },
+    { src: 'assets/misc/relics/deco_fingerprint.png',  w:  80, opacity: 0.19 },
+    { src: 'assets/misc/relics/deco_theory.png',  w:  100, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_sick_duck.png',  w:  110, opacity: 0.25 },
+  ],
+};
+
+// ── Seeded LCG — deterministic per-card randomness ────────
+function _sbRng(seed) {
+  let s = (seed * 1664525 + 1013904223) >>> 0;
+  return function() {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return (s >>> 0) / 4294967295;
+  };
+}
+
+// ── Compute absolute position for card at index i ─────────
+function _cardPos(i) {
+  const rng = _sbRng(i * 137 + 42);
+  const col = i % SB.COLS;
+  const row = Math.floor(i / SB.COLS);
+  // Total occupied width for COLS cards + their gaps
+  const totalW = SB.COLS * SB.CARD_W + (SB.COLS - 1) * SB.COL_GAP;
+  const colStep = (totalW - SB.CARD_W) / (SB.COLS - 1);   // step between column starts
+  const baseX   = col * (colStep || SB.CARD_W + SB.COL_GAP);
+  const baseY   = SB.TOP_PAD + row * SB.ROW_H;
+  const left    = Math.round(baseX + (rng() * 2 - 1) * SB.X_JITTER);
+  const top     = Math.round(baseY + (rng() * 2 - 1) * SB.Y_JITTER);
+  // Bias rotation: odd cards tilt right, even tilt left — feels more organic
+  const rotBias = (col % 2 === 0 ? 1 : -1) * (2 + rng() * 3);
+  const rot     = +((rng() * 2 - 1) * (SB.ROT_MAX - 4) + rotBias).toFixed(1);
+  // Tape strip position — slightly off-centre
+  const tapeX   = Math.round(40 + rng() * (SB.CARD_W - 80));
+  const tapeRot = +((rng() * 2 - 1) * 6).toFixed(1);
+  return { left, top, rot, tapeX, tapeRot };
+}
+
+// ── Compute grid height needed for n cards ─────────────────
+function _gridHeight(n) {
+  if (n === 0) return 300;
+  const rows = Math.ceil(n / SB.COLS);
+  return SB.TOP_PAD + rows * SB.ROW_H + SB.CARD_H + SB.Y_JITTER + 48;
+}
+
+// ── Build decoration layer HTML ────────────────────────────
+// Decos use a fixed seed so layout is stable across re-renders
+function _decoHTML(gridH) {
+  const rng = _sbRng(99991);  // stable seed
+  // Safe zone: avoid the very left (spine area already covered by book ::before)
+  // and try to scatter across the full page height
+  const pageW = 940;  // virtual width of the page content
+  const results = [];
+
+  // Pick 5–7 decos, use all but shuffle order
+  const pool = [...SB.DECOS];
+  // Fisher-Yates with our seeded rng
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const count = 5 + Math.floor(rng() * 3);  // 5–7
+  const chosen = pool.slice(0, Math.min(count, pool.length));
+
+  // Distribute across the full height in bands so they're well scattered
+  const bandH = Math.max(gridH / chosen.length, 180);
+
+  chosen.forEach((deco, idx) => {
+    const band_top = idx * bandH;
+    const top  = Math.round(band_top + rng() * Math.max(bandH - 80, 60));
+    // Keep away from the very left edge (spine) and very right edge
+    const left = Math.round(20 + rng() * (pageW - deco.w - 40));
+    const rot  = +((rng() * 2 - 1) * 35).toFixed(1);
+
+    results.push(
+      `<img class="scrapbook-deco" src="${deco.src}" alt=""
+        style="left:${left}px; top:${top}px; --deco-rot:${rot}deg;
+               --deco-opacity:${deco.opacity}; --deco-w:${deco.w}px;"
+        draggable="false"
+        onerror="this.style.display='none'">`
+    );
+  });
+
+  return results.join('\n');
+}
+
+// ── In-memory state ────────────────────────────────────────
+let _unlockedRelics = [];   // [{ relicId, obtainedAt }]  — loaded from Firestore
+let _relicsLoaded   = false;
+
+// ── Per-game session context (reset each game start) ───────
+window._relicGameCtx = {
+  seenDuck:              false,
+  totalChaosReached:     false,
+  defeatedYoungChaosfish:false,
+};
+
+// ── Load relics from Firestore ─────────────────────────────
+async function loadRelics() {
+  if (!currentProfile || isGuest || !fbDb) { _unlockedRelics = []; _relicsLoaded = true; return; }
+  try {
+    const snap = await fbDb.collection('users').doc(currentProfile.id)
+                           .collection('relics').get();
+    _unlockedRelics = snap.docs.map(d => ({ relicId: d.id, obtainedAt: d.data().obtainedAt }));
+    _relicsLoaded = true;
+  } catch(e) {
+    _unlockedRelics = []; _relicsLoaded = true;
+  }
+}
+
+// ── Unlock a relic (Firestore write + popup) ───────────────
+async function unlockRelic(relicId) {
+  if (!currentProfile || isGuest || !fbDb) return;
+  // Don't double-unlock
+  if (_unlockedRelics.some(r => r.relicId === relicId)) return;
+
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+  try {
+    await fbDb.collection('users').doc(currentProfile.id)
+              .collection('relics').doc(relicId)
+              .set({ relicId, obtainedAt: ts });
+    _unlockedRelics.push({ relicId, obtainedAt: new Date() });
+    showRelicUnlockPopup(relicId);
+  } catch(e) {
+    console.warn('Relic unlock failed:', e);
+  }
+}
+
+// ── Check conditions + award relics at game end ────────────
+async function checkAndAwardRelics() {
+  if (!currentProfile || isGuest) return;
+  if (!_relicsLoaded) await loadRelics();
+
+  const ctx = window._relicGameCtx;
+
+  for (const relic of RELICS) {
+    // Skip already unlocked
+    if (_unlockedRelics.some(r => r.relicId === relic.id)) continue;
+
+    let conditionMet = false;
+    switch (relic.id) {
+      case 'duck_feather':
+        conditionMet = !!ctx.seenDuck; break;
+      case 'receipt_for_one_chaos':
+        conditionMet = !!ctx.totalChaosReached; break;
+      case 'chaosfish_report_card':
+        conditionMet = !!ctx.defeatedYoungChaosfish; break;
+    }
+
+    if (conditionMet && Math.random() < relic.dropChance) {
+      await unlockRelic(relic.id);
+      // Small delay between multiple unlocks so popups don't stack
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  // Reset context for next game
+  window._relicGameCtx = {
+    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false,
+  };
+}
+
+// ── Reset per-game context when a new game starts ─────────
+function resetRelicGameCtx() {
+  window._relicGameCtx = {
+    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false,
+  };
+}
+
+// ── Render a single relic card (HTML string) ───────────────
+function _relicCardHTML(relic, unlocked, obtainedAt, pos) {
+  const cardStyle = [
+    `left:${pos.left}px`,
+    `top:${pos.top}px`,
+    `transform:rotate(${pos.rot}deg)`,
+    `--base-rot:${pos.rot}deg`,
+    `--tape-angle:${pos.tapeRot}deg`,
+    `--tape-x:${pos.tapeX}px`,
+  ].join(';');
+
+  if (!unlocked) {
+    return `<div class="relic-card relic-locked" style="${cardStyle}" title="???">
+      <div class="relic-object">
+        <div class="relic-locked-icon">📔</div>
+        <div class="relic-locked-text">????</div>
+        <div class="relic-locked-hint">Undiscovered</div>
+      </div>
+      <div class="relic-label">
+        <div class="relic-name">????</div>
+        <span class="relic-rarity-badge ${relic.rarity}">???</span>
+      </div>
+    </div>`;
+  }
+
+  const dateStr = obtainedAt instanceof Date
+    ? obtainedAt.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
+    : (obtainedAt && obtainedAt.toDate
+        ? obtainedAt.toDate().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
+        : '—');
+
+  return `<div class="relic-card" style="${cardStyle}"
+               onclick="showRelicDetail('${relic.id}')"
+               title="${relic.name}">
+    <div class="relic-object">
+      <img src="${relic.image}" alt="${relic.name}" loading="lazy"
+           onerror="this.style.display='none'; this.parentElement.style.minHeight='140px';">
+    </div>
+    <div class="relic-label">
+      <div class="relic-name">${relic.name}</div>
+      <span class="relic-rarity-badge ${relic.rarity}">${relic.rarity}</span>
+    </div>
+  </div>`;
+}
+
+// ── Show the Scrapbook page ─────────────────────────────────
+async function showRelics() {
+  hideAll();
+  showSubView();
+  document.getElementById('relics-screen').classList.add('active');
+
+  if (!_relicsLoaded) await loadRelics();
+
+  const grid    = document.getElementById('relic-grid');
+  const decoEl  = document.getElementById('scrapbook-deco-layer');
+  const countEl = document.getElementById('relics-count-text');
+
+  const unlockedIds    = new Set(_unlockedRelics.map(r => r.relicId));
+  const unlockedCount  = unlockedIds.size;
+
+  if (countEl) countEl.textContent = `${unlockedCount} / ${RELICS.length} collected`;
+
+  // Unlocked first, then locked
+  const unlocked = RELICS.filter(r =>  unlockedIds.has(r.id));
+  const locked   = RELICS.filter(r => !unlockedIds.has(r.id));
+  const ordered  = [...unlocked, ...locked];
+
+  if (ordered.length === 0) {
+    grid.style.removeProperty('height');
+    grid.innerHTML = `<div class="scrapbook-empty">
+      <div class="scrapbook-empty-icon">📔</div>
+      <div class="scrapbook-empty-title">Nothing here yet</div>
+      <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
+    </div>`;
+  } else {
+    const gh = _gridHeight(ordered.length);
+    grid.style.height = gh + 'px';
+
+    grid.innerHTML = ordered.map((relic, i) => {
+      const entry      = _unlockedRelics.find(r => r.relicId === relic.id);
+      const isUnlocked = !!entry;
+      const pos        = _cardPos(i);
+      return _relicCardHTML(relic, isUnlocked, entry?.obtainedAt, pos);
+    }).join('');
+
+    // Inject decorations into the deco layer (behind cards)
+    if (decoEl) decoEl.innerHTML = _decoHTML(gh + 120);
+  }
+
+  // Chaosfish corner note — rotate through notes of unlocked relics
+  const noteEl = document.getElementById('scrapbook-cf-note-text');
+  if (noteEl) {
+    if (unlocked.length > 0) {
+      const r = unlocked[Math.floor(Math.random() * unlocked.length)];
+      noteEl.textContent = r.chaosfishNote;
+    } else {
+      noteEl.textContent = 'These are real. I collected them myself. Please do not ask where I found them.';
+    }
+  }
+}
+
+// ── Relic Detail Modal ──────────────────────────────────────
+function showRelicDetail(relicId) {
+  const relic   = RELICS.find(r => r.id === relicId);
+  if (!relic) return;
+
+  const entry   = _unlockedRelics.find(r => r.relicId === relicId);
+  const dateStr = entry?.obtainedAt instanceof Date
+    ? entry.obtainedAt.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
+    : (entry?.obtainedAt?.toDate
+        ? entry.obtainedAt.toDate().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
+        : '—');
+
+  // Object preview (image)
+  const preview = document.getElementById('rdm-object-preview');
+  if (preview) {
+    preview.innerHTML = `<div class="relic-object" style="--preview-rot:${relic.tapeAngle || '-1deg'}; max-width:200px; width:100%;">
+      <img src="${relic.image}" alt="${relic.name}"
+           style="border-radius:6px;"
+           onerror="this.style.display='none'; this.parentElement.style.minHeight='120px';">
+    </div>`;
+  }
+
+  const rarEl = document.getElementById('rdm-rarity');
+  if (rarEl) { rarEl.textContent = relic.rarity.charAt(0).toUpperCase() + relic.rarity.slice(1); rarEl.className = `rdm-rarity ${relic.rarity}`; }
+
+  const nameEl = document.getElementById('rdm-name');       if (nameEl) nameEl.textContent = relic.name;
+  const descEl = document.getElementById('rdm-desc');       if (descEl) descEl.textContent = relic.description;
+  const condEl = document.getElementById('rdm-condition');  if (condEl) condEl.textContent = relic.unlockCondition;
+  const dateEl = document.getElementById('rdm-date');       if (dateEl) dateEl.textContent = dateStr;
+  const cfEl   = document.getElementById('rdm-cf-text');    if (cfEl)   cfEl.textContent = relic.chaosfishNote;
+
+  const dateRow = document.getElementById('rdm-date-row');
+  if (dateRow) dateRow.style.display = entry ? 'flex' : 'none';
+
+  const modal = document.getElementById('relic-detail-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeRelicDetail() {
+  const modal = document.getElementById('relic-detail-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('relic-detail-modal');
+  if (e.target === modal) closeRelicDetail();
+});
+
+// ── Relic Unlock Popup ──────────────────────────────────────
+let _rupTimer = null;
+
+function showRelicUnlockPopup(relicId) {
+  const relic = RELICS.find(r => r.id === relicId);
+  if (!relic) return;
+
+  const popup   = document.getElementById('relic-unlock-popup');
+  const nameEl  = document.getElementById('rup-name');
+  const descEl  = document.getElementById('rup-desc');
+  const rarEl   = document.getElementById('rup-rarity');
+  const bar     = document.getElementById('rup-progress-bar');
+
+  if (!popup) return;
+
+  if (nameEl)  nameEl.textContent  = relic.name;
+  if (descEl)  descEl.textContent  = relic.description;
+  if (rarEl) {
+    rarEl.textContent = relic.rarity.charAt(0).toUpperCase() + relic.rarity.slice(1);
+    rarEl.className   = `rup-rarity ${relic.rarity}`;
+  }
+
+  const DUR = 7000;
+  if (bar) { bar.style.setProperty('--rup-dur', DUR + 'ms'); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+
+  popup.classList.remove('hide-anim');
+  popup.classList.add('active');
+
+  if (_rupTimer) clearTimeout(_rupTimer);
+  _rupTimer = setTimeout(dismissRelicPopup, DUR);
+}
+
+function dismissRelicPopup() {
+  const popup = document.getElementById('relic-unlock-popup');
+  if (!popup) return;
+  if (_rupTimer) { clearTimeout(_rupTimer); _rupTimer = null; }
+  popup.classList.add('hide-anim');
+  setTimeout(() => { popup.classList.remove('active', 'hide-anim'); }, 420);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HOOKS — wire relics into game events
+// ══════════════════════════════════════════════════════════════
+
+// ── Hook: Duck seen ────────────────────────────────────────
+(function() {
+  const _origSpawnDuck = window.spawnDuck;
+  if (typeof _origSpawnDuck === 'function') {
+    window.spawnDuck = function() {
+      window._relicGameCtx.seenDuck = true;
+      return _origSpawnDuck.apply(this, arguments);
+    };
+  }
+})();
+
+// ── Hook: Total Chaos reached ──────────────────────────────
+// activateTotalChaos sets totalChaosActive = true; we patch it
+(function() {
+  // activateTotalChaos is defined inline; we intercept via the
+  // totalChaosActive write path by watching the endGame hook
+  // and also by patching the place that sets totalChaosActive.
+  // Simpler: patch document after DOMContentLoaded to detect the flag.
+  // Actually safest: use a MutationObserver-free approach — we hook
+  // into the exact line that sets totalChaosActive.
+  // Since totalChaosActive is a bare let, we watch for it in a wrapper
+  // appended right here.  The game already guards re-entry, so this fires once.
+
+  // The most reliable hook: override the CSS class toggle that always fires
+  // when total chaos activates (body.total-chaos-active class).
+  const _origAdd = DOMTokenList.prototype.add;
+  const _patchedAdd = function(...tokens) {
+    if (this === document.body.classList && tokens.includes('total-chaos-active')) {
+      window._relicGameCtx.totalChaosReached = true;
+    }
+    return _origAdd.apply(this, tokens);
+  };
+  DOMTokenList.prototype.add = _patchedAdd;
+})();
+
+// ── Hook: Young Chaosfish defeated ─────────────────────────
+(function() {
+  const _origRecord = window.recordCfGameResult;
+  if (typeof _origRecord === 'function') {
+    window.recordCfGameResult = async function(variant, outcome) {
+      if (variant === 'young' && outcome === 'win') {
+        window._relicGameCtx.defeatedYoungChaosfish = true;
+      }
+      return _origRecord.apply(this, arguments);
+    };
+  }
+  // Also patch in case recordCfGameResult is defined later
+  window._relicRecordHooked = true;
+})();
+
+// ── Hook: Game end — run relic checks ─────────────────────
+(function() {
+  const _origEndGame = window.endGame;
+  if (typeof _origEndGame === 'function') {
+    window.endGame = function(message, delay) {
+      // Schedule relic check slightly after game-end processing
+      setTimeout(() => checkAndAwardRelics(), 800);
+      return _origEndGame.apply(this, arguments);
+    };
+  }
+})();
+
+// ── Hook: Reset context on new game start ──────────────────
+// We patch startGame / startLocal / startOnlineGame to reset
+document.addEventListener('DOMContentLoaded', function() {
+  ['startLocal', 'startGame', 'startOnlineGame', 'startPuzzle', 'startSandbox'].forEach(fn => {
+    const orig = window[fn];
+    if (typeof orig === 'function') {
+      window[fn] = function() {
+        resetRelicGameCtx();
+        return orig.apply(this, arguments);
+      };
+    }
+  });
+
+  // Also hook recordCfGameResult in case it was defined after our first pass
+  if (!window._relicRecordHooked) {
+    const _r = window.recordCfGameResult;
+    if (typeof _r === 'function') {
+      window.recordCfGameResult = async function(variant, outcome) {
+        if (variant === 'young' && outcome === 'win') {
+          window._relicGameCtx.defeatedYoungChaosfish = true;
+        }
+        return _r.apply(this, arguments);
+      };
+    }
+  }
+});
+
+// ── Load relics when user logs in ─────────────────────────
+// Piggyback on the auth state change that already runs in the codebase.
+// The safest approach: expose loadRelics for the auth handler to call,
+// and also try to call it if currentProfile is already set.
+(function() {
+  const _pollForAuth = setInterval(() => {
+    if (typeof currentProfile !== 'undefined' && currentProfile) {
+      loadRelics();
+      clearInterval(_pollForAuth);
+    }
+  }, 800);
+  // Give up after 30 s (guest / not logged in)
+  setTimeout(() => clearInterval(_pollForAuth), 30000);
+})();
+
 </script>
+
+
 
 <!-- Guest Sign-In Prompt Modal -->
 <div id="guest-signin-modal">
@@ -34089,5 +35724,22 @@ async function loadLobbyLeaderboardPreview() {
     </div>
   </div>
 </div>
+<!-- RELIC UNLOCK POPUP -->
+<div id="relic-unlock-popup">
+  <div class="rup-inner">
+    <div class="rup-icon" id="rup-icon">📓</div>
+    <div class="rup-text">
+      <div class="rup-eyebrow">New Relic Discovered</div>
+      <div class="rup-name"  id="rup-name">—</div>
+      <div class="rup-desc"  id="rup-desc">—</div>
+      <div class="rup-rarity" id="rup-rarity">common</div>
+    </div>
+    <button class="rup-close" onclick="dismissRelicPopup()">✕</button>
+    <div class="rup-progress">
+      <div class="rup-progress-bar" id="rup-progress-bar"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
