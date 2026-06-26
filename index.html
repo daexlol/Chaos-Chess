@@ -12063,6 +12063,92 @@ body.total-chaos-entering #total-chaos-bleed {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   SCRAPBOOK PAGE SYSTEM — flip animations, nav, page edges
+   ══════════════════════════════════════════════════════════════ */
+
+@keyframes sb-flip-out-fwd {
+  0%   { opacity: 1; transform: perspective(1400px) translateX(0)     rotateY(0deg); }
+  100% { opacity: 0; transform: perspective(1400px) translateX(-3.5%) rotateY(20deg); }
+}
+@keyframes sb-flip-in-fwd {
+  0%   { opacity: 0; transform: perspective(1400px) translateX(4%)    rotateY(-20deg); }
+  100% { opacity: 1; transform: perspective(1400px) translateX(0)     rotateY(0deg); }
+}
+@keyframes sb-flip-out-back {
+  0%   { opacity: 1; transform: perspective(1400px) translateX(0)     rotateY(0deg); }
+  100% { opacity: 0; transform: perspective(1400px) translateX(3.5%)  rotateY(-20deg); }
+}
+@keyframes sb-flip-in-back {
+  0%   { opacity: 0; transform: perspective(1400px) translateX(-4%)   rotateY(20deg); }
+  100% { opacity: 1; transform: perspective(1400px) translateX(0)     rotateY(0deg); }
+}
+
+.sb-flip-out-fwd  { animation: sb-flip-out-fwd  0.30s ease                          both; }
+.sb-flip-in-fwd   { animation: sb-flip-in-fwd   0.36s cubic-bezier(0.22,0.61,0.36,1) both; }
+.sb-flip-out-back { animation: sb-flip-out-back 0.30s ease                          both; }
+.sb-flip-in-back  { animation: sb-flip-in-back  0.36s cubic-bezier(0.22,0.61,0.36,1) both; }
+
+/* ── Right-edge "next page" click zone ── */
+.sb-page-edges {
+  position: absolute;
+  right: 0; top: 24px; bottom: 24px;
+  width: 48px;
+  z-index: 8;
+  border-radius: 0 18px 18px 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 9px;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0px,    transparent 5px,
+    rgba(196,181,253,0.05)  5px,  rgba(196,181,253,0.05)  7px,
+    transparent 7px,    transparent 14px,
+    rgba(196,181,253,0.035) 14px, rgba(196,181,253,0.035) 16px,
+    transparent 16px,   transparent 24px,
+    rgba(196,181,253,0.025) 24px, rgba(196,181,253,0.025) 26px
+  );
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.sb-page-edges:hover { background: rgba(196,181,253,0.07); }
+.sb-page-edges.no-next { pointer-events: none; opacity: 0.22; cursor: default; }
+.sb-page-edge-arrow {
+  font-size: 18px; line-height: 1;
+  color: rgba(196,181,253,0.12);
+  transition: color 0.18s, transform 0.18s;
+  user-select: none;
+}
+.sb-page-edges:hover .sb-page-edge-arrow {
+  color: rgba(196,181,253,0.58);
+  transform: translateX(3px);
+}
+
+/* ── Bottom page nav ── */
+.sb-page-nav {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; padding: 22px 0 4px 0;
+  position: relative; z-index: 4;
+}
+.sb-page-num {
+  font-family: 'Courier New', monospace;
+  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(196,181,253,0.32);
+  min-width: 96px; text-align: center;
+}
+.sb-page-btn {
+  background: rgba(196,181,253,0.05);
+  border: 1px solid rgba(196,181,253,0.1);
+  border-radius: 6px; color: rgba(196,181,253,0.4);
+  font-size: 16px; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0; line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.sb-page-btn:hover:not(:disabled) {
+  background: rgba(196,181,253,0.12); color: rgba(196,181,253,0.8);
+}
+.sb-page-btn:disabled { opacity: 0.18; cursor: default; }
+
+/* ══════════════════════════════════════════════════════════════
    RELIC DETAIL MODAL
    ══════════════════════════════════════════════════════════════ */
 
@@ -13594,6 +13680,11 @@ body.total-chaos-entering #total-chaos-bleed {
           <div class="scrapbook-page-lines"></div>
           <div class="scrapbook-deco-layer" id="scrapbook-deco-layer"></div>
 
+          <!-- Right-edge click zone: next page -->
+          <div class="sb-page-edges no-next" id="sb-page-edges" onclick="_sbNextPage()" title="Next page">
+            <span class="sb-page-edge-arrow">›</span>
+          </div>
+
           <div class="scrapbook-section-label">Collected Evidence</div>
 
           <div class="relic-grid" id="relic-grid">
@@ -13605,11 +13696,10 @@ body.total-chaos-entering #total-chaos-bleed {
             </div>
           </div>
 
-          <div class="scrapbook-cf-note">
-            <div class="scrapbook-cf-fish">🐟</div>
-            <div class="scrapbook-cf-text" id="scrapbook-cf-note-text">
-              These are real. I collected them myself. Please do not ask where I found them.
-            </div>
+          <div class="sb-page-nav">
+            <button class="sb-page-btn" id="sb-prev-btn" onclick="_sbPrevPage()" disabled>‹</button>
+            <span class="sb-page-num" id="scrapbook-page-num">Page 1 of 1</span>
+            <button class="sb-page-btn" id="sb-next-btn" onclick="_sbNextPage()" disabled>›</button>
           </div>
         </div>
 
@@ -35191,26 +35281,35 @@ const RELICS = [
 
 // ── Layout constants ───────────────────────────────────────
 const SB = {
-  COLS:     3,
-  CARD_W:   225,
-  CARD_H:   310,   // rough card height incl label
-  COL_GAP:  60,    // base horizontal gap between columns
-  ROW_H:    360,   // row-to-row distance (leaves breathing room + overlap potential)
-  X_JITTER: 32,    // ±px horizontal variance per card
-  Y_JITTER: 44,    // ±px vertical variance per card
-  ROT_MAX:  14,    // max rotation in degrees
-  TOP_PAD:  24,    // extra top padding inside grid before first row
-  // Decoration images — user draws these in assets/misc/relics/
+  COLS:           3,
+  CARD_W:         225,
+  CARD_H:         310,
+  COL_GAP:        60,
+  ROW_H:          360,
+  X_JITTER:       32,
+  Y_JITTER:       44,
+  ROT_MAX:        14,
+  TOP_PAD:        24,
+  PER_PAGE:       6,      // relics per scrapbook page
+  DECOS_PER_PAGE: 5,      // unique decos per page (no repeats on same page)
   DECOS: [
-    { src: 'assets/misc/relics/deco_fish_sketch.png',  w: 210, opacity: 0.22 },
-    { src: 'assets/misc/relics/deco_scribble_a.png',   w: 180, opacity: 0.20 },
-    { src: 'assets/misc/relics/deco_scribble_b.png',   w: 150, opacity: 0.18 },
-    { src: 'assets/misc/relics/deco_arrow.png',        w: 120, opacity: 0.21 },
-    { src: 'assets/misc/relics/deco_star.png',         w:  90, opacity: 0.24 },
-    { src: 'assets/misc/relics/deco_writing.png',      w: 230, opacity: 0.17 },
-    { src: 'assets/misc/relics/deco_fingerprint.png',  w:  80, opacity: 0.19 },
-    { src: 'assets/misc/relics/deco_theory.png',  w:  100, opacity: 0.20 },
-    { src: 'assets/misc/relics/deco_sick_duck.png',  w:  110, opacity: 0.25 },
+    { src: 'assets/misc/relics/deco_fish_sketch.png',    w: 210, opacity: 0.22 },
+    { src: 'assets/misc/relics/deco_scribble_a.png',     w: 180, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_scribble_b.png',     w: 150, opacity: 0.18 },
+    { src: 'assets/misc/relics/deco_arrow.png',          w: 120, opacity: 0.21 },
+    { src: 'assets/misc/relics/deco_star.png',           w:  90, opacity: 0.24 },
+    { src: 'assets/misc/relics/deco_writing.png',        w: 230, opacity: 0.17 },
+    { src: 'assets/misc/relics/deco_fingerprint.png',    w:  80, opacity: 0.19 },
+    { src: 'assets/misc/relics/deco_theory.png',         w: 100, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_cool_duckie.png',      w: 110, opacity: 0.25 },
+    { src: 'assets/misc/relics/deco_question_marks.png', w: 130, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_exclamation.png',    w:  65, opacity: 0.23 },
+    { src: 'assets/misc/relics/deco_circle.png',         w: 105, opacity: 0.19 },
+    { src: 'assets/misc/relics/deco_underline.png',      w: 195, opacity: 0.17 },
+    { src: 'assets/misc/relics/deco_splat.png',          w:  95, opacity: 0.21 },
+    { src: 'assets/misc/relics/deco_fish_sketch_2.png',  w: 185, opacity: 0.20 },
+    { src: 'assets/misc/relics/deco_x.png',              w:  80, opacity: 0.22 },
+    { src: 'assets/misc/relics/deco_sticky_note.png',    w:  200, opacity: 0.3 },
   ],
 };
 
@@ -35252,44 +35351,34 @@ function _gridHeight(n) {
 }
 
 // ── Build decoration layer HTML ────────────────────────────
-// Decos use a fixed seed so layout is stable across re-renders
-function _decoHTML(gridH) {
-  const rng = _sbRng(99991);  // stable seed
-  // Safe zone: avoid the very left (spine area already covered by book ::before)
-  // and try to scatter across the full page height
-  const pageW = 940;  // virtual width of the page content
-  const results = [];
+// pageSeed makes each page's deco layout deterministic but distinct.
+// Fisher-Yates shuffle with seeded rng ensures no duplicate decos on the same page.
+function _decoHTML(gridH, pageSeed) {
+  const rng   = _sbRng((pageSeed + 1) * 31337 + 99991);
+  const pageW = 940;
 
-  // Pick 5–7 decos, use all but shuffle order
+  // Shuffle the full pool — gives a unique ordering per page
   const pool = [...SB.DECOS];
-  // Fisher-Yates with our seeded rng
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  const count = 5 + Math.floor(rng() * 3);  // 5–7
-  const chosen = pool.slice(0, Math.min(count, pool.length));
 
-  // Distribute across the full height in bands so they're well scattered
-  const bandH = Math.max(gridH / chosen.length, 180);
+  // Take exactly DECOS_PER_PAGE from the shuffled pool (guaranteed unique)
+  const chosen = pool.slice(0, SB.DECOS_PER_PAGE);
 
-  chosen.forEach((deco, idx) => {
-    const band_top = idx * bandH;
-    const top  = Math.round(band_top + rng() * Math.max(bandH - 80, 60));
-    // Keep away from the very left edge (spine) and very right edge
+  // Distribute vertically in bands so decos spread across the full page
+  const bandH = Math.max(gridH / chosen.length, 160);
+
+  return chosen.map((deco, idx) => {
+    const top  = Math.round(idx * bandH + rng() * Math.max(bandH - 80, 50));
     const left = Math.round(20 + rng() * (pageW - deco.w - 40));
     const rot  = +((rng() * 2 - 1) * 35).toFixed(1);
-
-    results.push(
-      `<img class="scrapbook-deco" src="${deco.src}" alt=""
-        style="left:${left}px; top:${top}px; --deco-rot:${rot}deg;
-               --deco-opacity:${deco.opacity}; --deco-w:${deco.w}px;"
-        draggable="false"
-        onerror="this.style.display='none'">`
-    );
-  });
-
-  return results.join('\n');
+    return `<img class="scrapbook-deco" src="${deco.src}" alt=""
+      style="left:${left}px; top:${top}px; --deco-rot:${rot}deg;
+             --deco-opacity:${deco.opacity}; --deco-w:${deco.w}px;"
+      draggable="false" onerror="this.style.display='none'">`;
+  }).join('\n');
 }
 
 // ── In-memory state ────────────────────────────────────────
@@ -35420,7 +35509,100 @@ function _relicCardHTML(relic, unlocked, obtainedAt, pos) {
   </div>`;
 }
 
-// ── Show the Scrapbook page ─────────────────────────────────
+// ── Page state ─────────────────────────────────────────────
+let _currentRelicPage = 0;
+let _sbAnimating      = false;
+let _sbOrdered        = [];   // full ordered relic list, rebuilt on showRelics()
+
+// ── Update nav controls (buttons + edge zone + page label) ─
+function _sbUpdateNav() {
+  const total     = _sbOrdered.length;
+  const numPages  = Math.max(1, Math.ceil(total / SB.PER_PAGE));
+  const page      = _currentRelicPage;
+
+  const numEl   = document.getElementById('scrapbook-page-num');
+  const prevBtn = document.getElementById('sb-prev-btn');
+  const nextBtn = document.getElementById('sb-next-btn');
+  const edges   = document.getElementById('sb-page-edges');
+
+  if (numEl)   numEl.textContent = `Page ${page + 1} of ${numPages}`;
+  if (prevBtn) prevBtn.disabled  = page === 0;
+  if (nextBtn) nextBtn.disabled  = page >= numPages - 1;
+  if (edges) {
+    edges.classList.toggle('no-next', page >= numPages - 1);
+  }
+}
+
+// ── Render the current page's cards + decos into the DOM ───
+function _sbRenderPage() {
+  const grid   = document.getElementById('relic-grid');
+  const decoEl = document.getElementById('scrapbook-deco-layer');
+  if (!grid) return;
+
+  const pageStart = _currentRelicPage * SB.PER_PAGE;
+  const slice     = _sbOrdered.slice(pageStart, pageStart + SB.PER_PAGE);
+
+  if (slice.length === 0) {
+    grid.style.removeProperty('height');
+    grid.innerHTML = `<div class="scrapbook-empty">
+      <div class="scrapbook-empty-icon">📔</div>
+      <div class="scrapbook-empty-title">Nothing here yet</div>
+      <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
+    </div>`;
+    if (decoEl) decoEl.innerHTML = _decoHTML(300, _currentRelicPage);
+    return;
+  }
+
+  const gh = _gridHeight(slice.length);
+  grid.style.height = gh + 'px';
+
+  grid.innerHTML = slice.map((relic, i) => {
+    const globalIdx  = pageStart + i;   // stable seed across page flips
+    const entry      = _unlockedRelics.find(r => r.relicId === relic.id);
+    return _relicCardHTML(relic, !!entry, entry?.obtainedAt, _cardPos(globalIdx));
+  }).join('');
+
+  if (decoEl) decoEl.innerHTML = _decoHTML(gh + 120, _currentRelicPage);
+
+  _sbUpdateNav();
+}
+
+// ── Animate to a different page ─────────────────────────────
+async function _sbFlipToPage(targetPage, dir) {
+  if (_sbAnimating) return;
+  _sbAnimating = true;
+
+  const outClass = dir > 0 ? 'sb-flip-out-fwd'  : 'sb-flip-out-back';
+  const inClass  = dir > 0 ? 'sb-flip-in-fwd'   : 'sb-flip-in-back';
+  const grid     = document.getElementById('relic-grid');
+  const decoEl   = document.getElementById('scrapbook-deco-layer');
+  const targets  = [grid, decoEl].filter(Boolean);
+
+  // Animate out
+  targets.forEach(el => el.classList.add(outClass));
+  await new Promise(r => setTimeout(r, 300));
+
+  // Swap content
+  _currentRelicPage = targetPage;
+  _sbRenderPage();
+
+  // Animate in
+  targets.forEach(el => { el.classList.remove(outClass); el.classList.add(inClass); });
+  await new Promise(r => setTimeout(r, 360));
+  targets.forEach(el => el.classList.remove(inClass));
+
+  _sbAnimating = false;
+}
+
+function _sbNextPage() {
+  const numPages = Math.max(1, Math.ceil(_sbOrdered.length / SB.PER_PAGE));
+  if (_currentRelicPage < numPages - 1) _sbFlipToPage(_currentRelicPage + 1, 1);
+}
+function _sbPrevPage() {
+  if (_currentRelicPage > 0) _sbFlipToPage(_currentRelicPage - 1, -1);
+}
+
+// ── Show the Scrapbook ──────────────────────────────────────
 async function showRelics() {
   hideAll();
   showSubView();
@@ -35428,52 +35610,20 @@ async function showRelics() {
 
   if (!_relicsLoaded) await loadRelics();
 
-  const grid    = document.getElementById('relic-grid');
-  const decoEl  = document.getElementById('scrapbook-deco-layer');
   const countEl = document.getElementById('relics-count-text');
-
-  const unlockedIds    = new Set(_unlockedRelics.map(r => r.relicId));
-  const unlockedCount  = unlockedIds.size;
+  const unlockedIds   = new Set(_unlockedRelics.map(r => r.relicId));
+  const unlockedCount = unlockedIds.size;
 
   if (countEl) countEl.textContent = `${unlockedCount} / ${RELICS.length} collected`;
 
-  // Unlocked first, then locked
+  // Build full ordered list: unlocked first, then locked
   const unlocked = RELICS.filter(r =>  unlockedIds.has(r.id));
   const locked   = RELICS.filter(r => !unlockedIds.has(r.id));
-  const ordered  = [...unlocked, ...locked];
+  _sbOrdered = [...unlocked, ...locked];
 
-  if (ordered.length === 0) {
-    grid.style.removeProperty('height');
-    grid.innerHTML = `<div class="scrapbook-empty">
-      <div class="scrapbook-empty-icon">📔</div>
-      <div class="scrapbook-empty-title">Nothing here yet</div>
-      <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
-    </div>`;
-  } else {
-    const gh = _gridHeight(ordered.length);
-    grid.style.height = gh + 'px';
-
-    grid.innerHTML = ordered.map((relic, i) => {
-      const entry      = _unlockedRelics.find(r => r.relicId === relic.id);
-      const isUnlocked = !!entry;
-      const pos        = _cardPos(i);
-      return _relicCardHTML(relic, isUnlocked, entry?.obtainedAt, pos);
-    }).join('');
-
-    // Inject decorations into the deco layer (behind cards)
-    if (decoEl) decoEl.innerHTML = _decoHTML(gh + 120);
-  }
-
-  // Chaosfish corner note — rotate through notes of unlocked relics
-  const noteEl = document.getElementById('scrapbook-cf-note-text');
-  if (noteEl) {
-    if (unlocked.length > 0) {
-      const r = unlocked[Math.floor(Math.random() * unlocked.length)];
-      noteEl.textContent = r.chaosfishNote;
-    } else {
-      noteEl.textContent = 'These are real. I collected them myself. Please do not ask where I found them.';
-    }
-  }
+  // Reset to page 0 whenever we open the scrapbook
+  _currentRelicPage = 0;
+  _sbRenderPage();
 }
 
 // ── Relic Detail Modal ──────────────────────────────────────
