@@ -4593,6 +4593,17 @@ button:active {
 .codex-pill.legendary { color: #ffe197; border-color: rgba(255,219,128,0.5); }
 .codex-pill.mythic { color: #f4d889; border-color: rgba(244,216,137,0.48); }
 .codex-pill.evolved { color: #cbf2bd; border-color: rgba(172,231,151,0.48); }
+/* Codex pills inherit rarity classes that have glow animations — kill them here */
+.codex-pill.common,
+.codex-pill.rare,
+.codex-pill.legendary,
+.codex-pill.mythic,
+.codex-pill.evolved {
+  animation: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-width: 1px !important;
+}
 .codex-curio {
   --curio-tilt: 0deg;
   width: 40px;
@@ -35517,7 +35528,7 @@ let _sbOrdered        = [];   // full ordered relic list, rebuilt on showRelics(
 // ── Update nav controls (buttons + edge zone + page label) ─
 function _sbUpdateNav() {
   const total     = _sbOrdered.length;
-  const numPages  = Math.max(1, Math.ceil(total / SB.PER_PAGE));
+  const numPages  = Math.max(1, Math.ceil(total / SB.PER_PAGE)) + 1; // +1 for "Coming Soon" page
   const page      = _currentRelicPage;
 
   const numEl   = document.getElementById('scrapbook-page-num');
@@ -35543,13 +35554,22 @@ function _sbRenderPage() {
   const slice     = _sbOrdered.slice(pageStart, pageStart + SB.PER_PAGE);
 
   if (slice.length === 0) {
+    const numContentPages = Math.ceil(_sbOrdered.length / SB.PER_PAGE) || 1;
+    const isComingSoonPage = _currentRelicPage >= numContentPages;
     grid.style.removeProperty('height');
-    grid.innerHTML = `<div class="scrapbook-empty">
-      <div class="scrapbook-empty-icon">📔</div>
-      <div class="scrapbook-empty-title">Nothing here yet</div>
-      <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
-    </div>`;
+    grid.innerHTML = isComingSoonPage
+      ? `<div class="scrapbook-empty">
+          <div class="scrapbook-empty-icon" style="font-size:48px;margin-bottom:12px;">📔</div>
+          <div class="scrapbook-empty-title" style="font-size:20px;letter-spacing:1px;">Coming Soon...</div>
+          <div class="scrapbook-empty-sub" style="margin-top:8px;font-style:italic;opacity:0.5;">More relics are being discovered.</div>
+        </div>`
+      : `<div class="scrapbook-empty">
+          <div class="scrapbook-empty-icon">📔</div>
+          <div class="scrapbook-empty-title">Nothing here yet</div>
+          <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
+        </div>`;
     if (decoEl) decoEl.innerHTML = _decoHTML(300, _currentRelicPage);
+    _sbUpdateNav();
     return;
   }
 
@@ -35595,7 +35615,7 @@ async function _sbFlipToPage(targetPage, dir) {
 }
 
 function _sbNextPage() {
-  const numPages = Math.max(1, Math.ceil(_sbOrdered.length / SB.PER_PAGE));
+  const numPages = Math.max(1, Math.ceil(_sbOrdered.length / SB.PER_PAGE)) + 1;
   if (_currentRelicPage < numPages - 1) _sbFlipToPage(_currentRelicPage + 1, 1);
 }
 function _sbPrevPage() {
