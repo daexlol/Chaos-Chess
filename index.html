@@ -14863,6 +14863,8 @@ function activateTotalChaos(reason){
   if(totalChaosActive) return;
   totalChaosActive = true;
   chaosLevel = CHAOS_THRESHOLD;
+  // Flag for relic tracking
+  if (window._relicGameCtx) window._relicGameCtx.totalChaosReached = true;
   updateChaosLevelUI(true);
   // Track Total Chaos count for Elder Chaosfish unlock (online + vs AI only, not P&P/puzzles)
   if (!puzzleModeActive && (gameMode === 'online' || (gameMode === 'local' && aiActive))) {
@@ -20732,6 +20734,8 @@ function processBottomlessPit(){
 
 function spawnDuck(){
   if(puzzleModeActive) return;
+  // Flag for relic tracking
+  if (window._relicGameCtx) window._relicGameCtx.seenDuck = true;
   // Spawn duck on any random empty square
   let emptySquares = [];
   for(let y=0; y<8; y++){
@@ -21537,7 +21541,11 @@ const CODEX_COMBOS = {
   'Hive Mind Pawns (Evolved)': 'Combines with Pawn Bayonet and Crab Pawn — a diagonal advance captures on every file simultaneously.',
   'Jester Knight (Evolved)': 'Combines with Phantom Knight because a phantom and two decoys makes locating the real piece nearly impossible.',
   'Storm Rook (Evolved)': 'Combines with Tectonic Rook — shockwave pushes pieces onto the rook\'s line, then three bolts follow.',
-  'Pinballing Bishop (Evolved)': 'Combines with Phase Bishop because piece-bounces off the phased blocker open entirely new lines.'
+  'Pinballing Bishop (Evolved)': 'Combines with Phase Bishop because piece-bounces off the phased blocker open entirely new lines.',
+  'It’s Raining': 'Combines well with any modifier that has a proc chance, and a cup of hot chocolate on a cozy night.',
+  'Cleaning Sponge': 'Combines with any enemy modifier set that has a dangerous synergy; removing one key piece can break the combo.',
+  'Clown Parade': 'Pairs well with any modifier that relies on visual calculation, as the pesky clowns block key squares and distract the opponent.',
+
 };
 let codexActiveCategory = 'all';
 let codexSelectedModifier = null;
@@ -27256,6 +27264,8 @@ const _originalEndGame = endGame;
 endGame = function(message, delay = 3000){
   hideHUD();
   stopTimer();
+  console.log('[endGame] called:', message);
+  setTimeout(() => checkAndAwardRelics(), 800);
   // Store win type globally so showPostgameScreen can access it
   window._lastWinType = winTypeFromMessage(message);
 
@@ -30998,6 +31008,9 @@ async function loadCfVariantUnlocks() {
 }
 
 async function recordCfGameResult(variant, outcome) {
+  // Set relic context flag
+  if (variant === 'young' && outcome === 'win' && window._relicGameCtx)
+    window._relicGameCtx.defeatedYoungChaosfish = true;
   // outcome: 'win' | 'loss' | 'draw'
   if (!currentProfile || isGuest || !fbDb) return;
   const ref = fbDb.collection('users').doc(currentProfile.id);
@@ -35262,7 +35275,7 @@ const RELICS = [
     image:            'assets/misc/relics/duck_feather.png',
     description:      'Surprisingly clean feather recovered after a documented duck incident.',
     unlockCondition:  'Witness Duck of Eternal Blocking in a completed game.',
-    dropChance:       0.20,
+    dropChance:       0.25,
     chaosfishNote:    'The duck declined to comment.',
     tapeAngle:        '2deg',
   },
@@ -35273,7 +35286,7 @@ const RELICS = [
     image:            'assets/misc/relics/receipt_for_one_chaos.png',
     description:      'Proof of purchase. Non-refundable.',
     unlockCondition:  'Reach TOTAL CHAOS.',
-    dropChance:       0.25,
+    dropChance:       0.2,
     chaosfishNote:    "I don't remember buying this.",
     tapeAngle:        '-1deg',
   },
@@ -35436,8 +35449,10 @@ async function unlockRelic(relicId) {
 
 // ── Check conditions + award relics at game end ────────────
 async function checkAndAwardRelics() {
-  if (!currentProfile || isGuest) return;
+  console.log('[Relics] checkAndAwardRelics called. profile:', !!currentProfile, 'isGuest:', isGuest, 'ctx:', JSON.stringify(window._relicGameCtx));
+  if (!currentProfile || isGuest) { console.log('[Relics] Early return — no profile or guest'); return; }
   if (!_relicsLoaded) await loadRelics();
+  console.log('[Relics] _relicsLoaded:', _relicsLoaded, 'unlocked:', _unlockedRelics.length);
 
   const ctx = window._relicGameCtx;
 
@@ -35739,68 +35754,6 @@ function dismissRelicPopup() {
 //  HOOKS — wire relics into game events
 // ══════════════════════════════════════════════════════════════
 
-// ── Hook: Duck seen ────────────────────────────────────────
-(function() {
-  const _origSpawnDuck = window.spawnDuck;
-  if (typeof _origSpawnDuck === 'function') {
-    window.spawnDuck = function() {
-      window._relicGameCtx.seenDuck = true;
-      return _origSpawnDuck.apply(this, arguments);
-    };
-  }
-})();
-
-// ── Hook: Total Chaos reached ──────────────────────────────
-// activateTotalChaos sets totalChaosActive = true; we patch it
-(function() {
-  // activateTotalChaos is defined inline; we intercept via the
-  // totalChaosActive write path by watching the endGame hook
-  // and also by patching the place that sets totalChaosActive.
-  // Simpler: patch document after DOMContentLoaded to detect the flag.
-  // Actually safest: use a MutationObserver-free approach — we hook
-  // into the exact line that sets totalChaosActive.
-  // Since totalChaosActive is a bare let, we watch for it in a wrapper
-  // appended right here.  The game already guards re-entry, so this fires once.
-
-  // The most reliable hook: override the CSS class toggle that always fires
-  // when total chaos activates (body.total-chaos-active class).
-  const _origAdd = DOMTokenList.prototype.add;
-  const _patchedAdd = function(...tokens) {
-    if (this === document.body.classList && tokens.includes('total-chaos-active')) {
-      window._relicGameCtx.totalChaosReached = true;
-    }
-    return _origAdd.apply(this, tokens);
-  };
-  DOMTokenList.prototype.add = _patchedAdd;
-})();
-
-// ── Hook: Young Chaosfish defeated ─────────────────────────
-(function() {
-  const _origRecord = window.recordCfGameResult;
-  if (typeof _origRecord === 'function') {
-    window.recordCfGameResult = async function(variant, outcome) {
-      if (variant === 'young' && outcome === 'win') {
-        window._relicGameCtx.defeatedYoungChaosfish = true;
-      }
-      return _origRecord.apply(this, arguments);
-    };
-  }
-  // Also patch in case recordCfGameResult is defined later
-  window._relicRecordHooked = true;
-})();
-
-// ── Hook: Game end — run relic checks ─────────────────────
-(function() {
-  const _origEndGame = window.endGame;
-  if (typeof _origEndGame === 'function') {
-    window.endGame = function(message, delay) {
-      // Schedule relic check slightly after game-end processing
-      setTimeout(() => checkAndAwardRelics(), 800);
-      return _origEndGame.apply(this, arguments);
-    };
-  }
-})();
-
 // ── Hook: Reset context on new game start ──────────────────
 // We patch startGame / startLocal / startOnlineGame to reset
 document.addEventListener('DOMContentLoaded', function() {
@@ -35814,18 +35767,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Also hook recordCfGameResult in case it was defined after our first pass
-  if (!window._relicRecordHooked) {
-    const _r = window.recordCfGameResult;
-    if (typeof _r === 'function') {
-      window.recordCfGameResult = async function(variant, outcome) {
-        if (variant === 'young' && outcome === 'win') {
-          window._relicGameCtx.defeatedYoungChaosfish = true;
-        }
-        return _r.apply(this, arguments);
-      };
-    }
-  }
+  // resetRelicGameCtx is called directly in startVsAI / startLocal / etc.
 });
 
 // ── Load relics when user logs in ─────────────────────────
