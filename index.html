@@ -24775,6 +24775,7 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
 
       if(mod.name === 'Duck of Eternal Blocking') spawnDuck();
       if(mod.name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
+      if(mod.name === 'Cookie' && window._relicGameCtx) window._relicGameCtx.cookieDrafted = true;
       if(mod.name === 'Time Bomb') spawnTimeBomb();
       if(mod.name === 'Bottomless Pit') spawnBottomlessPit();
       if(mod.name === 'Portal Pair') spawnPortalPair();
@@ -29869,6 +29870,7 @@ function aiApplyDraftPick(mod, drafterColor) {
   // Handle special placement modifiers silently
   if (mod.name === 'Duck of Eternal Blocking') spawnDuck();
   if (mod.name === 'Duck of Eternal Blocking (Evolved)') { spawnDuck(); spawnDuck(); spawnDuck(); }
+  if (mod.name === 'Cookie' && window._relicGameCtx) window._relicGameCtx.cookieDrafted = true;
   if (mod.name === 'Time Bomb') spawnTimeBomb();
   if (mod.name === 'Bottomless Pit') spawnBottomlessPit();
   if (mod.name === 'Portal Pair') spawnPortalPair();
@@ -34597,6 +34599,7 @@ function sbxToggleModifier(name, on, color) {
       if (!arr.includes(name)) arr.push(name);
       markModifierDiscovered(name);
       if (name === 'The Impawnster') ensureSleeperPawns();
+      if (name === 'Cookie' && window._relicGameCtx) window._relicGameCtx.cookieDrafted = true;
     } else {
       if (isWhite) whiteModifiers = whiteModifiers.filter(m => m !== name);
       else         blackModifiers = blackModifiers.filter(m => m !== name);
@@ -35301,21 +35304,36 @@ const RELICS = [
     chaosfishNote:    'I appealed this result.',
     tapeAngle:        '-3deg',
   },
+  {
+    id:               'half_eaten_cookie',
+    name:             'Half-Eaten Cookie',
+    rarity:           'rare',
+    image:            'assets/misc/relics/half_eaten_cookie.png',
+    description:      'One bite taken. Nobody knows whose.',
+    unlockCondition:  'Have Cookie drafted by either player in a completed game.',
+    dropChance:       0.75,
+    chaosfishNote:    'I did not eat it. Probably.',
+    tapeAngle:        '1deg',
+  },
 ];
 
 // ── Layout constants ───────────────────────────────────────
 const SB = {
   COLS:           3,
   CARD_W:         225,
-  CARD_H:         310,
+  CARD_H:         290,   // approximate rendered card height (img + label)
   COL_GAP:        60,
-  ROW_H:          360,
+  ROW_H:          245,   // row-to-row baseline (tighter than before)
   X_JITTER:       32,
-  Y_JITTER:       44,
+  Y_JITTER:       28,    // reduced so cards don't overflow the fixed page height
   ROT_MAX:        14,
-  TOP_PAD:        24,
+  TOP_PAD:        20,
   PER_PAGE:       6,      // relics per scrapbook page
   DECOS_PER_PAGE: 5,      // unique decos per page (no repeats on same page)
+  // Fixed grid height — every page uses this, regardless of how many cards are on it.
+  // Derived: TOP_PAD + (ceil(PER_PAGE/COLS)-1)*ROW_H + CARD_H + Y_JITTER + 16
+  // = 20 + 245 + 290 + 28 + 16 = 599  → rounded to 600
+  PAGE_H:         600,
   DECOS: [
     { src: 'assets/misc/relics/deco_fish_sketch.png',    w: 210, opacity: 0.22 },
     { src: 'assets/misc/relics/deco_scribble_a.png',     w: 180, opacity: 0.20 },
@@ -35325,7 +35343,7 @@ const SB = {
     { src: 'assets/misc/relics/deco_writing.png',        w: 230, opacity: 0.17 },
     { src: 'assets/misc/relics/deco_fingerprint.png',    w:  80, opacity: 0.19 },
     { src: 'assets/misc/relics/deco_theory.png',         w: 100, opacity: 0.20 },
-    { src: 'assets/misc/relics/deco_cool_duckie.png',      w: 110, opacity: 0.25 },
+    { src: 'assets/misc/relics/deco_cool_duckie.png',    w: 110, opacity: 0.25 },
     { src: 'assets/misc/relics/deco_question_marks.png', w: 130, opacity: 0.20 },
     { src: 'assets/misc/relics/deco_exclamation.png',    w:  65, opacity: 0.23 },
     { src: 'assets/misc/relics/deco_circle.png',         w: 105, opacity: 0.19 },
@@ -35333,7 +35351,7 @@ const SB = {
     { src: 'assets/misc/relics/deco_splat.png',          w:  95, opacity: 0.21 },
     { src: 'assets/misc/relics/deco_fish_sketch_2.png',  w: 185, opacity: 0.20 },
     { src: 'assets/misc/relics/deco_x.png',              w:  80, opacity: 0.22 },
-    { src: 'assets/misc/relics/deco_sticky_note.png',    w:  200, opacity: 0.3 },
+    { src: 'assets/misc/relics/deco_sticky_note.png',    w: 200, opacity: 0.30 },
   ],
 };
 
@@ -35367,11 +35385,11 @@ function _cardPos(i) {
   return { left, top, rot, tapeX, tapeRot };
 }
 
-// ── Compute grid height needed for n cards ─────────────────
-function _gridHeight(n) {
-  if (n === 0) return 300;
-  const rows = Math.ceil(n / SB.COLS);
-  return SB.TOP_PAD + rows * SB.ROW_H + SB.CARD_H + SB.Y_JITTER + 48;
+// ── Fixed page height — every page is always the same size ──
+// Ignores n; the constant SB.PAGE_H is computed from the layout constants
+// so you can tune it by changing PAGE_H in the SB config above.
+function _gridHeight(_n) {
+  return SB.PAGE_H;
 }
 
 // ── Build decoration layer HTML ────────────────────────────
@@ -35414,6 +35432,7 @@ window._relicGameCtx = {
   seenDuck:              false,
   totalChaosReached:     false,
   defeatedYoungChaosfish:false,
+  cookieDrafted:         false,
 };
 
 // ── Load relics from Firestore ─────────────────────────────
@@ -35468,6 +35487,8 @@ async function checkAndAwardRelics() {
         conditionMet = !!ctx.totalChaosReached; break;
       case 'chaosfish_report_card':
         conditionMet = !!ctx.defeatedYoungChaosfish; break;
+      case 'half_eaten_cookie':
+        conditionMet = !!ctx.cookieDrafted; break;
     }
 
     if (conditionMet && Math.random() < relic.dropChance) {
@@ -35479,14 +35500,14 @@ async function checkAndAwardRelics() {
 
   // Reset context for next game
   window._relicGameCtx = {
-    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false,
+    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
   };
 }
 
 // ── Reset per-game context when a new game starts ─────────
 function resetRelicGameCtx() {
   window._relicGameCtx = {
-    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false,
+    seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
   };
 }
 
@@ -35565,14 +35586,16 @@ function _sbRenderPage() {
   const decoEl = document.getElementById('scrapbook-deco-layer');
   if (!grid) return;
 
-  const pageStart = _currentRelicPage * SB.PER_PAGE;
-  const slice     = _sbOrdered.slice(pageStart, pageStart + SB.PER_PAGE);
+  // Every page gets the same fixed height — no more growing pages
+  grid.style.height = SB.PAGE_H + 'px';
 
-  if (slice.length === 0) {
-    const numContentPages = Math.ceil(_sbOrdered.length / SB.PER_PAGE) || 1;
-    const isComingSoonPage = _currentRelicPage >= numContentPages;
-    grid.style.removeProperty('height');
-    grid.innerHTML = isComingSoonPage
+  const pageStart       = _currentRelicPage * SB.PER_PAGE;
+  const slice           = _sbOrdered.slice(pageStart, pageStart + SB.PER_PAGE);
+  const numContentPages = Math.ceil(_sbOrdered.length / SB.PER_PAGE) || 1;
+  const isComingSoon    = _currentRelicPage >= numContentPages;
+
+  if (slice.length === 0 || isComingSoon) {
+    grid.innerHTML = isComingSoon
       ? `<div class="scrapbook-empty">
           <div class="scrapbook-empty-icon" style="font-size:48px;margin-bottom:12px;">📔</div>
           <div class="scrapbook-empty-title" style="font-size:20px;letter-spacing:1px;">Coming Soon...</div>
@@ -35583,21 +35606,18 @@ function _sbRenderPage() {
           <div class="scrapbook-empty-title">Nothing here yet</div>
           <div class="scrapbook-empty-sub">Play games and let fate decide what you find.</div>
         </div>`;
-    if (decoEl) decoEl.innerHTML = _decoHTML(300, _currentRelicPage);
+    if (decoEl) decoEl.innerHTML = _decoHTML(SB.PAGE_H, _currentRelicPage);
     _sbUpdateNav();
     return;
   }
 
-  const gh = _gridHeight(slice.length);
-  grid.style.height = gh + 'px';
-
   grid.innerHTML = slice.map((relic, i) => {
-    const globalIdx  = pageStart + i;   // stable seed across page flips
-    const entry      = _unlockedRelics.find(r => r.relicId === relic.id);
+    const globalIdx = pageStart + i;   // stable seed across page flips
+    const entry     = _unlockedRelics.find(r => r.relicId === relic.id);
     return _relicCardHTML(relic, !!entry, entry?.obtainedAt, _cardPos(globalIdx));
   }).join('');
 
-  if (decoEl) decoEl.innerHTML = _decoHTML(gh + 120, _currentRelicPage);
+  if (decoEl) decoEl.innerHTML = _decoHTML(SB.PAGE_H, _currentRelicPage);
 
   _sbUpdateNav();
 }
