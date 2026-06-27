@@ -19066,6 +19066,13 @@ function move(x1,y1,x2,y2,castleType){
 
   if(_selectedMoveMeta.portal) {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'You':'Opponent') + ` used Portal Pair — entered ${sqNotation(_selectedMoveMeta.portalEntry.x,_selectedMoveMeta.portalEntry.y)} and emerged at ${sqNotation(x2,y2)}!`);
+    // Track for Incorrect Map relic (cumulative across games)
+    if (currentProfile && !isGuest && fbDb) {
+      window._relicPortalCount = (window._relicPortalCount || 0) + 1;
+      fbDb.collection('users').doc(currentProfile.id).update({
+        'relicStats.portalTeleports': firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {});
+    }
   }
   if(_selectedMoveMeta.sleeperQueen && piece.toLowerCase()==='p') {
     logChaos(_moverWho, 'ability', (_moverWho==='you'?'Your':'Opponent\'s') + ` The Impawnster awakened at ${sqNotation(x2,y2)}!`);
@@ -20019,6 +20026,9 @@ function finishTurn(piece, x1, y1, x2, y2, captured, castleMove, skipRecord){
           cfPushEmotion('aiLoses');
           setTimeout(() => cfShowBubble(cfPickLine('aiLoses'), 6000), 300);
           recordCfGameResult(cfVariant, 'win');
+          // Corrupted Pawn relic: won with The Impawnster active
+          if (window._relicGameCtx && activeMods(aiColor === 'white' ? 'black' : 'white').includes('The Impawnster'))
+            window._relicGameCtx.wonWithImpawnster = true;
         }
       }
       endGame(`Checkmate! ${turn==='white'?'Black':'White'} wins! 👑`, 4000);
@@ -21035,6 +21045,7 @@ function placeTornado(x, y){
 
 function processTornadoes(){
   // Apply tornado pull effect and countdown
+  if (tornadoes.length > 0 && window._relicGameCtx) window._relicGameCtx.tornadoWasActive = true;
   for(let i = tornadoes.length - 1; i >= 0; i--){
     let tornado = tornadoes[i];
     
@@ -21105,6 +21116,12 @@ function applyTornadoPull(tx, ty, owner){
     if(p.toX === tx && p.toY === ty){
       board[p.fromY][p.fromX] = '';
       clearPieceData(p.fromX, p.fromY);
+      // Track for Useless Umbrella relic — was a rook or queen captured?
+      if (window._relicGameCtx) {
+        window._relicGameCtx.tornadoWasActive = true;
+        const _pt = p.piece.toLowerCase();
+        if (_pt === 'r' || _pt === 'q') window._relicGameCtx.tornadoHighValueLost = true;
+      }
       pullCount++;
       return;
     }
@@ -27265,7 +27282,12 @@ const _originalEndGame = endGame;
 endGame = function(message, delay = 3000){
   hideHUD();
   stopTimer();
-  console.log('[endGame] called:', message);
+  // Set wonWithImpawnster for online games — check if the winner had Impawnster
+  if (window._relicGameCtx && gameMode === 'online' && myColor) {
+    const _winnerColor = message.includes('White wins') ? 'white' : message.includes('Black wins') ? 'black' : null;
+    if (_winnerColor === myColor && activeMods(myColor).includes('The Impawnster'))
+      window._relicGameCtx.wonWithImpawnster = true;
+  }
   setTimeout(() => checkAndAwardRelics(), 800);
   // Store win type globally so showPostgameScreen can access it
   window._lastWinType = winTypeFromMessage(message);
@@ -31006,6 +31028,8 @@ async function loadCfVariantUnlocks() {
     window._cfWinsVsChaosfish    = wins;
     window._cfTotalChaosCount    = totalChaosCount;
     window._cfDiscoveredVariants = discovered;
+    // Load cumulative relic stats
+    window._relicPortalCount = (data.relicStats && data.relicStats.portalTeleports) || 0;
   } catch(e) {}
 }
 
@@ -35315,6 +35339,50 @@ const RELICS = [
     chaosfishNote:    'I did not eat it. Probably.',
     tapeAngle:        '1deg',
   },
+  {
+    id:               'corrupted_pawn',
+    name:             'Corrupted Pawn',
+    rarity:           'rare',
+    image:            'assets/misc/relics/corrupted_pawn.png',
+    description:      'A pawn-shaped piece that is definitely not a pawn. Definitely.',
+    unlockCondition:  'Win a game with The Impawnster active.',
+    dropChance:       0.30,
+    chaosfishNote:    "It moved like a queen. Filed as a pawn. I didn't ask questions.",
+    tapeAngle:        '-2deg',
+  },
+  {
+    id:               'incorrect_map',
+    name:             'Incorrect Map',
+    rarity:           'uncommon',
+    image:            'assets/misc/relics/incorrect_map.png',
+    description:      'A hand-drawn board diagram with portal locations marked incorrectly.',
+    unlockCondition:  'Teleport through a portal 10 times across all games.',
+    dropChance:       1.0,
+    chaosfishNote:    'I drew this from memory. The portals moved.',
+    tapeAngle:        '3deg',
+  },
+  {
+    id:               'useless_umbrella',
+    name:             'Completely Useless Umbrella',
+    rarity:           'legendary',
+    image:            'assets/misc/relics/useless_umbrella.png',
+    description:      'Survived a tornado. Rooks and queens made it out. Somehow.',
+    unlockCondition:  'Survive Tornado de Caballos without losing a rook or queen.',
+    dropChance:       0.20,
+    chaosfishNote:    'The tornado took everything except the things that mattered. Statistically unlikely.',
+    tapeAngle:        '-1deg',
+  },
+  {
+    id:               'rulebook_addendum',
+    name:             'Rulebook Addendum #847',
+    rarity:           'mythic',
+    image:            'assets/misc/relics/rulebook_addendum.png',
+    description:      'A hand-stapled addendum to the Chaos Chess official rulebook. Nobody remembers writing it.',
+    unlockCondition:  'Discover 50 modifiers in the Library.',
+    dropChance:       1.0,
+    chaosfishNote:    'I wrote 846 of the previous ones. This one I did not write. I have concerns.',
+    tapeAngle:        '2deg',
+  },
 ];
 
 // ── Layout constants ───────────────────────────────────────
@@ -35429,10 +35497,13 @@ let _relicsLoaded   = false;
 
 // ── Per-game session context (reset each game start) ───────
 window._relicGameCtx = {
-  seenDuck:              false,
-  totalChaosReached:     false,
-  defeatedYoungChaosfish:false,
-  cookieDrafted:         false,
+  seenDuck:               false,
+  totalChaosReached:      false,
+  defeatedYoungChaosfish: false,
+  cookieDrafted:          false,
+  wonWithImpawnster:      false,
+  tornadoHighValueLost:   false,
+  tornadoWasActive:       false,
 };
 
 // ── Load relics from Firestore ─────────────────────────────
@@ -35468,10 +35539,11 @@ async function unlockRelic(relicId) {
 
 // ── Check conditions + award relics at game end ────────────
 async function checkAndAwardRelics() {
-  console.log('[Relics] checkAndAwardRelics called. profile:', !!currentProfile, 'isGuest:', isGuest, 'ctx:', JSON.stringify(window._relicGameCtx));
-  if (!currentProfile || isGuest) { console.log('[Relics] Early return — no profile or guest'); return; }
+  if (!currentProfile || isGuest) return;
+  // Only award relics in vs-Chaosfish and online modes — not local P&P, sandbox, puzzles
+  const _validMode = (gameMode === 'online') || (gameMode === 'local' && aiActive && !puzzleModeActive);
+  if (!_validMode) return;
   if (!_relicsLoaded) await loadRelics();
-  console.log('[Relics] _relicsLoaded:', _relicsLoaded, 'unlocked:', _unlockedRelics.length);
 
   const ctx = window._relicGameCtx;
 
@@ -35489,6 +35561,15 @@ async function checkAndAwardRelics() {
         conditionMet = !!ctx.defeatedYoungChaosfish; break;
       case 'half_eaten_cookie':
         conditionMet = !!ctx.cookieDrafted; break;
+      case 'corrupted_pawn':
+        conditionMet = !!ctx.wonWithImpawnster; break;
+      case 'incorrect_map':
+        // Cumulative across games — stored in Firestore
+        conditionMet = ((window._relicPortalCount || 0) >= 10); break;
+      case 'useless_umbrella':
+        conditionMet = !!ctx.tornadoWasActive && !ctx.tornadoHighValueLost; break;
+      case 'rulebook_addendum':
+        conditionMet = (loadDiscoveredModifiers().length >= 50); break;
     }
 
     if (conditionMet && Math.random() < relic.dropChance) {
@@ -35501,6 +35582,7 @@ async function checkAndAwardRelics() {
   // Reset context for next game
   window._relicGameCtx = {
     seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
+    wonWithImpawnster: false, tornadoHighValueLost: false, tornadoWasActive: false,
   };
 }
 
@@ -35508,6 +35590,7 @@ async function checkAndAwardRelics() {
 function resetRelicGameCtx() {
   window._relicGameCtx = {
     seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
+    wonWithImpawnster: false, tornadoHighValueLost: false, tornadoWasActive: false,
   };
 }
 
