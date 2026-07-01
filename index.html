@@ -27288,6 +27288,9 @@ endGame = function(message, delay = 3000){
     if (_winnerColor === myColor && activeMods(myColor).includes('The Impawnster'))
       window._relicGameCtx.wonWithImpawnster = true;
   }
+  // Shattered Clock: any game ended by time
+  if (window._relicGameCtx && typeof message === 'string' && message.includes('ran out of time'))
+    window._relicGameCtx.clockFlagged = true;
   setTimeout(() => checkAndAwardRelics(), 800);
   // Store win type globally so showPostgameScreen can access it
   window._lastWinType = winTypeFromMessage(message);
@@ -31037,6 +31040,11 @@ async function recordCfGameResult(variant, outcome) {
   // Set relic context flag
   if (variant === 'young' && outcome === 'win' && window._relicGameCtx)
     window._relicGameCtx.defeatedYoungChaosfish = true;
+  // Magnus's Napkin: beat Chaosfish at Level 8+ (Expert/Master/Grandmaster)
+  if (outcome === 'win' && window._relicGameCtx) {
+    const _diff = parseInt((document.getElementById('local-ai-difficulty') || {value:'5'}).value) || 5;
+    if (_diff >= 8) window._relicGameCtx.magnusNapkin = true;
+  }
   // outcome: 'win' | 'loss' | 'draw'
   if (!currentProfile || isGuest || !fbDb) return;
   const ref = fbDb.collection('users').doc(currentProfile.id);
@@ -35383,6 +35391,50 @@ const RELICS = [
     chaosfishNote:    'I wrote 846 of the previous ones. This one I did not write. I have concerns.',
     tapeAngle:        '2deg',
   },
+  {
+    id:               'magnus_napkin',
+    name:             "Magnus's Napkin",
+    rarity:           'legendary',
+    image:            'assets/misc/relics/magnus_napkin.png',
+    description:      'Something was scribbled on this at a tournament. Hard to read.',
+    unlockCondition:  'Beat Chaosfish on Level 8 (Expert) difficulty or higher.',
+    dropChance:       0.08,
+    chaosfishNote:    'I lost this game. I am normal about it.',
+    tapeAngle:        '-2deg',
+  },
+  {
+    id:               'shattered_clock',
+    name:             'Shattered Clock',
+    rarity:           'uncommon',
+    image:            'assets/misc/relics/shattered_clock.png',
+    description:      'The hands stopped at an inconvenient moment.',
+    unlockCondition:  'Win or lose a game on time.',
+    dropChance:       0.35,
+    chaosfishNote:    'Time is a flat circle. This clock is a flat clock.',
+    tapeAngle:        '3deg',
+  },
+  {
+    id:               'emergency_exit_sign',
+    name:             'Emergency Exit Sign',
+    rarity:           'rare',
+    image:            'assets/misc/relics/emergency_exit_sign.png',
+    description:      'Removed from the wall under questionable circumstances.',
+    unlockCondition:  'Castle your king with 5 or more modifiers already active.',
+    dropChance:       0.25,
+    chaosfishNote:    'The exit was used. Whether it was an emergency is debated.',
+    tapeAngle:        '-1deg',
+  },
+  {
+    id:               'coral_academy_expulsion',
+    name:             'Coral Academy Expulsion Notice',
+    rarity:           'mythic',
+    image:            'assets/misc/relics/coral_academy_expulsion.png',
+    description:      'Issued for conduct unbecoming of a student of the sea.',
+    unlockCondition:  'Fall behind by more than 15 points of material against Young Chaosfish.',
+    dropChance:       0.10,
+    chaosfishNote:    'This was not my finest academic year.',
+    tapeAngle:        '2deg',
+  },
 ];
 
 // ── Layout constants ───────────────────────────────────────
@@ -35391,17 +35443,17 @@ const SB = {
   CARD_W:         225,
   CARD_H:         290,   // approximate rendered card height (img + label)
   COL_GAP:        60,
-  ROW_H:          245,   // row-to-row baseline (tighter than before)
+  ROW_H:          190,   // tighter row spacing so 3 rows fit in a shorter page
   X_JITTER:       32,
   Y_JITTER:       28,    // reduced so cards don't overflow the fixed page height
   ROT_MAX:        14,
   TOP_PAD:        20,
-  PER_PAGE:       6,      // relics per scrapbook page
+  PER_PAGE:       9,      // relics per scrapbook page (3 rows of 3)
   DECOS_PER_PAGE: 5,      // unique decos per page (no repeats on same page)
   // Fixed grid height — every page uses this, regardless of how many cards are on it.
-  // Derived: TOP_PAD + (ceil(PER_PAGE/COLS)-1)*ROW_H + CARD_H + Y_JITTER + 16
-  // = 20 + 245 + 290 + 28 + 16 = 599  → rounded to 600
-  PAGE_H:         600,
+  // Row 2 sits at TOP_PAD + 2*ROW_H = 400 ± Y_JITTER, right above the page nav.
+  // Cards extend past the grid edge (overflow:visible) and sit close to the buttons.
+  PAGE_H:         640,
   DECOS: [
     { src: 'assets/misc/relics/deco_fish_sketch.png',    w: 210, opacity: 0.22 },
     { src: 'assets/misc/relics/deco_scribble_a.png',     w: 180, opacity: 0.20 },
@@ -35504,6 +35556,10 @@ window._relicGameCtx = {
   wonWithImpawnster:      false,
   tornadoHighValueLost:   false,
   tornadoWasActive:       false,
+  clockFlagged:           false,
+  magnusNapkin:           false,
+  emergencyExit:          false,
+  materialDown15vsYoung:  false,
 };
 
 // ── Load relics from Firestore ─────────────────────────────
@@ -35570,6 +35626,14 @@ async function checkAndAwardRelics() {
         conditionMet = !!ctx.tornadoWasActive && !ctx.tornadoHighValueLost; break;
       case 'rulebook_addendum':
         conditionMet = (loadDiscoveredModifiers().length >= 50); break;
+      case 'magnus_napkin':
+        conditionMet = !!ctx.magnusNapkin; break;
+      case 'shattered_clock':
+        conditionMet = !!ctx.clockFlagged; break;
+      case 'emergency_exit_sign':
+        conditionMet = !!ctx.emergencyExit; break;
+      case 'coral_academy_expulsion':
+        conditionMet = !!ctx.materialDown15vsYoung; break;
     }
 
     if (conditionMet && Math.random() < relic.dropChance) {
@@ -35583,6 +35647,7 @@ async function checkAndAwardRelics() {
   window._relicGameCtx = {
     seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
     wonWithImpawnster: false, tornadoHighValueLost: false, tornadoWasActive: false,
+    clockFlagged: false, magnusNapkin: false, emergencyExit: false, materialDown15vsYoung: false,
   };
 }
 
@@ -35591,8 +35656,38 @@ function resetRelicGameCtx() {
   window._relicGameCtx = {
     seenDuck: false, totalChaosReached: false, defeatedYoungChaosfish: false, cookieDrafted: false,
     wonWithImpawnster: false, tornadoHighValueLost: false, tornadoWasActive: false,
+    clockFlagged: false, magnusNapkin: false, emergencyExit: false, materialDown15vsYoung: false,
   };
 }
+
+// ── Hook: Emergency Exit Sign + Coral Academy Expulsion ────
+// Patches recordMove to detect: (a) castling with 5+ active mods,
+// (b) being down >15 material while facing Young Chaosfish.
+(function() {
+  const _origRecordMove = window.recordMove;
+  if (typeof _origRecordMove !== 'function') return;
+  window.recordMove = function(piece, x1, y1, x2, y2, captured, castle) {
+    const result = _origRecordMove.apply(this, arguments);
+    if (!window._relicGameCtx) return result;
+
+    // Emergency Exit Sign: castle while 5+ total mods are active for that player
+    if (castle) {
+      const castlerColor = (typeof isWhite === 'function' && isWhite(piece)) ? 'white' : 'black';
+      const mods = typeof activeMods === 'function' ? activeMods(castlerColor) : [];
+      if (mods.length >= 5) window._relicGameCtx.emergencyExit = true;
+    }
+
+    // Coral Academy Expulsion: human player down >15 material vs Young Chaosfish
+    if (aiActive && cfVariant === 'young' && typeof countMaterialBalance === 'function') {
+      const balance      = countMaterialBalance(); // positive = white ahead
+      const humanIsWhite = (aiColor === 'black');
+      const humanLead    = humanIsWhite ? balance : -balance;
+      if (humanLead < -15) window._relicGameCtx.materialDown15vsYoung = true;
+    }
+
+    return result;
+  };
+})();
 
 // ── Render a single relic card (HTML string) ───────────────
 function _relicCardHTML(relic, unlocked, obtainedAt, pos) {
