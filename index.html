@@ -15642,6 +15642,8 @@ let _promoDraftCallback = null;       // onComplete callback for pawn-sacrifice 
 let _draftInProgress    = false;      // true while the human's draft overlay is open
 let _pendingAiReveal    = null;       // AI's pick stored until human finishes (AI+personal)
 let _pendingOnlineReveal = null;      // opponent's pick stored until we finish (online+personal)
+let _waitingForOnlineDraft = false;   // true while we're showing "Waiting for opponent..." during their pick
+let _onlineDraftWaitTimeout = null;   // safety-net: force-clears the waiting screen if no reveal ever arrives
 
 // ── Personal Modifier Mode ────────────────────────────────────────────────
 // When true: each player maintains their own modifier stack.
@@ -24878,6 +24880,17 @@ function chaosDraft(drafterOverride, isPromoDraft = false){
             // Show the waiting screen; timer restarts when their pick arrives.
             _waitingForOnlineDraft = true;
             showPersonalDraftWaiting();
+            // Safety net: if the opponent's pick never arrives (dropped packet, edge
+            // case in the detection logic, etc.) don't leave the player stuck forever.
+            clearTimeout(_onlineDraftWaitTimeout);
+            _onlineDraftWaitTimeout = setTimeout(() => {
+              if (_waitingForOnlineDraft) {
+                _waitingForOnlineDraft = false;
+                hidePersonalDraftWaiting();
+                startTimer();
+                showToast('⏳ Sync delayed — resuming clock', 2500);
+              }
+            }, 8000);
           } else {
             // No reveal pending and no online wait — drafting fully done, restart clock.
             if (!_isP2PersonalPick) startTimer();
@@ -25164,6 +25177,7 @@ function resetDraftUIState(opts = {}) {
   _pendingAiReveal      = null;
   _pendingOnlineReveal  = null;
   _waitingForOnlineDraft = false;
+  clearTimeout(_onlineDraftWaitTimeout);
   if (typeof stopDraftTimer === 'function') stopDraftTimer();
   if (typeof stopDraftGlitch === 'function') stopDraftGlitch();
   const draft = document.getElementById('draft');
@@ -25674,7 +25688,11 @@ function handleRemoteData(data){
   updateChaosLevelUI();
 
   // Show opponent draft reveal if they just picked a new modifier.
-  // In personal mode the opponent's pick lands in their personal array.
+  // In personal mode, personal (non-environmental) picks land in their personal array,
+  // but environmental picks (Portal Pair, Duck, Tornado, Time Bomb, Bottomless Pit,
+  // Magnetic Poles, Cookie, It's Raining) land in the SHARED modifiers[] array instead —
+  // so both must be checked, or the "Waiting for opponent..." screen never clears when
+  // the opponent drafts an environmental modifier.
   if (data.modifiers && oldModifiers) {
     const opponentColor = myColor === 'white' ? 'black' : 'white';
     const oldOpponentPersonal = personalModifiers
@@ -25683,16 +25701,12 @@ function handleRemoteData(data){
     const newOpponentPersonal = personalModifiers
       ? (opponentColor === 'white' ? (data.whiteModifiers || []) : (data.blackModifiers || []))
       : data.modifiers;
-    const newlyDrafted = newOpponentPersonal.filter(m => !oldOpponentPersonal.includes(m));
-    if (newlyDrafted.length === 0 && !personalModifiers) {
-      // fallback: shared mode comparison
-      const newlyShared = data.modifiers.filter(m => !oldModifiers.includes(m));
-      if (newlyShared.length > 0) {
-        const modName2 = newlyShared[newlyShared.length - 1];
-        const modData2 = (allMods.find(m => m.name === modName2)) || (evolvedMods.find(m => m.name === modName2));
-        if (modData2) showOpponentDraftReveal(modData2);
-      }
-    } else if (newlyDrafted.length > 0) {
+
+    const newlyPersonal   = _diffArrayAdditions(oldOpponentPersonal, newOpponentPersonal);
+    const newlySharedEnv  = personalModifiers ? _diffArrayAdditions(oldModifiers, data.modifiers) : [];
+    const newlyDrafted    = newlyPersonal.length > 0 ? newlyPersonal : newlySharedEnv;
+
+    if (newlyDrafted.length > 0) {
       const modName = newlyDrafted[newlyDrafted.length - 1];
       const modData = (allMods.find(m => m.name === modName)) || (evolvedMods.find(m => m.name === modName));
       if (modData) {
@@ -25704,6 +25718,7 @@ function handleRemoteData(data){
           // restart the chess clock before showing the opponent reveal.
           if (_waitingForOnlineDraft) {
             _waitingForOnlineDraft = false;
+            clearTimeout(_onlineDraftWaitTimeout);
             hidePersonalDraftWaiting();
             startTimer();
           }
@@ -25822,6 +25837,20 @@ function handleRemoteData(data){
   if(moveCount > 0 && moveCount % currentDraftFrequency === 0 && moveCount !== oldMoveCount){
     chaosDraft();
   }
+}
+
+// Count-based "what got added" diff. A plain `.includes()` check silently misses
+// re-drafted duplicates of stackable modifiers (Tornado de Caballos, Duck of Eternal
+// Blocking, Cleaning Sponge, etc.) since it only checks presence, not count.
+function _diffArrayAdditions(oldArr, newArr) {
+  const counts = {};
+  (oldArr || []).forEach(x => { counts[x] = (counts[x] || 0) + 1; });
+  const added = [];
+  (newArr || []).forEach(x => {
+    if (counts[x] > 0) counts[x]--;
+    else added.push(x);
+  });
+  return added;
 }
 
 function sendGameState(){
